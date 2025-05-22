@@ -1,23 +1,23 @@
+import { Link } from "react-router-dom";
+
 type DrawerButtonProps = {
   label: string;
-  onClick?: () => void
-}
+  route: string;
+  closeDrawer: () => void;
+};
 
-const DrawerButton = ({
-  label,
-  onClick
-}: DrawerButtonProps) => {
+const DrawerButton = ({ label, route, closeDrawer }: DrawerButtonProps) => {
   return (
-    <button onClick={onClick} className="cursor-pointer w-full rounded-2xl bg-blue-500">
+    <Link to={route} onClick={closeDrawer}>
       {label}
-    </button>
-  )
+    </Link>
+  );
 };
 
 type DrawerProps = {
   closeDrawer: () => void;
   isVisible: boolean;
-}
+};
 const Drawer = ({ closeDrawer, isVisible }: DrawerProps) => {
   return (
     <div
@@ -29,9 +29,9 @@ const Drawer = ({ closeDrawer, isVisible }: DrawerProps) => {
         close drawerr
       </button>
       <div className="flex flex-col gap-4 mt-8">
-        <DrawerButton label="Dashboard" onClick={() => { console.log('navgate to dashboard') }} />
-        <DrawerButton label="Gastos" onClick={() => { console.log('navgate to Gastos') }} />
-        <DrawerButton label="Vendas" onClick={() => { console.log('navgate to Vendas') }} />
+        <DrawerButton label="Dashboard" route="/" closeDrawer={closeDrawer} />
+        <DrawerButton label="Gastos" route="/gastos" closeDrawer={closeDrawer} />
+        <DrawerButton label="Vendas" route="/vendas" closeDrawer={closeDrawer} />
       </div>
     </div>
   );
