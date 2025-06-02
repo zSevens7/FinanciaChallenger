@@ -1,15 +1,20 @@
 import { Link } from "react-router-dom";
+import { X,
+   LayoutDashboard,
+  BanknoteArrowDown,
+BanknoteArrowUp} from "lucide-react"
 
 type DrawerButtonProps = {
   label: string;
   route: string;
+  icon: React.ReactNode;
   closeDrawer: () => void;
 };
 
-const DrawerButton = ({ label, route, closeDrawer }: DrawerButtonProps) => {
+const DrawerButton = ({ label, route, closeDrawer, icon }: DrawerButtonProps) => {
   return (
     <Link to={route} onClick={closeDrawer}>
-      {label}
+      <div className="flex gap-2.5 p-1.5 bg-indigo-500 items-center justify-center rounded-full">{icon}{label}</div>
     </Link>
   );
 };
@@ -26,12 +31,12 @@ const Drawer = ({ closeDrawer, isVisible }: DrawerProps) => {
       }`}
     >
       <button className="cursor-pointer" onClick={closeDrawer}>
-        close drawerr
+        <X/>
       </button>
       <div className="flex flex-col gap-4 mt-8">
-        <DrawerButton label="Dashboard" route="/" closeDrawer={closeDrawer} />
-        <DrawerButton label="Gastos" route="/gastos" closeDrawer={closeDrawer} />
-        <DrawerButton label="Vendas" route="/vendas" closeDrawer={closeDrawer} />
+        <DrawerButton label="Dashboard" route="/" closeDrawer={closeDrawer} icon={<LayoutDashboard />}/>
+        <DrawerButton label="Gastos" route="/gastos" closeDrawer={closeDrawer} icon={<BanknoteArrowDown />} />
+        <DrawerButton label="Vendas" route="/vendas" closeDrawer={closeDrawer} icon={<BanknoteArrowUp />}/>
       </div>
     </div>
   );
