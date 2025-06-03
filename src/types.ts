@@ -1,6 +1,6 @@
 export interface Gasto {
   id: number
-  descricao: string
+  nome: string
   preco: number | null
   categoria: string
   tipoDespesa: string

@@ -4,16 +4,16 @@ import {
   aggregateByCategory,
   aggregateByTipoDespesa,
   prepareChartData,
-} from "../../services/agreggation"
-import { ActionButtons } from "../gastos/components/ActionButtons"
-import { FilterControls } from "../gastos/components/FilterControls"
-import { SummarySection } from "../gastos/components/SummarysSection"
-import { GastosTable } from "../gastos/components/GastosTable"
-import { Pagination } from "../gastos/components/Pagination"
-import { ChartsDisplay } from "../gastos/components/ChartsDisplay"
-import { HeaderApp } from "../gastos/components/HeaderApp"
-import ModalGasto from "../../../src/components/ModalGasto"
-import  ConfirmModal  from "../../components/ConfirmModal"
+} from "../services/agreggation"
+import { ActionButtons } from "../features/gastos/components/ActionButtons"
+import { FilterControls } from "../features/gastos/components/FilterControls"
+import { SummarySection } from "../features/gastos/components/SummarysSection"
+import { GastosTable } from "../features/gastos/components/GastosTable"
+import { Pagination } from "../features/gastos/components/Pagination"
+import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay"
+import { HeaderApp } from "../features/gastos/components/HeaderApp"
+import ModalGasto from "../components/ModalGasto"
+import  ConfirmModal  from "../components/ConfirmModal"
 import { LineElement, TimeScale } from 'chart.js'
 ChartJS.register(LineElement, TimeScale)
 import {

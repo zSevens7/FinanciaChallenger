@@ -59,9 +59,15 @@ export function prepareChartData(
 
   // paleta simples para barras/pizza
   const palette = [
-    "#4f46e5", "#10b981", "#f59e0b", "#ef4444",
-    "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6",
-  ]
+  "#E6E6FA",
+  "#D8BFD8", 
+  "#DDA0DD", 
+  "#BA55D3", 
+  "#9932CC", 
+  "#8A2BE2", 
+  "#6A0DAD", 
+  "#4B0082", 
+]
   const backgroundColor = values.map((_, i) => palette[i % palette.length])
   const borderColor = backgroundColor.map(c => c.replace(/0+$/, "1"))
 

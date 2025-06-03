@@ -3,7 +3,7 @@ import "./App.css";
 
 import Header from "./components/Header";
 import Dashboard from "./pages/Dashboard";
-import GastosPage from "./features/gastos/GastosPage";
+import GastosPage from "./pages/GastosPage";
 import Vendas from "./pages/Vendas";
 
 function App() {

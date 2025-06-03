@@ -1,16 +1,8 @@
 import { useState } from "react";
+import type { Gasto } from "../types"
 
 interface ModalGastoProps {
   onClose?: () => void;
-}
-
-interface NovoGastoSalvo {
-  id: number;
-  nome: string;
-  preco: number | null;
-  categoria: string;
-  tipoDespesa: string;
-  data: string;
 }
 
 function ModalGasto({ onClose }: ModalGastoProps) {
@@ -27,7 +19,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
       return;
     }
 
-    const novoGasto: NovoGastoSalvo = {
+    const novoGasto: Gasto = {
       id: Date.now(),
       data: dataGasto,
       nome: nomeGasto.trim(), 
@@ -36,7 +28,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
       tipoDespesa,
     };
 
-    const gastosExistentes = JSON.parse(localStorage.getItem("gastos") || "[]") as NovoGastoSalvo[];
+    const gastosExistentes = JSON.parse(localStorage.getItem("gastos") || "[]") as Gasto[];
     const novosGastos = [...gastosExistentes, novoGasto];
 
     localStorage.setItem("gastos", JSON.stringify(novosGastos));

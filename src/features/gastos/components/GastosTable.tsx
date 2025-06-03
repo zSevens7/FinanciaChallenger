@@ -1,13 +1,5 @@
 import { formatDate } from "../../../utils"
-
-interface Gasto {
-  id: number
-  descricao: string
-  preco: number | null
-  categoria: string
-  tipoDespesa: string
-  data: string
-}
+import type { Gasto } from "../../../types"
 
 interface GastosTableProps {
   gastos: Gasto[]
@@ -19,8 +11,8 @@ export const GastosTable = ({ gastos }: GastosTableProps) => (
       <thead className="bg-gray-200">
         <tr>
           <th className="p-3 text-left">Data</th>
-          <th className="p-3 text-left">Descrição</th>
-          <th className="p-3 text-right">Preço (R$)</th>
+          <th className="p-3 text-left">Nome</th>
+          <th className="p-3 text-left">Preço (R$)</th>
           <th className="p-3 text-left">Categoria</th>
           <th className="p-3 text-left">Tipo</th>
         </tr>
@@ -30,9 +22,7 @@ export const GastosTable = ({ gastos }: GastosTableProps) => (
           gastos.map(g => (
             <tr key={g.id} className="border-t hover:bg-gray-50">
               <td className="p-3">{formatDate(g.data)}</td>
-              <td className="p-3 truncate" title={g.descricao}>
-                {g.descricao}
-              </td>
+              <td className="p-3">{g.nome}</td>
               <td className="p-3 text-right">
                 {(g.preco ?? 0).toFixed(2)}
               </td>
