@@ -51,7 +51,7 @@ export const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ expenses }) => {
   if (!expenses || expenses.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg shadow text-center">
-        <h2 className="text-2xl font-semibold text-purple-600 mb-4">
+        <h2 className="text-2xl font-semibold text-[#964bca] mb-4">
           Detalhamento Mensal dos Gastos
         </h2>
         <p className="text-gray-500">Sem nenhum gasto para mostrar.</p>
@@ -61,7 +61,7 @@ export const ExpenseDetails: React.FC<ExpenseDetailsProps> = ({ expenses }) => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-2xl font-semibold text-purple-600 mb-6 text-center sm:text-left">
+      <h2 className="text-2xl font-semibold text-[#964bca] mb-6 text-center sm:text-left">
           Detalhamento mensal de gastos
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">

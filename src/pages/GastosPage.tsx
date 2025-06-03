@@ -86,7 +86,7 @@ export const GastosPage = () => {
   const tipoAgg = aggregateByTipoDespesa(filtered)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-purple-50 p-4">
+    <div className="min-h-screen bg-[#f4f5f7] p-4">
       <div className="container mx-auto bg-white rounded-xl shadow-2xl p-6">
         <HeaderApp />
 

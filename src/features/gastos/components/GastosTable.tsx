@@ -35,12 +35,10 @@ export const GastosTable = ({ gastos }: GastosTableProps) => {
         </button>
       </div>
 
-      {/* */}
-      <div className="shadow-lg shadow-purple-500/20 rounded-xl overflow-hidden">
-        {/*  */}
+      <div className="shadow-lg shadow-grey-500/20 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-purple-700 text-purple-50">
+            <thead className="bg-[#964bca] text-purple-50">
               <tr>
                 <th scope="col" className="p-4 text-left font-semibold tracking-wider whitespace-nowrap">Data</th>
                 <th scope="col" className="p-4 text-left font-semibold tracking-wider whitespace-nowrap">Nome</th>
