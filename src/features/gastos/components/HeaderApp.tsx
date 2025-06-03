@@ -1,10 +1,12 @@
 export const HeaderApp = () => (
-  <header className="mb-8 border-b pb-6 border-gray-200">
-    <h1 className="text-center text-3xl sm:text-4xl font-bold text-gray-800 mb-2">
-      Painel de Controle de Gastos
+  <header className="mb-8">
+    <h1
+      className="text-3xl sm:text-4xl font-bold text-left text-[#964bca] mb-2"
+    >
+      Gastos
     </h1>
-    <p className="text-center text-gray-500 mb-6 text-sm sm:text-base">
-      Gerencie suas despesas com a CODI.
-    </p>
+    <hr
+      className="border-0 h-0.5 bg-[#964bca] w-full"
+    />
   </header>
 )

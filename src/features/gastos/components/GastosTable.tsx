@@ -25,10 +25,10 @@ export const GastosTable = ({ gastos }: GastosTableProps) => {
         <button
           onClick={toggleMobileColumns}
           className={`px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-150 ease-in-out
-                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+                      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#964bca]
                       ${showAllColumnsMobile 
                         ? 'bg-purple-200 text-purple-700 hover:bg-purple-300' 
-                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                        : 'bg-[#964bca] text-white hover:bg-purple-700'
                       }`}
         >
           {showAllColumnsMobile ? 'Ocultar Detalhes' : 'Mostrar Detalhes'}

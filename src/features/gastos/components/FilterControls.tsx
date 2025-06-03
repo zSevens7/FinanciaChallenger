@@ -11,8 +11,8 @@ export const FilterControls = ({
   setCurrentPage,
 }: FilterControlsProps) => (
 
-  <section className="mb-8 p-4 bg-purple-50 rounded-lg shadow">
-    <h2 className="text-xl font-semibold text-purple-700 mb-3 text-center">
+  <section className="mb-8 p-4 bg-gray-50 hover:bg-gray-100 rounded-lg shadow">
+    <h2 className="text-xl font-semibold text-[#964bca] mb-3 text-center">
       Filtros
     </h2>
     <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center items-center">
