@@ -10,7 +10,7 @@ export const FilterControls = ({
   uniqueMonths,
   setCurrentPage,
 }: FilterControlsProps) => (
-  // Applied styles similar to SummarySection
+
   <section className="mb-8 p-4 bg-purple-50 rounded-lg shadow">
     <h2 className="text-xl font-semibold text-purple-700 mb-3 text-center">
       Filtros
@@ -23,7 +23,6 @@ export const FilterControls = ({
           setSelectedMonth("");
           setCurrentPage(1);
         }}
-        // Added some styling to select to better match the theme
         className="p-2 border border-purple-300 rounded-md w-full sm:w-auto bg-white focus:ring-purple-500 focus:border-purple-500"
       >
         <option value="">Todos os Anos</option>
@@ -40,7 +39,7 @@ export const FilterControls = ({
             setSelectedMonth(e.target.value);
             setCurrentPage(1);
           }}
-          // Added some styling to select to better match the theme
+
           className="p-2 border border-purple-300 rounded-md w-full sm:w-auto bg-white focus:ring-purple-500 focus:border-purple-500"
         >
           <option value="">Todos os Meses</option>

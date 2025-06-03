@@ -12,6 +12,7 @@ import { GastosTable } from "../features/gastos/components/GastosTable"
 import { Pagination } from "../features/gastos/components/Pagination"
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay"
 import { HeaderApp } from "../features/gastos/components/HeaderApp"
+import { ExpenseDetails } from "../features/gastos/components/ExpenseDetails"
 import ModalGasto from "../components/ModalGasto"
 import  ConfirmModal  from "../components/ConfirmModal"
 import { LineElement, TimeScale } from 'chart.js'
@@ -119,6 +120,9 @@ export const GastosPage = () => {
         />
 
         <SummarySection totalAcumulado={totalAcum} />
+
+        <ExpenseDetails expenses={paginated}/>
+
 
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-3">
