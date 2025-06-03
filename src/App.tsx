@@ -3,7 +3,7 @@ import "./App.css";
 
 import Header from "./components/Header";
 import Dashboard from "./pages/Dashboard";
-import Gastos from "./pages/Gastos";
+import GastosPage from "./features/gastos/GastosPage";
 import Vendas from "./pages/Vendas";
 
 function App() {
@@ -12,7 +12,7 @@ function App() {
       <Header>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/gastos" element={<Gastos />} />
+          <Route path="/gastos" element={<GastosPage />} />
           <Route path="/vendas" element={<Vendas />} />
         </Routes>
       </Header>

@@ -1,0 +1,58 @@
+import { monthNames } from "../../../utils"
+
+interface FilterControlsProps {
+  selectedYear: string
+  setSelectedYear: (y: string) => void
+  uniqueYears: string[]
+  selectedMonth: string
+  setSelectedMonth: (m: string) => void
+  uniqueMonths: string[]
+  setCurrentPage: (p: number) => void
+}
+
+export const FilterControls = ({
+  selectedYear,
+  setSelectedYear,
+  uniqueYears,
+  selectedMonth,
+  setSelectedMonth,
+  uniqueMonths,
+  setCurrentPage,
+}: FilterControlsProps) => (
+  <section className="mb-8 p-4 bg-gray-50 rounded-lg shadow-inner">
+    <h2 className="text-xl font-semibold text-gray-700 mb-3 text-center sm:text-left">
+      Filtros
+    </h2>
+    <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center items-center">
+      <select
+        value={selectedYear}
+        onChange={e => {
+          setSelectedYear(e.target.value)
+          setSelectedMonth("")
+          setCurrentPage(1)
+        }}
+        className="p-2 border rounded w-full sm:w-auto"
+      >
+        <option value="">Todos os Anos</option>
+        {uniqueYears.map(y => (
+          <option key={y} value={y}>{y}</option>
+        ))}
+      </select>
+      {selectedYear && (
+        <select
+          value={selectedMonth}
+          onChange={e => {
+            setSelectedMonth(e.target.value)
+            setCurrentPage(1)
+          }}
+          className="p-2 border rounded w-full sm:w-auto"
+        >
+          <option value="">Todos os Meses</option>
+          {uniqueMonths.map(m => (
+            <option key={m} value={m}>{monthNames[m] || m}</option>
+          ))}
+        </select>
+      )}
+    </div>
+  </section>
+)
