@@ -125,7 +125,7 @@ export const GastosPage = () => {
 
 
         <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-3">
+          <h2 className="text-xl mt-10 font-semibold mb-3">
             Detalhes dos Gastos
           </h2>
           <GastosTable gastos={paginated} />
