@@ -1,14 +1,5 @@
 import { monthNames } from "../../../utils"
-
-interface FilterControlsProps {
-  selectedYear: string
-  setSelectedYear: (y: string) => void
-  uniqueYears: string[]
-  selectedMonth: string
-  setSelectedMonth: (m: string) => void
-  uniqueMonths: string[]
-  setCurrentPage: (p: number) => void
-}
+import type { FilterControlsProps } from "../../../types"
 
 export const FilterControls = ({
   selectedYear,
@@ -19,40 +10,47 @@ export const FilterControls = ({
   uniqueMonths,
   setCurrentPage,
 }: FilterControlsProps) => (
-  <section className="mb-8 p-4 bg-gray-50 rounded-lg shadow-inner">
-    <h2 className="text-xl font-semibold text-gray-700 mb-3 text-center sm:text-left">
+  // Applied styles similar to SummarySection
+  <section className="mb-8 p-4 bg-purple-50 rounded-lg shadow">
+    <h2 className="text-xl font-semibold text-purple-700 mb-3 text-center">
       Filtros
     </h2>
     <div className="flex flex-col sm:flex-row gap-4 mb-4 justify-center items-center">
       <select
         value={selectedYear}
-        onChange={e => {
-          setSelectedYear(e.target.value)
-          setSelectedMonth("")
-          setCurrentPage(1)
+        onChange={(e) => {
+          setSelectedYear(e.target.value);
+          setSelectedMonth("");
+          setCurrentPage(1);
         }}
-        className="p-2 border rounded w-full sm:w-auto"
+        // Added some styling to select to better match the theme
+        className="p-2 border border-purple-300 rounded-md w-full sm:w-auto bg-white focus:ring-purple-500 focus:border-purple-500"
       >
         <option value="">Todos os Anos</option>
-        {uniqueYears.map(y => (
-          <option key={y} value={y}>{y}</option>
+        {uniqueYears.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
         ))}
       </select>
       {selectedYear && (
         <select
           value={selectedMonth}
-          onChange={e => {
-            setSelectedMonth(e.target.value)
-            setCurrentPage(1)
+          onChange={(e) => {
+            setSelectedMonth(e.target.value);
+            setCurrentPage(1);
           }}
-          className="p-2 border rounded w-full sm:w-auto"
+          // Added some styling to select to better match the theme
+          className="p-2 border border-purple-300 rounded-md w-full sm:w-auto bg-white focus:ring-purple-500 focus:border-purple-500"
         >
           <option value="">Todos os Meses</option>
-          {uniqueMonths.map(m => (
-            <option key={m} value={m}>{monthNames[m] || m}</option>
+          {uniqueMonths.map((m) => (
+            <option key={m} value={m}>
+              {monthNames[m] || m}
+            </option>
           ))}
         </select>
       )}
     </div>
   </section>
-)
+);

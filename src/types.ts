@@ -27,6 +27,10 @@ export interface ConfirmModalProps {
   onConfirm: () => void
 }
 
+export interface ExpenseDetailsProps {
+  expenses: Gasto[];
+}
+
 // Props para controles de filtro de data
 export interface FilterControlsProps {
   selectedYear: string
