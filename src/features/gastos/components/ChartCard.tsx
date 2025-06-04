@@ -1,11 +1,5 @@
 import { Bar, Pie } from "react-chartjs-2"
-
-interface ChartCardProps {
-  title: string
-  chartType: "bar" | "pie"
-  data: any
-  options: any
-}
+import type { ChartCardProps } from "../../../types"
 
 export const ChartCard = ({
   title,

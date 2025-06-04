@@ -79,3 +79,11 @@ export interface ChartsDisplayProps {
   }[]
   gridCols?: string
 }
+
+// Props para o card de gráfico
+export interface ChartCardProps {
+  title: string
+  chartType: "bar" | "pie"
+  data: any
+  options: any
+}
