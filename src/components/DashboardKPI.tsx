@@ -1,3 +1,5 @@
+import FloatingBox from "./FloatingBox";
+
 type DashboardKPIProps = {
   title: string;
   value: string;
@@ -8,12 +10,12 @@ const DashboardKPI = ({ title, value, period }: DashboardKPIProps) => {
   return (
     <div className="flex flex-col w-full text-purple-500 text-xxl gap-2 max-w-96">
       {title}
-      <div className="bg-white pt-5 pr-6 pb-5 pl-6 rounded-lg gap-5 shadow-md flex flex-col">
+      <FloatingBox>
         <div className="flex flex-row w-full justify-between items-center border-b pb-3 border-gray-100">
           <div className="text-green-500 font-bold text-2xl ">{value}</div>
           <div className="text-purple-300 text-sm">{period}</div>
         </div>
-      </div>
+      </FloatingBox>
     </div>
   );
 };
