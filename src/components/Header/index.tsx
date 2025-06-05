@@ -19,12 +19,14 @@ function Header({ children }: HeaderProps) {
         {/* Burger menu */}
         {/* Logo */}
         <div className="flex-shrink-0 flex items-center gap-2">
-          <BurgerMenu
-            setDrawerOpen={() => {
-              setDrawerVisible(true);
-            }}
-          />
-          <img src={logo} alt="Logo" className="h-10 w-auto" />
+          <div className="md:hidden">
+            <BurgerMenu
+              setDrawerOpen={() => {
+                setDrawerVisible(true);
+              }}
+            />
+          </div>
+          <img src={logo} alt="Logo" className="h-12 w-auto md:h-20" />
         </div>
 
         {/* Barra de Pesquisa + Perfil */}
@@ -59,13 +61,25 @@ function Header({ children }: HeaderProps) {
           />
         </div>
       </header>
-      {children}
-      <Drawer
-        isVisible={drawerVisible}
-        closeDrawer={() => {
-          setDrawerVisible(false);
-        }}
-      />
+      <div className="flex flex-1">
+        <Drawer className="hidden md:flex" />
+        {children}
+      </div>
+
+      <div
+        className={`p-6 absolute h-full w-96 bg-blue-300 transition-all duration-500 transform ${
+          drawerVisible ? "translate-x-0" : "-translate-x-full"
+        } md:hidden`}
+      >
+        <Drawer
+          className={`flex flex-col h-full absolute transition-all duration-500 transform ${
+            drawerVisible ? "translate-x-0" : "-translate-x-full"
+          } md:hidden`}
+          closeDrawer={() => {
+            setDrawerVisible(false);
+          }}
+        />
+      </div>
     </div>
   );
 }
