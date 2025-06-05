@@ -35,7 +35,7 @@ type DrawerProps = {
 };
 const Drawer = ({ closeDrawer, className }: DrawerProps) => {
   return (
-    <div className={`p-6 w-96 bg-purple-600 ${className}`}>
+    <div className={`p-6 w-96 bg-purple-500 ${className}`}>
       {closeDrawer && (
         <button className="cursor-pointer" onClick={closeDrawer}>
           <X />

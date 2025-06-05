@@ -111,6 +111,7 @@ const DashHistory = () => {
             isSelected={selectedTab === "Gastos"}
             onClick={() => {
               setSelectedTab("Gastos");
+            
             }}
           />
         </div>

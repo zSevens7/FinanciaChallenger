@@ -25,7 +25,7 @@ const Dashboard = () => {
             selected={startDate}
             onChange={(date) => setStartDate(date || new Date())}
             customInput={
-              <input className="w-full sm:w-auto bg-[#964bca] text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100" />
+              <input className="w-full sm:w-auto bg-purple-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100" />
             }
           />
 
