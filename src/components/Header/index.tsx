@@ -67,7 +67,7 @@ function Header({ children }: HeaderProps) {
       </div>
 
       <div
-        className={`p-6 absolute h-full w-96 bg-blue-300 transition-all duration-500 transform ${
+        className={`p-6 absolute h-full w-102 bg-purple-600 transition-all duration-500 transform ${
           drawerVisible ? "translate-x-0" : "-translate-x-full"
         } md:hidden`}
       >
