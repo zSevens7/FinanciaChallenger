@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from "react";
-import BurgerMenu from "./subcomponents/BurgerMenu";
+import BurgerMenu from "./Drawer/BurgerMenu/BurgerMenu";
 import logo from "../../assets/icons/logo.png";
 import perfil from "../../assets/icons/perfil.jpg";
-import Drawer from "./subcomponents/Drawer";
+import Drawer from "./Drawer/BurgerMenu/Drawer";
 
 type HeaderProps = {
   children: ReactNode;
@@ -32,7 +32,7 @@ function Header({ children }: HeaderProps) {
         {/* Barra de Pesquisa + Perfil */}
         <div className="flex items-center space-x-4">
           {/* Barra de Pesquisa */}
-          <div className="flex items-center bg-gray-100 rounded-full px-3 py-1 w-40 sm:w-60">
+          <div className="flex items-center bg-gray-50git rounded-full px-3 py-1 w-40 sm:w-60">
             <input
               type="text"
               placeholder="Pesquisar"

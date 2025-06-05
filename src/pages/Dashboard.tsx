@@ -25,7 +25,7 @@ const Dashboard = () => {
             selected={startDate}
             onChange={(date) => setStartDate(date || new Date())}
             customInput={
-              <input className=" bg-purple-500 text-white font-medium rounded-lg p-4 flex items-center justify-center max-w-96 text-center cursor-pointer" />
+              <input className="GhostButton bg-transparent border border-purple-500 text-purple-500 font-semibold py-2 px-4 rounded hover:bg-purple-500 hover:text-white transition-colors duration-300 cursor-pointer" />
             }
           />
 

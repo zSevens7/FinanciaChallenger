@@ -107,6 +107,7 @@ const DashHistory = () => {
             isSelected={selectedTab === undefined}
             onClick={() => {
               setSelectedTab(undefined);
+              
             }}
           />
           <HistorySelectButton
