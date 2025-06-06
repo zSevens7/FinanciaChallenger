@@ -1,4 +1,4 @@
-import FloatingBox from "./FloatingBox";
+import FloatingBox from "../../components/FloatingBox";
 
 type DashboardKPIProps = {
   title: string;
