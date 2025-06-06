@@ -1,6 +1,11 @@
 import { formatDate } from "../../../utils"
 import { useState } from "react";
-import type { GastosTableProps } from "../../../types";
+import type { Gasto } from "../../../types";
+
+// Props para tabela de gastos
+export interface GastosTableProps {
+  gastos: Gasto[]
+}
 
 export const GastosTable = ({ gastos }: GastosTableProps) => {
   //vaii definir que qnd estiver no modo mobile vai exibir uma tabela compacta

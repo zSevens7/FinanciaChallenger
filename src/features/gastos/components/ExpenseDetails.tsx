@@ -1,5 +1,5 @@
 import React from "react"
-import type { ExpenseDetailsProps } from "../../../types";
+import type { Gasto } from "../../../types";
 
 import {
   HomeIcon, //MORADIA
@@ -12,6 +12,9 @@ import {
 } from "@heroicons/react/24/outline"; 
 
 
+export interface ExpenseDetailsProps {
+  expenses: Gasto[];
+}
 
 const iconMap: Record<string, React.ReactElement> = {
   moradia: (
