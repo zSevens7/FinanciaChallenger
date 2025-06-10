@@ -1,5 +1,15 @@
 import { monthNames } from "../../../utils"
-import type { FilterControlsProps } from "../../../types"
+
+// Props para controles de filtro de data
+export interface FilterControlsProps {
+  selectedYear: string
+  setSelectedYear: (year: string) => void
+  uniqueYears: string[]
+  selectedMonth: string
+  setSelectedMonth: (month: string) => void
+  uniqueMonths: string[]
+  setCurrentPage: (page: number) => void
+}
 
 export const FilterControls = ({
   selectedYear,

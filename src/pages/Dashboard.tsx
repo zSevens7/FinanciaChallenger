@@ -3,7 +3,7 @@ import { useState } from "react";
 import DatePicker from "react-datepicker";
 
 import "react-datepicker/dist/react-datepicker.css";
-import DashboardKPI from "../components/DashboardKPI";
+import DashboardKPI from "../features/Dashboard/DashboardKPI";
 import DashHistory from "../components/DashHistory/DashHistory";
 import PageContainer from "../features/gastos/components/PageContainer";
 

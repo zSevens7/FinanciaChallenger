@@ -1,5 +1,12 @@
 import { Bar, Pie } from "react-chartjs-2"
-import type { ChartCardProps } from "../../../types"
+
+// Props para cards de gráfico
+export interface ChartCardProps {
+  title: string
+  chartType: "bar" | "pie"
+  data: any
+  options: any
+}
 
 export const ChartCard = ({
   title,
