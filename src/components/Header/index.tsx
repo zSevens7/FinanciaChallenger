@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from "react";
-import BurgerMenu from "./subcomponents/BurgerMenu";
+import BurgerMenu from "./Drawer/BurgerMenu/BurgerMenu";
 import logo from "../../assets/icons/logo.png";
 import perfil from "../../assets/icons/perfil.jpg";
-import Drawer from "./subcomponents/Drawer";
+import Drawer from "./Drawer/BurgerMenu/Drawer";
 
 type HeaderProps = {
   children: ReactNode;
@@ -19,18 +19,20 @@ function Header({ children }: HeaderProps) {
         {/* Burger menu */}
         {/* Logo */}
         <div className="flex-shrink-0 flex items-center gap-2">
-          <BurgerMenu
-            setDrawerOpen={() => {
-              setDrawerVisible(true);
-            }}
-          />
-          <img src={logo} alt="Logo" className="h-10 w-auto" />
+          <div className="md:hidden">
+            <BurgerMenu
+              setDrawerOpen={() => {
+                setDrawerVisible(true);
+              }}
+            />
+          </div>
+          <img src={logo} alt="Logo" className="h-12 w-auto md:h-20" />
         </div>
 
         {/* Barra de Pesquisa + Perfil */}
         <div className="flex items-center space-x-4">
           {/* Barra de Pesquisa */}
-          <div className="flex items-center bg-gray-100 rounded-full px-3 py-1 w-40 sm:w-60">
+          <div className="flex items-center bg-gray-50git rounded-full px-3 py-1 w-40 sm:w-60">
             <input
               type="text"
               placeholder="Pesquisar"
@@ -59,13 +61,25 @@ function Header({ children }: HeaderProps) {
           />
         </div>
       </header>
-      {children}
-      <Drawer
-        isVisible={drawerVisible}
-        closeDrawer={() => {
-          setDrawerVisible(false);
-        }}
-      />
+      <div className="flex flex-1">
+        <Drawer className="hidden md:flex" />
+        {children}
+      </div>
+
+      <div
+        className={`p-6 absolute h-full w-102 bg-purple-600 transition-all duration-500 transform ${
+          drawerVisible ? "translate-x-0" : "-translate-x-full"
+        } md:hidden`}
+      >
+        <Drawer
+          className={`flex flex-col h-full absolute transition-all duration-500 transform ${
+            drawerVisible ? "translate-x-0" : "-translate-x-full"
+          } md:hidden`}
+          closeDrawer={() => {
+            setDrawerVisible(false);
+          }}
+        />
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ function GhostButton({ onClick, label }) {
   return (
     <button
       onClick={onClick}
-      className="GhostButton bg-transparent border border-purple-500 text-purple-500 font-semibold py-2 px-4 rounded hover:bg-purple-500 hover:text-white transition-colors duration-300 cursor-pointer"
+      className="w-full sm:w-auto bg-purple-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
     >
       {label}
     </button>

@@ -12,7 +12,7 @@ const HistorySelectButton = ({
     : "text-purple-200 cursor-pointer";
   return (
     <div className={`${className} font-bold`} onClick={onClick}>
-      {label}
+      {label} 
     </div>
   );
 };

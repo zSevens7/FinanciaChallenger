@@ -28,6 +28,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import PageContainer from "../features/gastos/components/PageContainer"
 
 ChartJS.register(
   CategoryScale,   
@@ -86,7 +87,7 @@ export const GastosPage = () => {
   const tipoAgg = aggregateByTipoDespesa(filtered)
 
   return (
-    <div className="min-h-screen bg-[#f4f5f7] p-4">
+    <PageContainer>
       <div className="container mx-auto bg-white rounded-xl shadow-2xl p-6">
         <HeaderApp />
 
@@ -207,7 +208,7 @@ export const GastosPage = () => {
           message="Deseja apagar todos os gastos? Esta ação não pode ser desfeita."
         />
       </div>
-    </div>
+    </PageContainer>
   )
 }
 

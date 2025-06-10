@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import ModalVenda from "../components/ModalVenda";
+import PageContainer from "../features/gastos/components/PageContainer";
 
 interface Venda {
   id: number;
@@ -49,18 +50,18 @@ const Vendas = () => {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-center text-2xl font-bold mb-4">Vendas</h1>
+    <PageContainer>
+      <h1 className="p-6 font-bold text-2xl text-purple-700 border-b border-purple-700 mb-7 ">Vendas</h1>
       <div className="flex gap-2 mb-4 justify-center">
         <button
           onClick={() => setShowModal(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
+          className="w-full sm:w-auto bg-purple-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
         >
           Adicionar Venda
         </button>
         <button
           onClick={clearData}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+          className="w-full sm:w-auto bg-red-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
         >
           Limpar Dados
         </button>
@@ -124,7 +125,7 @@ const Vendas = () => {
           </tbody>
         </table>
       </div>
-    </div>
+    </PageContainer>
   );
 };
 

@@ -16,17 +16,7 @@ const HistoryCard = ({
 }) => {
   const getIcon = () => {
     switch (tipo) {
-      // Retornar Ícone de acordo com o tipo da transação
-      // case value:
-
-      //   break;
-      case "Aluguel":
-        return (
-          <img
-            src="https://www.iconpacks.net/icons/1/free-building-icon-1062-thumb.png"
-            className="w-8 h-8"
-          />
-        );
+      
 
       default:
         return tipo;
@@ -122,6 +112,7 @@ const DashHistory = () => {
             isSelected={selectedTab === "Gastos"}
             onClick={() => {
               setSelectedTab("Gastos");
+            
             }}
           />
         </div>
@@ -129,6 +120,7 @@ const DashHistory = () => {
         <GhostButton
           onClick={() => {
             setVerMais(!verMais);
+          
           }}
           label={!verMais ? "Ver mais" : "Ver menos"}
         />
