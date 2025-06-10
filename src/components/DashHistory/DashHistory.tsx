@@ -1,6 +1,6 @@
 import { useState } from "react";
 import FloatingBox from "../FloatingBox";
-import GhostButton from "../GhostButton";
+import PrimaryButton from "../PrimaryButton";
 import HistorySelectButton from "./subcomponents/HistorySelectButton";
 import transactionHistory from "../../assets/data/transactions.json";
 const desteMes = transactionHistory["2025-06"];
@@ -88,7 +88,7 @@ const DashHistory = () => {
 
   return (
     <div>
-      <div className="flex flex-col w-full text-purple-500 text-xxl gap-2 max-w-96 mb-2">
+      <div className="flex flex-col w-full text-purple-600 text-xxl gap-2 max-w-96 mb-2">
         Transações Recentes
       </div>
       <FloatingBox containerClassName="w-96">
@@ -117,7 +117,7 @@ const DashHistory = () => {
           />
         </div>
         {data}
-        <GhostButton
+        <PrimaryButton
           onClick={() => {
             setVerMais(!verMais);
           

@@ -9,7 +9,7 @@ export const ActionButtons = ({ onAdicionarGasto, onLimparDados }: ActionButtons
     {/* Botão Adicionar Gasto */}
     <button
       onClick={onAdicionarGasto}
-      className="w-full sm:w-auto bg-purple-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
+      className="w-full sm:w-auto bg-purple-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
       aria-label="Adicionar novo gasto" 
     >
       <PlusCircle size={20} /> {/* Ícone de adicionar */}
@@ -19,7 +19,7 @@ export const ActionButtons = ({ onAdicionarGasto, onLimparDados }: ActionButtons
     {/* Botão Limpar Dados */}
     <button
       onClick={onLimparDados}
-      className="w-full sm:w-auto bg-purple-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100" 
+      className="w-full sm:w-auto bg-red-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100" 
     >
       <Trash2 size={20} /> 
       Limpar Dados

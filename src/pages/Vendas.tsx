@@ -51,17 +51,17 @@ const Vendas = () => {
 
   return (
     <PageContainer>
-      <h1 className="p-6 font-bold text-2xl text-purple-700 border-b border-purple-700 mb-7 ">Vendas</h1>
+      <h1 className="p-6 font-bold text-2xl text-purple-600 border-b border-purple-600 mb-7 ">Vendas</h1>
       <div className="flex gap-2 mb-4 justify-center">
         <button
           onClick={() => setShowModal(true)}
-          className="w-full sm:w-auto bg-purple-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
+          className="w-full sm:w-auto bg-purple-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
         >
           Adicionar Venda
         </button>
         <button
           onClick={clearData}
-          className="w-full sm:w-auto bg-red-400 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
+          className="w-full sm:w-auto bg-red-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
         >
           Limpar Dados
         </button>

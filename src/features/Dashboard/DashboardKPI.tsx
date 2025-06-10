@@ -14,7 +14,7 @@ const DashboardKPI = ({ title, value, period }: DashboardKPIProps) => {
       : "text-green-500";
 
   return (
-    <div className="flex flex-col w-full text-purple-500 text-xxl gap-2 max-w-96">
+    <div className="flex flex-col w-full text-purple-600 text-xxl gap-2 max-w-96">
       {title}
       <FloatingBox>
         <div className="flex flex-row w-full justify-between items-center border-b pb-3 border-gray-100">
