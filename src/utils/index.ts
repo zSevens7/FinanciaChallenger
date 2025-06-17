@@ -28,3 +28,15 @@ export function toCurrency(
     currency,
   }).format(value)
 }
+
+export function getUniqueYears(items: { data: string }[]) {
+  const years = items.map(item => new Date(item.data).getFullYear().toString());
+  return Array.from(new Set(years)).sort();
+}
+
+export function getUniqueMonthsForYear(items: { data: string }[], year: string) {
+  const months = items
+    .filter(item => new Date(item.data).getFullYear().toString() === year)
+    .map(item => (new Date(item.data).getMonth() + 1).toString().padStart(2, '0'));
+  return Array.from(new Set(months)).sort();
+}
