@@ -1,130 +1,228 @@
-import { useState, useEffect } from "react";
-import ModalVenda from "../components/ModalVenda";
-import PageContainer from "../features/gastos/components/PageContainer";
+// src/pages/Vendas.tsx
 
-interface Venda {
-  id: number;
-  data: string;
-  tipoCurso: string;
-  nomeCliente: string;
-  email: string;
-  telefone: string;
-  valorBruto: number | null;
-  desconto: number | null;
-  imposto: number | null;
-  comissao: number | null;
-  valorFinal: number | null;
-}
+import { useState, useEffect, useCallback, useMemo } from "react";
+import ModalVenda from "../components/ModalVenda";
+import ConfirmModal from "../components/ConfirmModal";
+import PageContainer from "../features/vendas/PageContainer";
+import { HeaderApp } from "../features/vendas/HeaderApp";
+
+import { ActionButtons } from "../features/vendas/ActionButtons";
+import { FilterControls } from "../features/vendas/FilterControls";
+import { Pagination } from "../features/vendas/Pagination";
+import { SummarySection } from "../features/vendas/SummarySection";
+import { VendasTable } from "../features/vendas/VendasTable";
+import { ChartsDisplay } from "../features/vendas/ChartDisplay";
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  TimeScale,
+} from 'chart.js';
+
+import { getUniqueYears, getUniqueMonthsForYear, monthNames } from "../utils";
+import { aggregateSalesByCourseType, aggregateSalesByPeriod, prepareChartData } from "../services/agreggation";
+import type { Venda } from "../types/index";
+
+// Se você já registrou em ChartCard.tsx ou em um arquivo de configuração global, pode remover daqui.
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  LineElement,
+  TimeScale
+);
 
 const Vendas = () => {
   const [showModal, setShowModal] = useState(false);
-  const [vendas, setVendas] = useState<Venda[]>([]);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [allVendas, setAllVendas] = useState<Venda[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
 
-  // Função para carregar os dados salvos no localStorage
-  const refreshVendas = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const refreshVendas = useCallback(() => {
     const data = JSON.parse(localStorage.getItem("vendas") || "[]") as Venda[];
-    setVendas(data);
-  };
+    data.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    setAllVendas(data);
+  }, []);
 
   useEffect(() => {
     refreshVendas();
-  }, []);
+  }, [refreshVendas]);
 
-  // Fecha o modal e atualiza os dados
   const closeModal = () => {
     setShowModal(false);
     refreshVendas();
   };
 
-  // Função para limpar os dados do localStorage (para ambiente de testes)
   const clearData = () => {
     localStorage.removeItem("vendas");
-    setVendas([]);
+    setAllVendas([]);
+    setShowConfirm(false);
   };
 
-  // Função para formatar a data de "yyyy-mm-dd" para "dd/mm/yyyy"
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "";
-    const [year, month, day] = dateStr.split("-");
-    return `${day}/${month}/${year}`;
-  };
+  const uniqueYears = useMemo(() => getUniqueYears(allVendas), [allVendas]);
+  const uniqueMonths = useMemo(() => {
+    if (!selectedYear) return [];
+    return getUniqueMonthsForYear(allVendas, selectedYear);
+  }, [allVendas, selectedYear]);
+
+  const filteredVendas = useMemo(() => {
+    return allVendas.filter(venda => {
+      const year = venda.data.substring(0, 4);
+      const month = venda.data.substring(5, 7);
+
+      const matchesYear = selectedYear ? year === selectedYear : true;
+      const matchesMonth = selectedMonth ? month === selectedMonth : true;
+
+      return matchesYear && matchesMonth;
+    });
+  }, [allVendas, selectedYear, selectedMonth]);
+
+  const totalFilteredVendas = filteredVendas.length;
+  const totalPages = Math.ceil(totalFilteredVendas / itemsPerPage);
+
+  const paginatedVendas = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredVendas.slice(startIndex, endIndex);
+  }, [filteredVendas, currentPage, itemsPerPage]);
+
+  const totalAcumuladoLucro = useMemo(() => {
+    return filteredVendas.reduce((sum, venda) => sum + (venda.valorFinal ?? 0), 0);
+  }, [filteredVendas]);
+
+  const salesByCourseTypeAgg = useMemo(() => aggregateSalesByCourseType(filteredVendas), [filteredVendas]);
+  const salesByPeriodAgg = useMemo(() => aggregateSalesByPeriod(filteredVendas, selectedYear, selectedMonth), [filteredVendas, selectedYear, selectedMonth]);
+
+  const chartDataCourseType = useMemo(() =>
+    prepareChartData(salesByCourseTypeAgg, "Vendas por Tipo de Curso (R$)", "bar")
+  , [salesByCourseTypeAgg]);
+
+  const chartDataCourseTypePie = useMemo(() =>
+    prepareChartData(salesByCourseTypeAgg, "Distribuição por Tipo de Curso (%)", "pie")
+  , [salesByCourseTypeAgg]);
+
+  const chartDataPeriodSales = useMemo(() => {
+    const rawLabels = Object.keys(salesByPeriodAgg);
+    const sortedLabels = rawLabels.sort((a, b) => {
+        const na = parseInt(a, 10), nb = parseInt(b, 10);
+        return !isNaN(na) && !isNaN(nb) ? na - nb : a.localeCompare(b);
+    });
+    const dataValues = sortedLabels.map(l => salesByPeriodAgg[l]);
+    const formattedLabels = sortedLabels.map(l => monthNames[l] || l);
+
+    return prepareChartData(
+        sortedLabels.reduce((acc, _, index) => {
+            acc[formattedLabels[index]] = dataValues[index];
+            return acc;
+        }, {} as Record<string, number>),
+        selectedYear && !selectedMonth ? `Vendas Mensais em ${selectedYear} (R$)` : 'Evolução de Vendas por Ano/Mês (R$)',
+        selectedYear && !selectedMonth ? "bar" : "line"
+    );
+  }, [salesByPeriodAgg, selectedYear, selectedMonth, monthNames]);
+
 
   return (
     <PageContainer>
-      <h1 className="p-6 font-bold text-2xl text-purple-600 border-b border-purple-600 mb-7 ">Vendas</h1>
-      <div className="flex gap-2 mb-4 justify-center">
-        <button
-          onClick={() => setShowModal(true)}
-          className="w-full sm:w-auto bg-purple-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
-        >
-          Adicionar Venda
-        </button>
-        <button
-          onClick={clearData}
-          className="w-full sm:w-auto bg-red-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl hover:grey-200 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-opacity-75 flex items-center justify-center gap-2 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 hover:scale-100"
-        >
-          Limpar Dados
-        </button>
-      </div>
+      {/* 1. Header do App (Título da Página) */}
+      <HeaderApp title="Vendas" />
+
+      {/* 2. Botões de Ação */}
+      <ActionButtons
+        onAdicionarVenda={() => setShowModal(true)}
+        onLimparDadosVendas={() => setShowConfirm(true)}
+      />
 
       {showModal && <ModalVenda onClose={closeModal} />}
 
-      <div className="overflow-x-auto mt-4">
-        <table className="min-w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="p-2 border">Data</th>
-              <th className="p-2 border">Tipo Curso</th>
-              <th className="p-2 border">Cliente</th>
-              <th className="p-2 border hidden min-[601px]:table-cell">Email</th>
-              <th className="p-2 border hidden min-[801px]:table-cell">Telefone</th>
-              <th className="p-2 border hidden min-[601px]:table-cell">Valor Bruto (R$)</th>
-              <th className="p-2 border hidden min-[1001px]:table-cell">Desconto (R$)</th>
-              <th className="p-2 border hidden min-[1001px]:table-cell">Imposto (R$)</th>
-              <th className="p-2 border hidden min-[1001px]:table-cell">Comissão (R$)</th>
-              <th className="p-2 border">Valor Final (R$)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vendas.length > 0 ? (
-              vendas.map((venda) => (
-                <tr key={venda.id} className="border-t">
-                  <td className="p-2 border">{formatDate(venda.data)}</td>
-                  <td className="p-2 border">{venda.tipoCurso}</td>
-                  <td className="p-2 border">{venda.nomeCliente}</td>
-                  <td className="p-2 border hidden min-[601px]:table-cell">
-                    {venda.email}
-                  </td>
-                  <td className="p-2 border hidden min-[801px]:table-cell">
-                    {venda.telefone}
-                  </td>
-                  <td className="p-2 border hidden min-[601px]:table-cell">
-                    {venda.valorBruto != null ? venda.valorBruto.toFixed(2) : "0.00"}
-                  </td>
-                  <td className="p-2 border hidden min-[1001px]:table-cell">
-                    {venda.desconto != null ? venda.desconto.toFixed(2) : "0.00"}
-                  </td>
-                  <td className="p-2 border hidden min-[1001px]:table-cell">
-                    {venda.imposto != null ? venda.imposto.toFixed(2) : "0.00"}
-                  </td>
-                  <td className="p-2 border hidden min-[1001px]:table-cell">
-                    {venda.comissao != null ? venda.comissao.toFixed(2) : "0.00"}
-                  </td>
-                  <td className="p-2 border">
-                    {venda.valorFinal != null ? venda.valorFinal.toFixed(2) : "0.00"}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td className="p-2 border text-center" colSpan={10}>
-                  Nenhum dado encontrado.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={clearData}
+        title="Confirmar Limpeza de Dados de Vendas"
+        message="Tem certeza que deseja apagar todos os dados de vendas? Esta ação não poderá ser desfeita."
+      />
+
+      {/* 3. Controles de Filtro */}
+      <FilterControls
+        selectedYear={selectedYear}
+        setSelectedYear={setSelectedYear}
+        uniqueYears={uniqueYears}
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
+        uniqueMonths={uniqueMonths}
+        setCurrentPage={setCurrentPage}
+      />
+
+      {/* 4. Seção de Sumário para Total Acumulado */}
+      <SummarySection title="Total de Lucro" totalAcumulado={totalAcumuladoLucro} />
+
+      {/* 5. Tabela de Vendas */}
+      <VendasTable vendas={paginatedVendas} />
+
+      {/* 6. Paginação da Tabela */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+
+      {/* 7. Gráficos de Vendas  */}
+      {filteredVendas.length > 0 && (
+        <>
+          <ChartsDisplay
+            sectionTitle="Evolução das Vendas"
+            charts={[
+              {
+                id: "evolucao-vendas",
+                title: "Total de Vendas por Período (R$)",
+                chartType: selectedYear && !selectedMonth ? "bar" : "line",
+                data: chartDataPeriodSales.data,
+                options: chartDataPeriodSales.options,
+              },
+            ]}
+            gridCols="max-w-4xl mx-auto"
+            className="mt-8" 
+          />
+
+          <ChartsDisplay
+            sectionTitle="Análise por Tipo de Curso"
+            charts={[
+              {
+                id: "vendas-tipo-valor",
+                title: "Valor Total por Tipo de Curso (R$)",
+                chartType: "bar",
+                data: chartDataCourseType.data,
+                options: chartDataCourseType.options,
+              },
+              {
+                id: "vendas-tipo-distribuicao",
+                title: "Distribuição por Tipo de Curso (%)",
+                chartType: "pie",
+                data: chartDataCourseTypePie.data,
+                options: chartDataCourseTypePie.options,
+              },
+            ]}
+          />
+        </>
+      )}
+
     </PageContainer>
   );
 };
