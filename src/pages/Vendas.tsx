@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import ModalVenda from "../components/ModalVenda";
 import ConfirmModal from "../components/ConfirmModal";
 import PageContainer from "../features/vendas/PageContainer";
-import { HeaderApp } from "../features/vendas/HeaderApp";
 
-import { ActionButtons } from "../features/vendas/ActionButtons";
+// Importe o ActionButtons para Vendas (ele será usado aqui para ser passado para o contexto)
+import { HeaderActionButtons } from "../features/vendas/ActionButtons"; 
+
 import { FilterControls } from "../features/vendas/FilterControls";
 import { Pagination } from "../features/vendas/Pagination";
 import { SummarySection } from "../features/vendas/SummarySection";
@@ -30,6 +31,8 @@ import {
 import { getUniqueYears, getUniqueMonthsForYear, monthNames } from "../utils";
 import { aggregateSalesByCourseType, aggregateSalesByPeriod, prepareChartData } from "../services/agreggation";
 import type { Venda } from "../types/index";
+
+import { usePageHeader } from "../contexts/HeaderContext"; // Importa o hook do contexto
 
 // Se você já registrou em ChartCard.tsx ou em um arquivo de configuração global, pode remover daqui.
 ChartJS.register(
@@ -55,6 +58,8 @@ const Vendas = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const { setPageHeader } = usePageHeader(); // Usa o hook do contexto
+
   const refreshVendas = useCallback(() => {
     const data = JSON.parse(localStorage.getItem("vendas") || "[]") as Venda[];
     data.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
@@ -75,6 +80,25 @@ const Vendas = () => {
     setAllVendas([]);
     setShowConfirm(false);
   };
+
+  // Memoizando as funções com useCallback para evitar recriação desnecessária
+  const handleAdicionarVenda = useCallback(() => setShowModal(true), []);
+  const handleLimparDadosVendas = useCallback(() => setShowConfirm(true), []);
+
+  // Define o conteúdo do cabeçalho quando o componente Vendas é montado
+  useEffect(() => {
+    setPageHeader(
+      "Vendas", // Título da página
+      <HeaderActionButtons // Componente de botões de ação para Vendas
+        onAdicionarVenda={handleAdicionarVenda}
+        onLimparDadosVendas={handleLimparDadosVendas}
+      />
+    );
+
+    // Limpa o conteúdo do cabeçalho quando o componente é desmontado
+    return () => setPageHeader(null, null);
+  }, [setPageHeader, handleAdicionarVenda, handleLimparDadosVendas]); // Dependências do useEffect
+
 
   const uniqueYears = useMemo(() => getUniqueYears(allVendas), [allVendas]);
   const uniqueMonths = useMemo(() => {
@@ -139,15 +163,11 @@ const Vendas = () => {
 
 
   return (
+    // O Header principal não é mais renderizado aqui, ele é o pai em App.tsx
+    // e recebe as props via contexto.
     <PageContainer>
-      {/* 1. Header do App (Título da Página) */}
-      <HeaderApp title="Vendas" />
-
-      {/* 2. Botões de Ação */}
-      <ActionButtons
-        onAdicionarVenda={() => setShowModal(true)}
-        onLimparDadosVendas={() => setShowConfirm(true)}
-      />
+      {/* REMOVIDO: HeaderApp e ActionButtons não são mais necessários aqui */}
+      {/* O conteúdo do cabeçalho é definido via usePageHeader acima */}
 
       {showModal && <ModalVenda onClose={closeModal} />}
 
@@ -159,7 +179,12 @@ const Vendas = () => {
         message="Tem certeza que deseja apagar todos os dados de vendas? Esta ação não poderá ser desfeita."
       />
 
-      {/* 3. Controles de Filtro */}
+    
+      {/* 3. Seção de Sumário para Total Acumulado */}
+      <SummarySection title="Total de Lucro" totalAcumulado={totalAcumuladoLucro} />
+
+
+       {/* 4. Controles de Filtro */}
       <FilterControls
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
@@ -169,9 +194,6 @@ const Vendas = () => {
         uniqueMonths={uniqueMonths}
         setCurrentPage={setCurrentPage}
       />
-
-      {/* 4. Seção de Sumário para Total Acumulado */}
-      <SummarySection title="Total de Lucro" totalAcumulado={totalAcumuladoLucro} />
 
       {/* 5. Tabela de Vendas */}
       <VendasTable vendas={paginatedVendas} />
@@ -198,7 +220,7 @@ const Vendas = () => {
               },
             ]}
             gridCols="max-w-4xl mx-auto"
-            className="mt-8" 
+            className="mt-8"
           />
 
           <ChartsDisplay
