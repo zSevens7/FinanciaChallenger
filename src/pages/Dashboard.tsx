@@ -1,11 +1,11 @@
 // src/pages/Dashboard.tsx
 import { useState, useEffect, useMemo } from "react";
-import DashboardKPI from "../features/dashboard/DashboardKPI";
+import DashboardKPI from "../features/Dashboard/DashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
 import { useLocalStorageData} from "../hooks/useLocalStorageData";
 import { monthNames, getUniqueYears, getUniqueMonthsForYear } from "../utils";
 import { useFinancialMetrics } from "../hooks/useFinancialMetrics";
-import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
+import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/Dashboard/components";
 import { usePageHeader } from "../contexts/HeaderContext";
 import { DashboardTransactionsTable } from "../components/DashHistory/DashBoardTransactionsTable";
 
