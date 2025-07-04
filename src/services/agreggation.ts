@@ -2,23 +2,50 @@
 
 import type { ChartData, ChartOptions } from "chart.js";
 import { monthNames } from "../utils/index";
-import type { Gasto } from "../types/index"; // Verifique e ajuste se necessário (mas provavelmente já está certo)
-import type { Venda } from "../types/index"; // <--- MUDANÇA AQUI! Adicione "/index"
+import type { Gasto } from "../types/index";
+import type { Venda } from "../types/index";
 
+// === ATUALIZAÇÃO CRÍTICA ===
+// Esta linha estava faltando ou foi removida. Ela DEFINE e EXPORTA o tipo para uso em outros arquivos.
+export type AggregationType = 'daily' | 'monthly' | 'yearly' | 'category' | 'type';
 
-// --- Funções de Agregação para GASTOS (mantidas) ---
+// --- Funções de Agregação para GASTOS ---
 export function aggregateByPeriod(
   items: Gasto[],
   selectedYear: string,
-  selectedMonth: string
+  selectedMonth: string,
+  aggregationType: 'daily' | 'monthly' | 'yearly'
 ): Record<string, number> {
   const agg: Record<string, number> = {};
+
+  if (aggregationType === 'monthly') {
+    for (let i = 1; i <= 12; i++) {
+      const monthKey = i.toString().padStart(2, '0');
+      agg[monthKey] = 0;
+    }
+  } else if (aggregationType === 'daily' && selectedMonth) {
+    const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayKey = day.toString().padStart(2, '0');
+      agg[dayKey] = 0;
+    }
+  }
+
   items.forEach(({ data, preco = 0 }) => {
     const [year, month, day] = data.split("-");
-    let key = year;
-    if (selectedYear) {
-      key = selectedMonth ? day : month;
+    let key: string;
+
+    if (aggregationType === 'daily') {
+      if (selectedYear && year !== selectedYear) return;
+      if (selectedMonth && month !== selectedMonth) return;
+      key = day;
+    } else if (aggregationType === 'monthly') {
+      if (selectedYear && year !== selectedYear) return;
+      key = month;
+    } else { // aggregationType === 'yearly'
+      key = year;
     }
+
     agg[key] = (agg[key] || 0) + (preco ?? 0);
   });
   return agg;
@@ -40,7 +67,7 @@ export function aggregateByTipoDespesa(items: Gasto[]): Record<string, number> {
   return agg;
 }
 
-// --- Funções de Agregação para VENDAS (mantidas) ---
+// --- Funções de Agregação para VENDAS ---
 export function aggregateSalesByCourseType(vendas: Venda[]): Record<string, number> {
   const agg: Record<string, number> = {};
   vendas.forEach(venda => {
@@ -53,14 +80,21 @@ export function aggregateSalesByCourseType(vendas: Venda[]): Record<string, numb
 export function aggregateSalesByPeriod(
   vendas: Venda[],
   selectedYear: string,
-  selectedMonth: string
+  selectedMonth: string,
+  aggregationType: 'daily' | 'monthly' | 'yearly'
 ): Record<string, number> {
   const agg: Record<string, number> = {};
 
-  if (selectedYear && !selectedMonth) {
+  if (aggregationType === 'monthly') {
     for (let i = 1; i <= 12; i++) {
       const monthKey = i.toString().padStart(2, '0');
       agg[monthKey] = 0;
+    }
+  } else if (aggregationType === 'daily' && selectedMonth) {
+    const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dayKey = day.toString().padStart(2, '0');
+      agg[dayKey] = 0;
     }
   }
 
@@ -68,12 +102,15 @@ export function aggregateSalesByPeriod(
     const [year, month, day] = venda.data.split("-");
     let key: string;
 
-    if (selectedYear && year === selectedYear) {
-      key = selectedMonth ? day : month;
-    } else if (!selectedYear) {
+    if (aggregationType === 'daily') {
+      if (selectedYear && year !== selectedYear) return;
+      if (selectedMonth && month !== selectedMonth) return;
+      key = day;
+    } else if (aggregationType === 'monthly') {
+      if (selectedYear && year !== selectedYear) return;
+      key = month;
+    } else { // aggregationType === 'yearly'
       key = year;
-    } else {
-      return;
     }
 
     agg[key] = (agg[key] || 0) + (venda.valorFinal ?? 0);
@@ -82,23 +119,37 @@ export function aggregateSalesByPeriod(
   return agg;
 }
 
-// --- Função Genérica para Preparar Dados e Opções do Gráfico (CORRIGIDA) ---
+// --- Função Genérica para Preparar Dados e Opções do Gráfico (AGORA USA O TIPO AggregationType COMPLETO) ---
 export function prepareChartData(
   agg: Record<string, number>,
   label: string,
-  chartType: "bar" | "pie" | "line" // Mantemos os tipos que estamos usando
+  chartType: "bar" | "pie" | "line",
+  aggregationType: AggregationType // <-- AGORA ESTÁ CORRETO AQUI!
 ): {
   data: ChartData<"bar" | "pie" | "line">;
   options: ChartOptions<"bar" | "pie" | "line">;
 } {
   const keys = Object.keys(agg).sort((a, b) => {
-    const na = parseInt(a, 10), nb = parseInt(b, 10);
-    return !isNaN(na) && !isNaN(nb) ? na - nb : a.localeCompare(b);
+    const na = parseInt(a, 10);
+    const nb = parseInt(b, 10);
+
+    if (!isNaN(na) && !isNaN(nb) && ['daily', 'monthly', 'yearly'].includes(aggregationType)) {
+        return na - nb;
+    }
+    return a.localeCompare(b);
   });
 
-  const labels = keys.map(k =>
-    monthNames[k] || k
-  );
+  const labels = keys.map(k => {
+    if (aggregationType === 'monthly') {
+      return monthNames[k] || k;
+    } else if (aggregationType === 'daily') {
+      return k;
+    } else if (aggregationType === 'yearly') {
+        return k;
+    }
+    // Para 'category' ou 'type', 'k' já é o label correto
+    return k;
+  });
   const values = keys.map(k => agg[k]);
 
   const palette = [
@@ -133,10 +184,8 @@ export function prepareChartData(
                 label += ': ';
             }
             if (context.parsed.y !== undefined) {
-                // Para gráficos de barra e linha, o valor está em context.parsed.y
                 label += new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed.y);
             } else if (context.parsed !== undefined && chartType === 'pie') {
-                // Para gráficos de pizza, o valor está em context.parsed (direto)
                 const total = context.dataset.data.reduce((sum: number, current: number) => sum + current, 0);
                 const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(2) + '%' : '0.00%';
                 label = `${context.label}: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(context.parsed)} (${percentage})`;
@@ -167,7 +216,13 @@ export function prepareChartData(
       x: {
         title: {
           display: true,
-          text: chartType === 'bar' ? 'Categoria / Item' : 'Período',
+          text: (
+            aggregationType === 'daily' ? 'Dia do Mês' :
+            (aggregationType === 'monthly' ? 'Mês' :
+            (aggregationType === 'yearly' ? 'Ano' :
+            (aggregationType === 'category' ? 'Tipo de Curso' :
+            (aggregationType === 'type' ? 'Tipo de Despesa' : 'Item'))))
+          ),
           color: '#333',
         },
         ticks: {

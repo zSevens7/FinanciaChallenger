@@ -5,8 +5,7 @@ import ModalVenda from "../components/ModalVenda";
 import ConfirmModal from "../components/ConfirmModal";
 import PageContainer from "../features/vendas/PageContainer";
 
-// Importe o ActionButtons para Vendas (ele será usado aqui para ser passado para o contexto)
-import { HeaderActionButtons } from "../features/vendas/ActionButtons"; 
+import { HeaderActionButtons } from "../features/vendas/ActionButtons";
 
 import { FilterControls } from "../features/vendas/FilterControls";
 import { Pagination } from "../features/vendas/Pagination";
@@ -28,13 +27,17 @@ import {
   TimeScale,
 } from 'chart.js';
 
-import { getUniqueYears, getUniqueMonthsForYear, monthNames } from "../utils";
-import { aggregateSalesByCourseType, aggregateSalesByPeriod, prepareChartData } from "../services/agreggation";
+import { getUniqueYears, getUniqueMonthsForYear } from "../utils";
+// Importe SOMENTE o tipo AggregationType se necessário para uma variável,
+// mas as funções aggregateSalesByPeriod e prepareChartData já sabem seus tipos de parâmetros.
+import { aggregateSalesByCourseType, aggregateSalesByPeriod, prepareChartData, AggregationType } from "../services/agreggation";
 import type { Venda } from "../types/index";
 
-import { usePageHeader } from "../contexts/HeaderContext"; // Importa o hook do contexto
+// Remova esta linha se você já importou AggregationType do services/agreggation.
+// export type AggregationType = 'daily' | 'monthly' | 'yearly' | 'category' | 'type';
 
-// Se você já registrou em ChartCard.tsx ou em um arquivo de configuração global, pode remover daqui.
+import { usePageHeader } from "../contexts/HeaderContext";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -51,14 +54,14 @@ ChartJS.register(
 const Vendas = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [allVendas, setAllVendas] = useState<Venda[]>([]);
+  const [allVendas, setAllVendas] = useState<Venda[]>([] );
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const { setPageHeader } = usePageHeader(); // Usa o hook do contexto
+  const { setPageHeader } = usePageHeader();
 
   const refreshVendas = useCallback(() => {
     const data = JSON.parse(localStorage.getItem("vendas") || "[]") as Venda[];
@@ -81,24 +84,19 @@ const Vendas = () => {
     setShowConfirm(false);
   };
 
-  // Memoizando as funções com useCallback para evitar recriação desnecessária
   const handleAdicionarVenda = useCallback(() => setShowModal(true), []);
   const handleLimparDadosVendas = useCallback(() => setShowConfirm(true), []);
 
-  // Define o conteúdo do cabeçalho quando o componente Vendas é montado
   useEffect(() => {
     setPageHeader(
-      "Vendas", // Título da página
-      <HeaderActionButtons // Componente de botões de ação para Vendas
+      "Vendas",
+      <HeaderActionButtons
         onAdicionarVenda={handleAdicionarVenda}
         onLimparDadosVendas={handleLimparDadosVendas}
       />
     );
-
-    // Limpa o conteúdo do cabeçalho quando o componente é desmontado
     return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarVenda, handleLimparDadosVendas]); // Dependências do useEffect
-
+  }, [setPageHeader, handleAdicionarVenda, handleLimparDadosVendas]);
 
   const uniqueYears = useMemo(() => getUniqueYears(allVendas), [allVendas]);
   const uniqueMonths = useMemo(() => {
@@ -106,10 +104,21 @@ const Vendas = () => {
     return getUniqueMonthsForYear(allVendas, selectedYear);
   }, [allVendas, selectedYear]);
 
+  // Determine the aggregation type based on selected filters FOR PERIOD-BASED AGGREGATION
+  // This type needs to match what aggregateSalesByPeriod expects
+  const periodAggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
+    if (selectedYear && selectedMonth) return 'daily';
+    if (selectedYear) return 'monthly';
+    return 'yearly';
+  }, [selectedYear, selectedMonth]);
+
+
   const filteredVendas = useMemo(() => {
     return allVendas.filter(venda => {
-      const year = venda.data.substring(0, 4);
-      const month = venda.data.substring(5, 7);
+      // Use Date object for robust parsing, then extract year/month
+      const dateObj = new Date(venda.data);
+      const year = dateObj.getFullYear().toString();
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-indexed
 
       const matchesYear = selectedYear ? year === selectedYear : true;
       const matchesMonth = selectedMonth ? month === selectedMonth : true;
@@ -131,44 +140,41 @@ const Vendas = () => {
     return filteredVendas.reduce((sum, venda) => sum + (venda.valorFinal ?? 0), 0);
   }, [filteredVendas]);
 
-  const salesByCourseTypeAgg = useMemo(() => aggregateSalesByCourseType(filteredVendas), [filteredVendas]);
-  const salesByPeriodAgg = useMemo(() => aggregateSalesByPeriod(filteredVendas, selectedYear, selectedMonth), [filteredVendas, selectedYear, selectedMonth]);
+  // Use allVendas (unfiltered) for period aggregation, let the aggregation function filter by year/month internally
+  const salesByPeriodAgg = useMemo(
+    () => aggregateSalesByPeriod(allVendas, selectedYear, selectedMonth, periodAggregationType), // Use periodAggregationType here
+    [allVendas, selectedYear, selectedMonth, periodAggregationType]
+  );
 
+  // For course type, use filteredVendas as it represents the current table view
+  const salesByCourseTypeAgg = useMemo(
+    () => aggregateSalesByCourseType(filteredVendas),
+    [filteredVendas]
+  );
+
+  // Now, prepareChartData for period sales needs the aggregationType
+  const chartDataPeriodSales = useMemo(() => {
+    return prepareChartData(
+        salesByPeriodAgg,
+        selectedYear && !selectedMonth ? `Vendas Mensais em ${selectedYear} (R$)` : 'Evolução de Vendas (R$)',
+        selectedYear && !selectedMonth ? "bar" : "line",
+        periodAggregationType // Pass the periodAggregationType here, which is of type AggregationType
+    );
+  }, [salesByPeriodAgg, selectedYear, selectedMonth, periodAggregationType]);
+
+  // For course type charts, pass a default aggregation type, as they are not time-based
+  // Now, 'category' is a valid AggregationType because it was exported and imported correctly
   const chartDataCourseType = useMemo(() =>
-    prepareChartData(salesByCourseTypeAgg, "Vendas por Tipo de Curso (R$)", "bar")
+    prepareChartData(salesByCourseTypeAgg, "Vendas por Tipo de Curso (R$)", "bar", 'category')
   , [salesByCourseTypeAgg]);
 
   const chartDataCourseTypePie = useMemo(() =>
-    prepareChartData(salesByCourseTypeAgg, "Distribuição por Tipo de Curso (%)", "pie")
+    prepareChartData(salesByCourseTypeAgg, "Distribuição por Tipo de Curso (%)", "pie", 'category')
   , [salesByCourseTypeAgg]);
-
-  const chartDataPeriodSales = useMemo(() => {
-    const rawLabels = Object.keys(salesByPeriodAgg);
-    const sortedLabels = rawLabels.sort((a, b) => {
-        const na = parseInt(a, 10), nb = parseInt(b, 10);
-        return !isNaN(na) && !isNaN(nb) ? na - nb : a.localeCompare(b);
-    });
-    const dataValues = sortedLabels.map(l => salesByPeriodAgg[l]);
-    const formattedLabels = sortedLabels.map(l => monthNames[l] || l);
-
-    return prepareChartData(
-        sortedLabels.reduce((acc, _, index) => {
-            acc[formattedLabels[index]] = dataValues[index];
-            return acc;
-        }, {} as Record<string, number>),
-        selectedYear && !selectedMonth ? `Vendas Mensais em ${selectedYear} (R$)` : 'Evolução de Vendas por Ano/Mês (R$)',
-        selectedYear && !selectedMonth ? "bar" : "line"
-    );
-  }, [salesByPeriodAgg, selectedYear, selectedMonth, monthNames]);
 
 
   return (
-    // O Header principal não é mais renderizado aqui, ele é o pai em App.tsx
-    // e recebe as props via contexto.
     <PageContainer>
-      {/* REMOVIDO: HeaderApp e ActionButtons não são mais necessários aqui */}
-      {/* O conteúdo do cabeçalho é definido via usePageHeader acima */}
-
       {showModal && <ModalVenda onClose={closeModal} />}
 
       <ConfirmModal
@@ -179,33 +185,33 @@ const Vendas = () => {
         message="Tem certeza que deseja apagar todos os dados de vendas? Esta ação não poderá ser desfeita."
       />
 
-    
-      {/* 3. Seção de Sumário para Total Acumulado */}
       <SummarySection title="Total de Lucro" totalAcumulado={totalAcumuladoLucro} />
 
-
-       {/* 4. Controles de Filtro */}
       <FilterControls
         selectedYear={selectedYear}
-        setSelectedYear={setSelectedYear}
+        setSelectedYear={(y) => {
+          setSelectedYear(y);
+          setSelectedMonth(""); // Clear month when year changes
+          setCurrentPage(1);
+        }}
         uniqueYears={uniqueYears}
         selectedMonth={selectedMonth}
-        setSelectedMonth={setSelectedMonth}
+        setSelectedMonth={(m) => {
+          setSelectedMonth(m);
+          setCurrentPage(1);
+        }}
         uniqueMonths={uniqueMonths}
         setCurrentPage={setCurrentPage}
       />
 
-      {/* 5. Tabela de Vendas */}
       <VendasTable vendas={paginatedVendas} />
 
-      {/* 6. Paginação da Tabela */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
       />
 
-      {/* 7. Gráficos de Vendas  */}
       {filteredVendas.length > 0 && (
         <>
           <ChartsDisplay
@@ -244,7 +250,6 @@ const Vendas = () => {
           />
         </>
       )}
-
     </PageContainer>
   );
 };

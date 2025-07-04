@@ -6,15 +6,12 @@ import {
   prepareChartData,
 } from "../services/agreggation";
 
-// Importe o ActionButtons para Gastos (ele será usado aqui para ser passado para o contexto)
-import { ActionButtons } from "../features/gastos/components/ActionButtons"; // Verifique o caminho correto
-
+import { ActionButtons } from "../features/gastos/components/ActionButtons";
 import { FilterControls } from "../features/gastos/components/FilterControls";
 import { SummarySection } from "../features/gastos/components/SummarysSection";
 import { GastosTable } from "../features/gastos/components/GastosTable";
 import { Pagination } from "../features/gastos/components/Pagination";
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay";
-// REMOVIDO: import { ExpenseDetails } from "../features/gastos/components/ExpenseDetails";
 import ModalGasto from "../components/ModalGasto";
 import ConfirmModal from "../components/ConfirmModal";
 
@@ -33,7 +30,7 @@ import {
 } from 'chart.js';
 import PageContainer from "../features/gastos/components/PageContainer";
 
-import { usePageHeader } from "../contexts/HeaderContext"; // Importa o hook do contexto
+import { usePageHeader } from "../contexts/HeaderContext";
 
 // Registro dos componentes do Chart.js
 ChartJS.register(
@@ -49,16 +46,15 @@ ChartJS.register(
   TimeScale
 );
 
-
 export const GastosPage = () => {
-  const [gastos, setGastos] = useState<any[]>([]);
+  const [gastos, setGastos] = useState<any[]>([]); // Considere usar um tipo mais específico como `Gasto[]`
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const { setPageHeader } = usePageHeader(); // Usa o hook do contexto
+  const { setPageHeader } = usePageHeader();
 
   const refresh = useCallback(() => {
     const data = JSON.parse(localStorage.getItem("gastos") || "[]");
@@ -82,30 +78,44 @@ export const GastosPage = () => {
     setShowConfirm(false);
   };
 
-  // Memoizando as funções com useCallback para evitar recriação desnecessária
   const handleAdicionarGasto = useCallback(() => setShowModal(true), []);
   const handleLimparDadosGastos = useCallback(() => setShowConfirm(true), []);
 
-  // Define o conteúdo do cabeçalho quando o componente GastosPage é montado
   useEffect(() => {
     setPageHeader(
-      "Gastos", // Título da página
-      <ActionButtons // Componente de botões de ação para Gastos
+      "Gastos",
+      <ActionButtons
         onAdicionarGasto={handleAdicionarGasto}
-        onLimparDados={handleLimparDadosGastos} // Note a prop onLimparDados aqui
+        onLimparDados={handleLimparDadosGastos}
       />
     );
-
-    // Limpa o conteúdo do cabeçalho quando o componente é desmontado
     return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarGasto, handleLimparDadosGastos]); // Dependências do useEffect
+  }, [setPageHeader, handleAdicionarGasto, handleLimparDadosGastos]);
+
+  // Determine o tipo de agregação para os gráficos baseados nos filtros
+  const aggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
+    if (month && year) return 'daily'; // Se mês e ano selecionados, agrega por dia
+    if (year) return 'monthly'; // Se apenas ano selecionado, agrega por mês
+    return 'yearly'; // Se nenhum filtro, agrega por ano (ou seja, o próprio `aggregateByPeriod` deve ser capaz de lidar com isso, mas estamos passando 'monthly' para ele se não tiver ano, o que não faz muito sentido... vamos revisar o `aggregateByPeriod` também para ter certeza que ele lida com 'yearly')
+  }, [year, month]);
 
 
   const filtered = useMemo(() => {
-    return gastos.filter((g) =>
-      (!year || g.data.startsWith(year)) &&
-      (!month || g.data.split("-")[1] === month)
-    );
+    // A filtragem deve ser mais rigorosa aqui para corresponder à agregação
+    // A lógica de agregação do ChartData fará sua própria filtragem de dados brutos
+    // para o período correto (ano/mês) e agrupará.
+    // Esta 'filtered' array é para a tabela e sumário, então ela deve continuar filtrando
+    // os dados completos para o período exato selecionado.
+    return gastos.filter((g) => {
+      const gDate = new Date(g.data);
+      const gYear = gDate.getFullYear().toString();
+      const gMonth = (gDate.getMonth() + 1).toString().padStart(2, '0');
+
+      const matchesYear = !year || gYear === year;
+      const matchesMonth = !month || gMonth === month; // Se month não estiver selecionado, passa em true.
+
+      return matchesYear && matchesMonth;
+    });
   }, [gastos, year, month]);
 
   const totalPages = Math.ceil(filtered.length / 5);
@@ -117,36 +127,39 @@ export const GastosPage = () => {
     return filtered.reduce((sum, g) => sum + (g.preco || 0), 0);
   }, [filtered]);
 
-  const periodAgg = useMemo(() => aggregateByPeriod(filtered, year, month), [filtered, year, month]);
-  const catAgg = useMemo(() => aggregateByCategory(filtered), [filtered]);
-  const tipoAgg = useMemo(() => aggregateByTipoDespesa(filtered), [filtered]);
-
+  // ATENÇÃO: As chamadas para aggregateByPeriod AGORA DEVEM PASSAR aggregationType!
+  // E o `aggregateByPeriod` precisa estar pronto para receber 'yearly'
+  const periodAgg = useMemo(
+    () => aggregateByPeriod(gastos, year, month, aggregationType), // Passa gastos completos, year, month e aggregationType
+    [gastos, year, month, aggregationType]
+  );
+  
+  const catAgg = useMemo(
+    () => aggregateByCategory(filtered), // Categoria e tipo de despesa são sempre sobre os dados filtrados para a tabela/KPIs
+    [filtered]
+  );
+  const tipoAgg = useMemo(
+    () => aggregateByTipoDespesa(filtered), // Categoria e tipo de despesa são sempre sobre os dados filtrados para a tabela/KPIs
+    [filtered]
+  );
 
   return (
-    // O Header principal não é mais renderizado aqui, ele é o pai em App.tsx
-    // e recebe as props via contexto.
     <PageContainer>
-      {/* REMOVIDO: HeaderApp e ActionButtons não são mais necessários aqui */}
-      {/* O conteúdo do cabeçalho é definido via usePageHeader acima */}
-
       <div className="container mx-auto bg-white rounded-xl shadow-2xl p-6">
-
-        {/* Seção de Sumário para Total Acumulado - AGORA EM PRIMEIRO */}
         <SummarySection totalAcumulado={totalAcum} />
 
-        {/* Controles de Filtro - AGORA EM SEGUNDO */}
         <FilterControls
           selectedYear={year}
           setSelectedYear={(y) => {
             setYear(y);
-            setMonth("");
+            setMonth(""); // Limpa o mês ao mudar o ano
             setPage(1);
           }}
           uniqueYears={[...new Set(gastos.map((g) => g.data.split("-")[0]))]}
           selectedMonth={month}
           setSelectedMonth={(m) => {
-              setMonth(m);
-              setPage(1);
+            setMonth(m);
+            setPage(1);
           }}
           uniqueMonths={[
             ...new Set(
@@ -157,9 +170,6 @@ export const GastosPage = () => {
           ]}
           setCurrentPage={setPage}
         />
-
-        {/* REMOVIDO: ExpenseDetails não é mais necessário */}
-        {/* <ExpenseDetails expenses={paginated}/> */}
 
         <section className="mb-8">
           <h2 className="text-xl mt-10 font-semibold mb-3">
@@ -173,76 +183,78 @@ export const GastosPage = () => {
           />
         </section>
 
+        {/* Renderiza os gráficos apenas se houver dados filtrados */}
         {filtered.length > 0 && (
-            <>
-              <ChartsDisplay
-                sectionTitle="Evolução dos Gastos"
-                charts={[
-                  {
-                    id: "evolucao-periodo",
-                    title: "Total de Gastos (R$)",
-                    chartType: "bar",
-                    ...prepareChartData(periodAgg, "Total de Gastos (R$)", "bar"),
-                  },
-                ]}
-                gridCols="max-w-4xl mx-auto"
-              />
-
-              <ChartsDisplay
-                sectionTitle="Análise por Categoria"
-                charts={[
-                  {
-                    id: "categoria-valor",
-                    title: "Valor Total (R$)",
-                    chartType: "bar",
-                    ...prepareChartData(catAgg, "Valor Total (R$)", "bar"),
-                  },
-                  {
-                    id: "categoria-distribuicao",
-                    title: "Distribuição (%)",
-                    chartType: "pie",
-                    ...prepareChartData(catAgg, "Distribuição (%)", "pie"),
-                  },
-                ]}
-              />
-
-              <ChartsDisplay
-                sectionTitle="Análise por Tipo de Despesa"
-                charts={[
-                  {
-                    id: "tipo-valor",
-                    title: "Valor Total (R$)",
-                    chartType: "bar",
-                    ...prepareChartData(tipoAgg, "Valor Total (R$)", "bar"),
-                  },
-                  {
-                    id: "tipo-distribuicao",
-                    title: "Distribuição (%)",
-                    chartType: "pie",
-                    ...prepareChartData(tipoAgg, "Distribuição (%)", "pie"),
-                  },
-                ]}
-              />
-            </>
-          )}
-
-          {showModal && (
-            <ModalGasto
-              onClose={() => {
-                setShowModal(false);
-                refresh();
-              }}
+          <>
+            <ChartsDisplay
+              sectionTitle="Evolução dos Gastos"
+              charts={[
+                {
+                  id: "evolucao-periodo",
+                  title: "Total de Gastos (R$)",
+                  chartType: "bar", // Ou "line" para evolução, dependendo da sua preferência
+                  // Ao preparar os dados, passamos o aggregationType
+                  ...prepareChartData(periodAgg, "Total de Gastos (R$)", "bar", aggregationType),
+                },
+              ]}
+              gridCols="max-w-4xl mx-auto"
             />
-          )}
 
-          <ConfirmModal
-            isOpen={showConfirm}
-            onClose={() => setShowConfirm(false)}
-            onConfirm={clearAll}
-            title="Confirmar Limpeza de Dados"
-            message="Deseja apagar todos os gastos? Esta ação não pode ser desfeita."
+            <ChartsDisplay
+              sectionTitle="Análise por Categoria"
+              charts={[
+                {
+                  id: "categoria-valor",
+                  title: "Valor Total (R$)",
+                  chartType: "bar",
+                  ...prepareChartData(catAgg, "Valor Total (R$)", "bar", 'monthly'), // Agregação por Categoria/TipoDespesa não muda com daily/monthly de período, mas o prepareChartData precisa do parâmetro. Colocar um padrão ou criar um novo 'aggregationType' para esses. Por enquanto, 'monthly' é um placeholder.
+                },
+                {
+                  id: "categoria-distribuicao",
+                  title: "Distribuição (%)",
+                  chartType: "pie",
+                  ...prepareChartData(catAgg, "Distribuição (%)", "pie", 'monthly'), // placeholder
+                },
+              ]}
+            />
+
+            <ChartsDisplay
+              sectionTitle="Análise por Tipo de Despesa"
+              charts={[
+                {
+                  id: "tipo-valor",
+                  title: "Valor Total (R$)",
+                  chartType: "bar",
+                  ...prepareChartData(tipoAgg, "Valor Total (R$)", "bar", 'monthly'), // placeholder
+                },
+                {
+                  id: "tipo-distribuicao",
+                  title: "Distribuição (%)",
+                  chartType: "pie",
+                  ...prepareChartData(tipoAgg, "Distribuição (%)", "pie", 'monthly'), // placeholder
+                },
+              ]}
+            />
+          </>
+        )}
+
+        {showModal && (
+          <ModalGasto
+            onClose={() => {
+              setShowModal(false);
+              refresh();
+            }}
           />
-      </div> {/* Fechamento da div com className="container mx-auto..." */}
+        )}
+
+        <ConfirmModal
+          isOpen={showConfirm}
+          onClose={() => setShowConfirm(false)}
+          onConfirm={clearAll}
+          title="Confirmar Limpeza de Dados"
+          message="Deseja apagar todos os gastos? Esta ação não pode ser desfeita."
+        />
+      </div>
     </PageContainer>
   );
 };

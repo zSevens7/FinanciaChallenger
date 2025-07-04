@@ -13,7 +13,8 @@ interface FinancialMetrics {
 export const useFinancialMetrics = (
   allGastos: Gasto[],
   allVendas: Venda[],
-  selectedYear: string
+  selectedYear: string,
+  selectedMonth: string // <-- Adicione este parâmetro
 ): FinancialMetrics => {
   // Filtragem fora do useMemo (seguro)
   const filteredGastosForYear = allGastos.filter(g => g.data.substring(0, 4) === selectedYear);
@@ -28,13 +29,18 @@ export const useFinancialMetrics = (
     calculatedInitialInvestment = -calculatedInitialInvestment;
   }
 
+  // --- >>> ADICIONE ESTA LINHA AQUI <<< ---
+  const aggregationType = selectedMonth ? 'daily' : 'monthly'; 
+  // --- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---
+
   // ✅ Chama o hook corretamente — no topo
   const chartData = useDashboardChartsData(
     filteredGastosForYear,
     filteredVendasForYear,
     calculatedInitialInvestment,
     selectedYear,
-    'monthly'
+    aggregationType, // <-- Agora 'aggregationType' está definido
+    selectedMonth    // <-- ADICIONEI selectedMonth aqui!
   );
 
   const metrics = useMemo(() => {
@@ -79,7 +85,7 @@ export const useFinancialMetrics = (
       tir: calculatedTir,
       chartData
     };
-  }, [filteredGastosForYear, filteredVendasForYear, calculatedInitialInvestment, selectedYear, chartData]);
+  }, [filteredGastosForYear, filteredVendasForYear, calculatedInitialInvestment, selectedYear, chartData]); // Atenção: 'chartData' aqui pode causar re-render desnecessário se não for estável
 
   return metrics;
 };

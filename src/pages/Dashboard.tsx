@@ -19,7 +19,8 @@ const Dashboard = () => {
   const { initialInvestmentCalculated, paybackPeriod, tir, chartData } = useFinancialMetrics(
     gastos,
     vendas,
-    selectedYear
+    selectedYear,
+    selectedMonth // <-- Adicione selectedMonth aqui!
   );
 
   useEffect(() => {
