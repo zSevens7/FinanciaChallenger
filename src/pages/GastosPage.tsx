@@ -4,7 +4,7 @@ import {
   aggregateByCategory,
   aggregateByTipoDespesa,
   prepareChartData,
-} from "../services/agreggation";
+} from "../services/agreggation"; // Certifique-se que prepareChartData existe e retorna { data, options }
 
 import { ActionButtons } from "../features/gastos/components/ActionButtons";
 import { FilterControls } from "../features/gastos/components/FilterControls";
@@ -94,25 +94,20 @@ export const GastosPage = () => {
 
   // Determine o tipo de agregação para os gráficos baseados nos filtros
   const aggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
-    if (month && year) return 'daily'; // Se mês e ano selecionados, agrega por dia
-    if (year) return 'monthly'; // Se apenas ano selecionado, agrega por mês
-    return 'yearly'; // Se nenhum filtro, agrega por ano (ou seja, o próprio `aggregateByPeriod` deve ser capaz de lidar com isso, mas estamos passando 'monthly' para ele se não tiver ano, o que não faz muito sentido... vamos revisar o `aggregateByPeriod` também para ter certeza que ele lida com 'yearly')
+    if (month && year) return 'daily';
+    if (year) return 'monthly';
+    return 'yearly'; // Ajuste 'prepareChartData' e 'aggregateByPeriod' para lidar com 'yearly'
   }, [year, month]);
 
 
   const filtered = useMemo(() => {
-    // A filtragem deve ser mais rigorosa aqui para corresponder à agregação
-    // A lógica de agregação do ChartData fará sua própria filtragem de dados brutos
-    // para o período correto (ano/mês) e agrupará.
-    // Esta 'filtered' array é para a tabela e sumário, então ela deve continuar filtrando
-    // os dados completos para o período exato selecionado.
     return gastos.filter((g) => {
       const gDate = new Date(g.data);
       const gYear = gDate.getFullYear().toString();
       const gMonth = (gDate.getMonth() + 1).toString().padStart(2, '0');
 
       const matchesYear = !year || gYear === year;
-      const matchesMonth = !month || gMonth === month; // Se month não estiver selecionado, passa em true.
+      const matchesMonth = !month || gMonth === month;
 
       return matchesYear && matchesMonth;
     });
@@ -127,21 +122,78 @@ export const GastosPage = () => {
     return filtered.reduce((sum, g) => sum + (g.preco || 0), 0);
   }, [filtered]);
 
-  // ATENÇÃO: As chamadas para aggregateByPeriod AGORA DEVEM PASSAR aggregationType!
-  // E o `aggregateByPeriod` precisa estar pronto para receber 'yearly'
   const periodAgg = useMemo(
-    () => aggregateByPeriod(gastos, year, month, aggregationType), // Passa gastos completos, year, month e aggregationType
+    () => aggregateByPeriod(gastos, year, month, aggregationType),
     [gastos, year, month, aggregationType]
   );
   
   const catAgg = useMemo(
-    () => aggregateByCategory(filtered), // Categoria e tipo de despesa são sempre sobre os dados filtrados para a tabela/KPIs
+    () => aggregateByCategory(filtered),
     [filtered]
   );
   const tipoAgg = useMemo(
-    () => aggregateByTipoDespesa(filtered), // Categoria e tipo de despesa são sempre sobre os dados filtrados para a tabela/KPIs
+    () => aggregateByTipoDespesa(filtered),
     [filtered]
   );
+
+  // --- OPÇÕES PADRÃO PARA GRÁFICOS DE BARRA ---
+  // Essas opções serão sobrescritas ou mescladas com as de prepareChartData
+  const defaultBarChartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false, // CRÍTICO para que o gráfico preencha o contêiner
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+      },
+    },
+    scales: {
+      x: {
+        ticks: {
+          autoSkip: true,
+          maxRotation: 0,
+          minRotation: 0,
+          font: {
+            size: 10, // Menor fonte para mobile
+          },
+          padding: 5,
+        },
+        grid: {
+          display: false, // Remover linhas de grade verticais
+        },
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          font: {
+            size: 10, // Menor fonte para mobile
+          },
+        },
+      },
+    },
+  }), []); // Memoiza para evitar recriação desnecessária
+
+  // --- OPÇÕES PADRÃO PARA GRÁFICOS DE PIZZA ---
+  const defaultPieChartOptions = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: false, // CRÍTICO para que o gráfico preencha o contêiner
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+      },
+      title: { // Título para PIE charts
+        display: true,
+      }
+    },
+  }), []); // Memoiza para evitar recriação desnecessária
+
 
   return (
     <PageContainer>
@@ -152,7 +204,7 @@ export const GastosPage = () => {
           selectedYear={year}
           setSelectedYear={(y) => {
             setYear(y);
-            setMonth(""); // Limpa o mês ao mudar o ano
+            setMonth("");
             setPage(1);
           }}
           uniqueYears={[...new Set(gastos.map((g) => g.data.split("-")[0]))]}
@@ -183,55 +235,142 @@ export const GastosPage = () => {
           />
         </section>
 
-        {/* Renderiza os gráficos apenas se houver dados filtrados */}
         {filtered.length > 0 && (
           <>
+            {/* Gráfico com evolução ao longo do tempo (por período) */}
             <ChartsDisplay
               sectionTitle="Evolução dos Gastos"
               charts={[
                 {
                   id: "evolucao-periodo",
-                  title: "Total de Gastos (R$)",
-                  chartType: "bar", // Ou "line" para evolução, dependendo da sua preferência
-                  // Ao preparar os dados, passamos o aggregationType
-                  ...prepareChartData(periodAgg, "Total de Gastos (R$)", "bar", aggregationType),
+                  title: "Total de Gastos ao Longo do Tempo",
+                  chartType: "bar",
+                  // Mesclar opções padrão com as específicas do prepareChartData
+                  ...(() => {
+                    const prepared = prepareChartData(periodAgg, "Total de Gastos (R$)", "bar", aggregationType);
+                    return {
+                      ...prepared,
+                      options: {
+                        ...defaultBarChartOptions,
+                        ...prepared.options, // Sobrescrever com opções do prepareChartData se houver
+                        plugins: {
+                          ...defaultBarChartOptions.plugins,
+                          ...prepared.options?.plugins,
+                          title: { // Título específico para este gráfico
+                            display: true,
+                            text: 'Total de Gastos ao Longo do Tempo',
+                          }
+                        }
+                      }
+                    };
+                  })(),
                 },
               ]}
-              gridCols="max-w-4xl mx-auto"
+              // gridCols="max-w-4xl mx-auto" // Já está no ChartsDisplay
             />
 
+            {/* Análise por Categoria */}
             <ChartsDisplay
               sectionTitle="Análise por Categoria"
               charts={[
                 {
                   id: "categoria-valor",
-                  title: "Valor Total (R$)",
+                  title: "Total por Categoria (R$)",
                   chartType: "bar",
-                  ...prepareChartData(catAgg, "Valor Total (R$)", "bar", 'monthly'), // Agregação por Categoria/TipoDespesa não muda com daily/monthly de período, mas o prepareChartData precisa do parâmetro. Colocar um padrão ou criar um novo 'aggregationType' para esses. Por enquanto, 'monthly' é um placeholder.
+                  ...(() => {
+                    const prepared = prepareChartData(catAgg, "Valor Total (R$)", "bar", 'category');
+                    return {
+                      ...prepared,
+                      options: {
+                        ...defaultBarChartOptions,
+                        ...prepared.options,
+                        plugins: {
+                          ...defaultBarChartOptions.plugins,
+                          ...prepared.options?.plugins,
+                          title: {
+                            display: true,
+                            text: 'Total por Categoria (R$)',
+                          }
+                        }
+                      }
+                    };
+                  })(),
                 },
                 {
                   id: "categoria-distribuicao",
-                  title: "Distribuição (%)",
+                  title: "Distribuição por Categoria (%)",
                   chartType: "pie",
-                  ...prepareChartData(catAgg, "Distribuição (%)", "pie", 'monthly'), // placeholder
+                  ...(() => {
+                    const prepared = prepareChartData(catAgg, "Distribuição por Categoria (%)", "pie", 'monthly');
+                    return {
+                      ...prepared,
+                      options: {
+                        ...defaultPieChartOptions,
+                        ...prepared.options,
+                        plugins: {
+                          ...defaultPieChartOptions.plugins,
+                          ...prepared.options?.plugins,
+                          title: {
+                            display: true,
+                            text: 'Distribuição por Categoria (%)',
+                          }
+                        }
+                      }
+                    };
+                  })(),
                 },
               ]}
             />
 
+            {/* Análise por Tipo de Despesa */}
             <ChartsDisplay
               sectionTitle="Análise por Tipo de Despesa"
               charts={[
                 {
                   id: "tipo-valor",
-                  title: "Valor Total (R$)",
+                  title: "Total por Tipo de Despesa (R$)",
                   chartType: "bar",
-                  ...prepareChartData(tipoAgg, "Valor Total (R$)", "bar", 'monthly'), // placeholder
+                  ...(() => {
+                    const prepared = prepareChartData(tipoAgg, "Total por Tipo de Despesa (R$)", "bar", 'monthly');
+                    return {
+                      ...prepared,
+                      options: {
+                        ...defaultBarChartOptions,
+                        ...prepared.options,
+                        plugins: {
+                          ...defaultBarChartOptions.plugins,
+                          ...prepared.options?.plugins,
+                          title: {
+                            display: true,
+                            text: 'Total por Tipo de Despesa (R$)',
+                          }
+                        }
+                      }
+                    };
+                  })(),
                 },
                 {
                   id: "tipo-distribuicao",
-                  title: "Distribuição (%)",
+                  title: "Distribuição por Tipo de Despesa (%)",
                   chartType: "pie",
-                  ...prepareChartData(tipoAgg, "Distribuição (%)", "pie", 'monthly'), // placeholder
+                  ...(() => {
+                    const prepared = prepareChartData(tipoAgg, "Distribuição por Tipo de Despesa (%)", "pie", 'monthly');
+                    return {
+                      ...prepared,
+                      options: {
+                        ...defaultPieChartOptions,
+                        ...prepared.options,
+                        plugins: {
+                          ...defaultPieChartOptions.plugins,
+                          ...prepared.options?.plugins,
+                          title: {
+                            display: true,
+                            text: 'Distribuição por Tipo de Despesa (%)',
+                          }
+                        }
+                      }
+                    };
+                  })(),
                 },
               ]}
             />
