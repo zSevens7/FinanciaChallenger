@@ -20,9 +20,7 @@ function Header() {
           {/* AQUI ESTÁ A MUDANÇA: Substitua MobileSidebar pelo SidebarTrigger */}
           <div className="md:hidden"> {/* Este div md:hidden é para ocultar no desktop */}
               {/* No mobile, o SidebarTrigger só aparece se a sidebar estiver fechada (para abri-la) */}
-              {!open && isMobile && (
-                <SidebarTrigger className="text-purple-700 hover:bg-purple-100" />
-              )}
+                {/* SidebarTrigger removido para teste */}
           </div>
           {/* Posicionar o SidebarTrigger para Desktop. Ele pode estar no header ou em uma posição fixa.
              Pelos seus prints, parece que você quer ele fixo no canto superior esquerdo no desktop.
@@ -30,7 +28,7 @@ function Header() {
              Vou re-adicionar a lógica no App.tsx para o desktop, pois ela era útil para fixar o botão.
           */}
 
-          <img src={logo} alt="Logo" className="h-12 w-auto md:h-20" />
+          <img src={logo} alt="Logo" className="h-12 w-auto md:h-20 ml-2" />
           {pageTitle && (
             <h1 className="ml-4 text-2xl font-bold text-purple-700 hidden sm:block">
               {pageTitle}
