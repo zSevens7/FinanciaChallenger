@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import DashboardKPI from "../features/dashboard/dashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
-import { useLocalStorageData} from "../hooks/useLocalStorageData";
+import { useLocalStorageData } from "../hooks/useLocalStorageData";
 import { monthNames, getUniqueYears, getUniqueMonthsForYear } from "../utils";
 import { useFinancialMetrics } from "../hooks/useFinancialMetrics";
 import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
@@ -20,7 +20,7 @@ const Dashboard = () => {
     gastos,
     vendas,
     selectedYear,
-    selectedMonth // <-- Adicione selectedMonth aqui!
+    selectedMonth
   );
 
   useEffect(() => {
@@ -39,7 +39,6 @@ const Dashboard = () => {
   }, [setPageHeader]);
 
   const filteredDataForDisplay = useMemo(() => {
-    const allItems = [...gastos, ...vendas];
     let filteredGastos = [...gastos];
     let filteredVendas = [...vendas];
 
@@ -57,21 +56,29 @@ const Dashboard = () => {
       }
     }
 
+    const allItems = [...filteredGastos, ...filteredVendas];
+
     return { filteredGastos, filteredVendas, allItems };
   }, [gastos, vendas, selectedYear, selectedMonth]);
 
   const { filteredGastos, filteredVendas, allItems } = filteredDataForDisplay;
 
-  const totalDespesas = filteredGastos.reduce((sum, g) => sum + (g.preco || 0), 0);
-  const totalVendas = filteredVendas.reduce((sum, v) => sum + (v.valorFinal || 0), 0);
-  const saldoLiquido = totalVendas - totalDespesas;
+  // Como 'preco' de gastos é negativo, somamos valor absoluto para mostrar total de despesas positivo
+  const totalDespesas = filteredGastos.reduce((sum, g) => sum + Math.abs(g.preco || 0), 0);
 
+  // Total vendas é positivo normal
+  const totalVendas = filteredVendas.reduce((sum, v) => sum + (v.valorFinal || 0), 0);
+
+  // Saldo líquido = vendas + gastos (gastos são negativos, logo já subtrai)
+  const saldoLiquido = totalVendas + filteredGastos.reduce((sum, g) => sum + (g.preco || 0), 0);
+
+  // Preparar transações para tabela, mantendo preço negativo em gastos
   const allTransactions = [
     ...filteredGastos.map(g => ({
       id: g.id.toString(),
       data: g.data,
       type: "expense" as const,
-      amount: g.preco,
+      amount: g.preco, // negativo
       descricao: g.descricao,
       comentario: g.comentario,
       tipo: g.tipoDespesa
@@ -128,69 +135,65 @@ const Dashboard = () => {
           )}
         </div>
 
-          {/* KPIs responsivos lado a lado */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-sm">
+        {/* KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-sm">
+          <DashboardKPI
+            title="Saldo Líquido"
+            value={saldoLiquido.toFixed(2)}
+            period={
+              selectedMonth && selectedYear
+                ? `${monthNames[selectedMonth]}/${selectedYear}`
+                : selectedYear || "Geral"
+            }
+          />
 
-            {/* Sempre visíveis */}
+          <DashboardKPI
+            title="Total Despesas"
+            value={totalDespesas.toFixed(2)}
+            period={
+              selectedMonth && selectedYear
+                ? `${monthNames[selectedMonth]}/${selectedYear}`
+                : selectedYear || "Geral"
+            }
+          />
+
+          <DashboardKPI
+            title="Total de Vendas"
+            value={totalVendas.toFixed(2)}
+            period={
+              selectedMonth && selectedYear
+                ? `${monthNames[selectedMonth]}/${selectedYear}`
+                : selectedYear || "Geral"
+            }
+          />
+
+          <div className="hidden sm:block">
             <DashboardKPI
-              title="Saldo Líquido"
-              value={saldoLiquido.toFixed(2)}
-              period={
-                selectedMonth && selectedYear
-                  ? `${monthNames[selectedMonth]}/${selectedYear}`
-                  : selectedYear || "Geral"
-              }
+              title="Investimento Inicial"
+              value={initialInvestmentCalculated.toFixed(2)}
+              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+              valueColorClass={initialInvestmentCalculated < 0 ? "text-red-600" : "text-green-600"}
             />
-
-            <DashboardKPI
-              title="Total Despesas"
-              value={totalDespesas.toFixed(2)}
-              period={
-                selectedMonth && selectedYear
-                  ? `${monthNames[selectedMonth]}/${selectedYear}`
-                  : selectedYear || "Geral"
-              }
-            />
-
-            <DashboardKPI
-              title="Total de Vendas"
-              value={totalVendas.toFixed(2)}
-              period={
-                selectedMonth && selectedYear
-                  ? `${monthNames[selectedMonth]}/${selectedYear}`
-                  : selectedYear || "Geral"
-              }
-            />
-
-            {/* Escondidos no mobile (< 640px) */}
-            <div className="hidden sm:block">
-              <DashboardKPI
-                title="Investimento Inicial"
-                value={initialInvestmentCalculated.toFixed(2)}
-                period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-                valueColorClass={initialInvestmentCalculated < 0 ? "text-red-600" : "text-green-600"}
-              />
-            </div>
-
-            <div className="hidden sm:block">
-              <DashboardKPI
-                title="Payback"
-                value={paybackPeriod.toString()}
-                period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-              />
-            </div>
-
-            <div className="hidden sm:block">
-              <DashboardKPI
-                title="TIR"
-                value={tir.toString()}
-                period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-              />
-            </div>
           </div>
 
+          <div className="hidden sm:block">
+            <DashboardKPI
+              title="Payback"
+              value={paybackPeriod.toString()}
+              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+            />
+          </div>
 
-        {/* Tabela de transações embaixo dos KPIs */}
+          <div className="hidden sm:block">
+            <DashboardKPI
+              title="TIR"
+              value={tir.toString()}
+              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+            />
+          </div>
+        </div>
+
+        {/* Tabela de transações */}
         <DashboardTransactionsTable transactions={allTransactions} />
 
         {/* Gráficos */}

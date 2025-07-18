@@ -1,13 +1,12 @@
-// src/features/dashboard/hooks/useDashboardChartsData.ts
 import { useMemo } from 'react';
-import type { Gasto, Venda } from '../../../hooks/useLocalStorageData';
-import { monthNames } from '../../../utils'; // Assuming this utility is correct
+import type { Gasto, Venda } from '../../../hooks/useLocalStorageData'; // Ajuste o caminho se necessário. Verifique se Gasto e Venda são exportados.
+import { monthNames } from '../../../utils'; // Ajuste o caminho se necessário. Verifique se monthNames é exportado.
 
 // Tipos específicos para cada gráfico
 interface SalesExpensesDataPoint {
   period: string;
-  totalSales: number;   // CORRECTED: back to camelCase
-  totalExpenses: number; // CORRECTED: back to camelCase
+  totalSales: number;
+  totalExpenses: number;
 }
 
 interface CumulativeCashFlowDataPoint {
@@ -16,7 +15,6 @@ interface CumulativeCashFlowDataPoint {
   netCashFlow?: number;
 }
 
-// Interface de retorno do hook
 interface DashboardChartData {
   salesExpensesData: SalesExpensesDataPoint[];
   cumulativeCashFlowData: CumulativeCashFlowDataPoint[];
@@ -25,17 +23,20 @@ interface DashboardChartData {
 export const useDashboardChartsData = (
   filteredGastos: Gasto[],
   filteredVendas: Venda[],
-  initialInvestment: number,
+  initialInvestment: number, // Este já deve vir negativo se for um investimento
   selectedYear: string,
   aggregationType: 'daily' | 'monthly' | 'yearly',
   selectedMonth?: string
 ): DashboardChartData => {
-
   const data = useMemo(() => {
     const salesExpensesMap = new Map<string, { totalSales: number; totalExpenses: number; netCashFlow: number }>();
-    const allTransactions = [...filteredGastos, ...filteredVendas].sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
 
-    // Initialize the map with all relevant periods to ensure they appear on the chart
+    // Combina gastos e vendas e ordena por data para garantir a acumulação correta
+    const allTransactions: Array<Gasto | Venda> = [...filteredGastos, ...filteredVendas].sort(
+      (a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()
+    );
+
+    // Inicializa o map com todos os períodos relevantes para garantir que apareçam no gráfico, mesmo que sem dados
     if (aggregationType === 'monthly') {
       for (let i = 1; i <= 12; i++) {
         const monthKey = `${selectedYear}-${i.toString().padStart(2, '0')}`;
@@ -47,78 +48,124 @@ export const useDashboardChartsData = (
         const dayKey = `${selectedYear}-${selectedMonth}-${day.toString().padStart(2, '0')}`;
         salesExpensesMap.set(dayKey, { totalSales: 0, totalExpenses: 0, netCashFlow: 0 });
       }
-    } else if (aggregationType === 'yearly') {
-        // You might want to initialize for a range of years here if you need empty years to show
-        // For now, it will only show years with data.
     }
+    // Para 'yearly', não precisamos inicializar aqui, pois os dados serão agregados por ano diretamente.
 
-
-    // Process all transactions (sales and expenses)
-    allTransactions.forEach(item => {
+    // Processa todas as transações (vendas e despesas)
+    allTransactions.forEach((item: Gasto | Venda) => { // Tipagem explícita para 'item'
       const date = new Date(item.data);
-      let periodKey: string;
+      let periodKey: string = ''; // Inicializa periodKey para evitar "used before assigned"
 
       if (aggregationType === 'daily' && selectedMonth) {
-        if (date.getFullYear().toString() !== selectedYear || (date.getMonth() + 1).toString().padStart(2, '0') !== selectedMonth) {
-          return;
+        if (
+          date.getFullYear().toString() !== selectedYear ||
+          (date.getMonth() + 1).toString().padStart(2, '0') !== selectedMonth
+        ) {
+          return; // Ignora transações fora do mês/ano selecionado para agregação diária
         }
-        periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date
+          .getDate()
+          .toString()
+          .padStart(2, '0')}`;
       } else if (aggregationType === 'monthly') {
         if (date.getFullYear().toString() !== selectedYear) {
-          return;
+          return; // Ignora transações fora do ano selecionado para agregação mensal
         }
         periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-      } else { // yearly
+      } else {
+        // yearly
         periodKey = date.getFullYear().toString();
       }
 
       const current = salesExpensesMap.get(periodKey) || { totalSales: 0, totalExpenses: 0, netCashFlow: 0 };
 
-      if ('preco' in item) { // Is an expense
-        current.totalExpenses += (item.preco || 0);
-        current.netCashFlow -= (item.preco || 0);
-      } else if ('valorFinal' in item) { // Is a sale
+      // Verifica se é um gasto ou venda e atualiza os totais
+      if ('preco' in item) {
+        // Para gastos, 'preco' é o valor da despesa. Assumimos que 'preco' já é negativo para despesas.
+        // Se 'preco' for positivo e representar uma saída, ele deve ser tratado como negativo para netCashFlow.
+        // Pelo seu useFinancialMetrics, 'g.preco' é somado e depois 'calculatedInitialInvestment' é invertido se > 0.
+        // Isso sugere que 'g.preco' pode vir positivo ou negativo.
+        // Para 'totalExpenses' para exibição, usamos o valor absoluto.
+        current.totalExpenses += Math.abs(item.preco || 0);
+        // Para 'netCashFlow', se 'preco' já é negativo, somamos. Se for positivo (mas é uma despesa), subtraímos.
+        current.netCashFlow += (item.preco || 0); // Se preco é -100, soma -100. Se preco é 100, soma 100.
+                                                // Se você quer que despesas sempre diminuam o netCashFlow,
+                                                // use: current.netCashFlow -= Math.abs(item.preco || 0);
+                                                // Mas o mais comum é que 'preco' já seja o valor com sinal.
+      } else if ('valorFinal' in item) {
         current.totalSales += (item.valorFinal || 0);
         current.netCashFlow += (item.valorFinal || 0);
       }
       salesExpensesMap.set(periodKey, current);
     });
 
-    // Sort the map keys
-    const sortedPeriodKeys = Array.from(salesExpensesMap.keys()).sort((a, b) => {
-      // Intelligent sorting for Year, Year-Month, Year-Month-Day
-      return a.localeCompare(b);
-    });
+    // Ordena as chaves do map para garantir a ordem cronológica no gráfico
+    const sortedPeriodKeys = Array.from(salesExpensesMap.keys()).sort((a, b) => a.localeCompare(b));
 
     const salesExpensesData: SalesExpensesDataPoint[] = [];
     const cumulativeCashFlowData: CumulativeCashFlowDataPoint[] = [];
-    let currentCumulative = initialInvestment;
 
-    // Populate the data arrays for the charts
+    // ***** CORREÇÃO PRINCIPAL AQUI: Adiciona o ponto do investimento inicial como o PRIMEIRO ponto *****
+    // Isso garante que o gráfico comece no valor do investimento inicial, se houver.
+    if (initialInvestment !== 0) {
+        let initialPeriodLabel: string;
+        // Determina o rótulo do período para o ponto de investimento inicial, um período antes do primeiro dado.
+        if (sortedPeriodKeys.length > 0) {
+            const firstPeriodKey = sortedPeriodKeys[0];
+            if (aggregationType === 'daily' && selectedMonth) {
+                const [year, monthStr, dayStr] = firstPeriodKey.split('-').map(Number);
+                const firstDate = new Date(year, monthStr - 1, dayStr);
+                firstDate.setDate(firstDate.getDate() - 1); // Dia anterior ao primeiro dado
+                initialPeriodLabel = `${firstDate.getDate().toString().padStart(2, '0')}/${monthNames[firstDate.getMonth()]}`;
+            } else if (aggregationType === 'monthly') {
+                const [year, monthStr] = firstPeriodKey.split('-').map(Number);
+                const firstDate = new Date(year, monthStr - 1); // Mês do primeiro dado
+                firstDate.setMonth(firstDate.getMonth() - 1); // Mês anterior ao primeiro dado
+                initialPeriodLabel = `${monthNames[firstDate.getMonth()]} ${firstDate.getFullYear()}`;
+            } else { // yearly
+                initialPeriodLabel = (parseInt(selectedYear) - 1).toString(); // Ano anterior ao selecionado
+            }
+        } else {
+            // Se não houver dados, o ponto inicial pode ser o ano anterior ou um rótulo genérico
+            initialPeriodLabel = (parseInt(selectedYear) - 1).toString();
+        }
+
+        cumulativeCashFlowData.push({
+            period: initialPeriodLabel,
+            cumulativeCashFlow: initialInvestment,
+            netCashFlow: initialInvestment // Útil para o tooltip indicar que é o investimento inicial
+        });
+    }
+
+    // currentCumulative deve começar do último ponto adicionado (o investimento inicial, se houver)
+    // ou de 0 se não houver investimento inicial e nenhum ponto foi adicionado ainda.
+    let currentCumulative = cumulativeCashFlowData.length > 0
+        ? cumulativeCashFlowData[cumulativeCashFlowData.length - 1].cumulativeCashFlow
+        : 0;
+
     sortedPeriodKeys.forEach(periodKey => {
       const values = salesExpensesMap.get(periodKey)!;
 
-      // Format 'period' for display on charts
       let displayPeriod: string;
       if (aggregationType === 'daily') {
-        // periodKey is "YYYY-MM-DD", we want "DD/MM" or "DD/MêsNome"
-        const [, monthNum, dayNum] = periodKey.split('-');
-        displayPeriod = `${parseInt(dayNum, 10).toString().padStart(2, '0')}/${monthNames[monthNum]}`; // Ex: "01/Janeiro", "15/Janeiro"
+        const [, monthStr, dayStr] = periodKey.split('-');
+        const monthIndex = parseInt(monthStr, 10) - 1;
+        displayPeriod = `${parseInt(dayStr, 10).toString().padStart(2, '0')}/${monthNames[monthIndex]}`;
       } else if (aggregationType === 'monthly') {
-        // periodKey is "YYYY-MM", we want "MêsNome YYYY"
-        const [year, monthNum] = periodKey.split('-');
-        displayPeriod = `${monthNames[monthNum]} ${year}`; // Ex: "Janeiro 2024"
-      } else { // yearly
-        displayPeriod = periodKey; // Ex: "2024"
+        const [year, monthStr] = periodKey.split('-');
+        const monthIndex = parseInt(monthStr, 10) - 1;
+        displayPeriod = `${monthNames[monthIndex]} ${year}`;
+      } else {
+        displayPeriod = periodKey; // Para agregação anual, o periodKey já é o ano
       }
 
       salesExpensesData.push({
         period: displayPeriod,
-        totalSales: values.totalSales,       // CORRECTED: use totalSales
-        totalExpenses: values.totalExpenses, // CORRECTED: use totalExpenses
+        totalSales: values.totalSales,
+        totalExpenses: Math.abs(values.totalExpenses), // Garante que seja positivo para o gráfico de despesas
       });
 
-      currentCumulative += values.netCashFlow;
+      currentCumulative += values.netCashFlow; // Adiciona o fluxo líquido do período
       cumulativeCashFlowData.push({
         period: displayPeriod,
         cumulativeCashFlow: currentCumulative,
@@ -126,37 +173,7 @@ export const useDashboardChartsData = (
       });
     });
 
-    // Add initial point for Cumulative Cash Flow chart if there's an initial investment
-    if (initialInvestment !== 0 && cumulativeCashFlowData.length > 0) {
-        let initialPeriodLabel: string;
-        if (aggregationType === 'daily' && selectedMonth) {
-            // For daily, the "before" point could be the day before the first data point
-            const firstPeriodSplit = sortedPeriodKeys[0].split('-'); // "YYYY-MM-DD"
-            const firstDate = new Date(parseInt(firstPeriodSplit[0]), parseInt(firstPeriodSplit[1]) - 1, parseInt(firstPeriodSplit[2]));
-            firstDate.setDate(firstDate.getDate() - 1); // Go back one day
-            initialPeriodLabel = `${firstDate.getDate().toString().padStart(2, '0')}/${monthNames[(firstDate.getMonth() + 1).toString().padStart(2, '0')]}`;
-        } else if (aggregationType === 'monthly') {
-            const firstPeriodSplit = sortedPeriodKeys[0].split('-'); // "YYYY-MM"
-            const year = parseInt(firstPeriodSplit[0]);
-            const monthNum = parseInt(firstPeriodSplit[1], 10);
-
-            if (monthNum === 1) { // If first month is January, go to previous December
-                initialPeriodLabel = `${monthNames["12"]} ${year - 1}`;
-            } else { // Go to previous month in the same year
-                initialPeriodLabel = `${monthNames[(monthNum - 1).toString().padStart(2, '0')]} ${year}`;
-            }
-        } else { // yearly
-            initialPeriodLabel = (parseInt(selectedYear) - 1).toString();
-        }
-
-        cumulativeCashFlowData.unshift({
-            period: initialPeriodLabel,
-            cumulativeCashFlow: initialInvestment
-        });
-    }
-
     return { salesExpensesData, cumulativeCashFlowData };
-
   }, [filteredGastos, filteredVendas, initialInvestment, selectedYear, aggregationType, selectedMonth]);
 
   return data;

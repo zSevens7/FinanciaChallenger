@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import type { Gasto, Venda } from './useLocalStorageData';
-import { aggregateCashFlows, calculatePayback, calculateTIR } from '../utils/financialCalculations';
-import { useDashboardChartsData } from '../features/dashboard/hooks/useDashboardChartsData';
+import type { Gasto, Venda } from './useLocalStorageData'; // ajuste o caminho se precisar
+import { useDashboardChartsData } from '../features/dashboard/hooks/useDashboardChartsData'; // ajuste o caminho
+import { aggregateCashFlows, calculatePayback, calculateTIR } from '../utils/financialCalculations'; // ajuste o caminho
 
 interface FinancialMetrics {
   initialInvestmentCalculated: number;
@@ -14,9 +14,9 @@ export const useFinancialMetrics = (
   allGastos: Gasto[],
   allVendas: Venda[],
   selectedYear: string,
-  selectedMonth: string // <-- Adicione este parâmetro
+  selectedMonth: string // <-- Adicionado
 ): FinancialMetrics => {
-  // Filtragem fora do useMemo (seguro)
+  // Filtragem segura dos dados pelo ano selecionado
   const filteredGastosForYear = allGastos.filter(g => g.data.substring(0, 4) === selectedYear);
   const filteredVendasForYear = allVendas.filter(v => new Date(v.data).getFullYear().toString() === selectedYear);
 
@@ -29,20 +29,20 @@ export const useFinancialMetrics = (
     calculatedInitialInvestment = -calculatedInitialInvestment;
   }
 
-  // --- >>> ADICIONE ESTA LINHA AQUI <<< ---
-  const aggregationType = selectedMonth ? 'daily' : 'monthly'; 
-  // --- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---
+  // Definindo tipo de agregação (diária ou mensal)
+  const aggregationType = selectedMonth ? 'daily' : 'monthly';
 
-  // ✅ Chama o hook corretamente — no topo
+  // Obtém dados para os gráficos
   const chartData = useDashboardChartsData(
     filteredGastosForYear,
     filteredVendasForYear,
     calculatedInitialInvestment,
     selectedYear,
-    aggregationType, // <-- Agora 'aggregationType' está definido
-    selectedMonth    // <-- ADICIONEI selectedMonth aqui!
+    aggregationType,
+    selectedMonth
   );
 
+  // Calcula métricas financeiras com useMemo para performance
   const metrics = useMemo(() => {
     if (!selectedYear) {
       return {
@@ -53,15 +53,17 @@ export const useFinancialMetrics = (
       };
     }
 
-    // 3. Fluxo de caixa para Payback e TIR
+    // Gastos operacionais (excluindo investimentos) para fluxo de caixa
     const operationalGastosForCashFlow = filteredGastosForYear.filter(g => g.tipoDespesa !== 'investimento');
+    
+    // Agrega fluxo de caixa mensal
     const cashFlowsForYear = aggregateCashFlows(
       operationalGastosForCashFlow,
       filteredVendasForYear,
       'monthly'
     );
 
-    // 4. Payback
+    // Payback
     let calculatedPayback: number | string = 'N/A';
     if (calculatedInitialInvestment < 0 && cashFlowsForYear.length > 0) {
       const paybackVal = calculatePayback(cashFlowsForYear, calculatedInitialInvestment);
@@ -70,7 +72,7 @@ export const useFinancialMetrics = (
       calculatedPayback = 'Inv. Inicial Inválido';
     }
 
-    // 5. TIR
+    // TIR
     let calculatedTir: number | string = 'N/A';
     if (calculatedInitialInvestment < 0 && cashFlowsForYear.length > 0) {
       const tirVal = calculateTIR(cashFlowsForYear, calculatedInitialInvestment);
@@ -85,7 +87,7 @@ export const useFinancialMetrics = (
       tir: calculatedTir,
       chartData
     };
-  }, [filteredGastosForYear, filteredVendasForYear, calculatedInitialInvestment, selectedYear, chartData]); // Atenção: 'chartData' aqui pode causar re-render desnecessário se não for estável
+  }, [filteredGastosForYear, filteredVendasForYear, calculatedInitialInvestment, selectedYear, chartData]);
 
   return metrics;
 };

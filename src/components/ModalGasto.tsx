@@ -26,11 +26,14 @@ function ModalGasto({ onClose }: ModalGastoProps) {
       return;
     }
 
+    const precoNum = parseFloat(preco);
+    const precoNegativo = precoNum > 0 ? precoNum * -1 : precoNum; // garante valor negativo
+
     const novoGasto: Gasto = {
       id: Date.now(),
       data: dataGasto,
       nome: nomeGasto.trim(),
-      preco: parseFloat(preco),
+      preco: precoNegativo,
       categoria,
       tipoDespesa,
     };
@@ -52,7 +55,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-auto z-50">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md transform transition-all relative">
-        
+
         {/* Botão de Fechar "X" */}
         {onClose && (
           <button
