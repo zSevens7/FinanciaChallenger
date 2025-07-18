@@ -112,7 +112,7 @@ A seguir, uma visão geral das pastas principais do projeto, suas responsabilida
 
 | Pasta           | Descrição                                                                                         | Exemplos/Conteúdo Principal                                            |
 |-----------------|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| `assets/`       | Imagens estáticas, logos e ícones usados na interface.                                          | Logo Codi Academy, gráficos, banners, avatares                       |
+| `assets/`       | Imagens estáticas, logos e ícones usados na interface.                                          | Logo Codi Academy                      |
 | `components/`   | Componentes React reutilizáveis em toda a aplicação.                                            | Header, Modal, Sidebar                                               |
 | `contexts/`     | Contextos React para gerenciamento global de estados e lógica compartilhada.                   | HeaderContext para título e ações do cabeçalho                       |
 | `features/`     | Componentes específicos de páginas, isolados para evitar impacto no restante do sistema.        | Componentes únicos para funcionalidades específicas                  |
