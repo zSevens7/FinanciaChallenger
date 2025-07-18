@@ -322,10 +322,10 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 ---
 
 
-📝 **Licença**  
+### 📝 Licença
 Este projeto foi desenvolvido como aprendizado no curso da [Codi Academy](https://codiacademy.com.br/).
 
-👨‍💻 **Autoria**  
+### 👨‍💻 Autoria  
 Desenvolvido por:  
 - [Gabriel Teperino](https://github.com/zSevens7)  
 - [Vitor Reis](https://github.com/vitorszreis)  
@@ -333,7 +333,7 @@ Desenvolvido por:
 
 ---
 
-🙏 **Agradecimentos**  
+### 🙏 **Agradecimentos**  
 Obrigado por dedicar seu tempo para ler e testar este projeto! Seu interesse e feedback são muito importantes para nós.  
 Fique à vontade para abrir issues, sugestões ou colaborar!
 
