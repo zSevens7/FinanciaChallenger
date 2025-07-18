@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Gasto } from "../types"
+import type { Gasto } from "../types";
 
 interface ModalGastoProps {
   onClose?: () => void;
@@ -7,14 +7,21 @@ interface ModalGastoProps {
 
 function ModalGasto({ onClose }: ModalGastoProps) {
   const [dataGasto, setDataGasto] = useState(new Date().toISOString().split("T")[0]);
-  const [nomeGasto, setNomeGasto] = useState(""); // Novo estado para o nome do gasto
+  const [nomeGasto, setNomeGasto] = useState("");
   const [preco, setPreco] = useState("");
   const [categoria, setCategoria] = useState("");
   const [tipoDespesa, setTipoDespesa] = useState("");
 
   const handleSave = () => {
-
-    if (!dataGasto || !nomeGasto.trim() || !preco || isNaN(parseFloat(preco)) || parseFloat(preco) <= 0 || !categoria || !tipoDespesa) {
+    if (
+      !dataGasto ||
+      !nomeGasto.trim() ||
+      !preco ||
+      isNaN(parseFloat(preco)) ||
+      parseFloat(preco) <= 0 ||
+      !categoria ||
+      !tipoDespesa
+    ) {
       alert("Por favor, preencha todos os campos corretamente e com valores válidos.");
       return;
     }
@@ -22,7 +29,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
     const novoGasto: Gasto = {
       id: Date.now(),
       data: dataGasto,
-      nome: nomeGasto.trim(), 
+      nome: nomeGasto.trim(),
       preco: parseFloat(preco),
       categoria,
       tipoDespesa,
@@ -34,7 +41,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
     localStorage.setItem("gastos", JSON.stringify(novosGastos));
 
     setDataGasto(new Date().toISOString().split("T")[0]);
-    setNomeGasto(""); 
+    setNomeGasto("");
     setPreco("");
     setCategoria("");
     setTipoDespesa("");
@@ -43,20 +50,23 @@ function ModalGasto({ onClose }: ModalGastoProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-200 bg-opacity-70 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md transform transition-all">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-purple-600 text-2xl font-bold">
-            Adicionar Gasto
-          </h2>
-          {onClose && (
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-auto z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md transform transition-all relative">
+        
+        {/* Botão de Fechar "X" */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 text-purple-600 hover:text-purple-800 text-2xl font-bold focus:outline-none"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+        )}
+
+        <h2 className="text-purple-600 text-2xl font-bold mb-6 text-center">
+          Adicionar Gasto
+        </h2>
 
         {/* Campo Data */}
         <div className="mb-4">
@@ -153,15 +163,15 @@ function ModalGasto({ onClose }: ModalGastoProps) {
 
         {/* Botões */}
         <div className="flex justify-end space-x-3">
-           {onClose && (
-             <button
-                onClick={onClose}
-                type="button"
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
-             >
-                Cancelar
-             </button>
-           )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md border border-gray-300"
+            >
+              Cancelar
+            </button>
+          )}
           <button
             onClick={handleSave}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"

@@ -31,12 +31,10 @@ function ModalVenda({ onClose }: ModalVendaProps) {
       valorFinal: parseFloat(valorFinal),
     };
 
-    // Recupera as vendas existentes ou cria um array vazio
     const vendasExistentes = JSON.parse(localStorage.getItem("vendas") || "[]");
     const novasVendas = [...vendasExistentes, novaVenda];
     localStorage.setItem("vendas", JSON.stringify(novasVendas));
 
-    // Limpa os campos do formulário
     setDataVenda("");
     setTipoCurso("");
     setNomeCliente("");
@@ -48,13 +46,24 @@ function ModalVenda({ onClose }: ModalVendaProps) {
     setComissao("");
     setValorFinal("");
 
-    // Fecha o modal se a função onClose for fornecida
     if (onClose) onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-auto">
-      <div className="bg-white p-6 rounded-md w-full max-w-md shadow-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded-md w-full max-w-md shadow-lg max-h-[90vh] overflow-y-auto relative">
+        
+        {/* Botão Fechar */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-2 text-purple-600 hover:text-purple-800 text-2xl font-bold focus:outline-none"
+            aria-label="Fechar"
+          >
+            ×
+          </button>
+        )}
+
         <h2 className="text-center text-purple-600 text-2xl font-bold mb-6">
           Adicionar Vendas
         </h2>
@@ -150,7 +159,7 @@ function ModalVenda({ onClose }: ModalVendaProps) {
           />
         </div>
 
-        {/* Campo Descontos Aplicados */}
+        {/* Campo Desconto */}
         <div className="mb-4">
           <label htmlFor="desconto" className="block text-purple-600 mb-1">
             Descontos Aplicados (R$)
@@ -165,7 +174,7 @@ function ModalVenda({ onClose }: ModalVendaProps) {
           />
         </div>
 
-        {/* Campo Impostos, Comissões e Taxas */}
+        {/* Campo Imposto */}
         <div className="mb-4">
           <label htmlFor="imposto" className="block text-purple-600 mb-1">
             Impostos, Comissões e Taxas (R$)
