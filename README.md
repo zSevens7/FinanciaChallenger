@@ -135,7 +135,7 @@ Essa estrutura modular permite:
 - Escalabilidade do projeto, com fácil adição de novas funcionalidades.
 - Código mais legível e organizado, beneficiando o trabalho colaborativo.
 
-
+---
 
 ## 🚀 Guia Rápido: Adicionando Dados de Teste
 
@@ -271,7 +271,7 @@ localStorage.setItem("gastos", JSON.stringify(gastosSimulados));
 console.log("✅ Dados de gastos salvos no localStorage, incluindo o investimento inicial.");
 ```
 
-
+---
 
 
 ## 5. 🌐 Hospedagem do Projeto
@@ -367,6 +367,8 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 
 ### 11. 📝 Licença
 Este projeto foi desenvolvido como aprendizado no curso da [Codi Academy](https://codiacademy.com.br/).
+
+---
 
 ### 12. 👨‍💻 Autoria  
 Desenvolvido por:  
