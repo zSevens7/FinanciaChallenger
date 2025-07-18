@@ -97,7 +97,7 @@ O desafio consistiu em desenvolver a interface completa e funcional do sistema, 
 
 ---
 
-## 🎨 Protótipos no Figma
+## 1. 🎨 Protótipos no Figma
 
 O design visual do projeto foi inicialmente estruturado no Figma pelo grupo, servindo como base para o desenvolvimento da interface do sistema.
 
@@ -106,11 +106,42 @@ O design visual do projeto foi inicialmente estruturado no Figma pelo grupo, ser
 
 ---
 
+## 2. 🗂️ Estrutura e Organização do Projeto
+
+A seguir, uma visão geral das pastas principais do projeto, suas responsabilidades e exemplos do que cada uma contém:
+
+| Pasta           | Descrição                                                                                         | Exemplos/Conteúdo Principal                                            |
+|-----------------|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| `assets/`       | Imagens estáticas, logos e ícones usados na interface.                                          | Logo Codi Academy, gráficos, banners, avatares                       |
+| `components/`   | Componentes React reutilizáveis em toda a aplicação.                                            | Header, Modal, Sidebar                                               |
+| `contexts/`     | Contextos React para gerenciamento global de estados e lógica compartilhada.                   | HeaderContext para título e ações do cabeçalho                       |
+| `features/`     | Componentes específicos de páginas, isolados para evitar impacto no restante do sistema.        | Componentes únicos para funcionalidades específicas                  |
+| `hooks/`        | Hooks personalizados para lógica reutilizável, como detecção de dispositivo e manipulação de dados | useFinancialMetrics, useIsMobile, useLocalStorageData                |
+| `layouts/`      | Layouts principais que estruturam a navegação e a disposição visual das páginas.                | MainLayout com sidebar responsiva                                   |
+| `libs/`         | Funções utilitárias usadas globalmente para operações comuns e helpers.                         | Função `cn` para manipulação de classes CSS com Tailwind            |
+| `pages/`        | Páginas do aplicativo que correspondem a rotas.                                                | Dashboard, Vendas, Gastos                                            |
+| `services/`     | Módulos para lógica de manipulação de dados e integração com APIs externas.                     | Agregação de dados para gráficos                                    |
+| `types/`        | Definições e interfaces TypeScript para garantir tipagem consistente e segura.                  | Interfaces Venda, Gasto                                              |
+| `utils/`        | Funções utilitárias para formatação, cálculos financeiros e manipulação de dados.               | Cálculo de TIR, Payback, formatação de datas e moedas               |
+
+---
+
+### Organização Modular e Benefícios
+
+Essa estrutura modular permite:
+
+- Reutilização e isolamento de componentes para facilitar manutenção.
+- Separação clara entre lógica, visual e dados.
+- Escalabilidade do projeto, com fácil adição de novas funcionalidades.
+- Código mais legível e organizado, beneficiando o trabalho colaborativo.
+
+
 
 ## 🚀 Guia Rápido: Adicionando Dados de Teste
 
+Este passo serve para inserir rapidamente dados simulados no sistema, permitindo testar e visualizar os gráficos e tabelas com informações reais de forma prática, sem a necessidade de inserir tudo manualmente.
 
-### 1. Adicionar Vendas Simuladas
+### 3. Adicionar Vendas Simuladas
 
 ```javascript
 const nomes = ["João Silva", "Maria Oliveira", "Carlos Santos", "Ana Souza", "Pedro Lima", "Juliana Costa", "Lucas Rocha", "Fernanda Alves", "Rafael Martins", "Camila Ribeiro"];
@@ -151,7 +182,7 @@ for (let i = 0; i < 50; i++) {
 localStorage.setItem("vendas", JSON.stringify(vendasSimuladas));
 console.log("✅ 50 vendas simuladas adicionadas no localStorage!");
 ```
-### 2. Adicionar Vendas Simuladas
+### 4. Adicionar Vendas Simuladas
 ```javascript
 const categorias = [
     "moradia",
@@ -243,7 +274,7 @@ console.log("✅ Dados de gastos salvos no localStorage, incluindo o investiment
 
 
 
-## 🌐 Hospedagem do Projeto
+## 5. 🌐 Hospedagem do Projeto
 
 O projeto está disponível online em:
 
@@ -251,7 +282,7 @@ O projeto está disponível online em:
 
 ---
 
-## 3. Entendendo o Investimento Inicial nos Gastos
+## 6. Entendendo o Investimento Inicial nos Gastos
 
 O item **“Investimento Inicial”** é essencial para que as métricas **TIR**, **Payback** e **VPL** funcionem corretamente.
 
@@ -260,9 +291,9 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 
 ---
 
-## 📊 Entendendo as Métricas Financeiras
+## 7. 📊 Entendendo as Métricas Financeiras
 
-### 🔢 VPL (Valor Presente Líquido)
+### 7.1 🔢 VPL (Valor Presente Líquido)
 
 - Calcula o valor presente de fluxos futuros descontados por uma taxa.
 - Serve para avaliar a viabilidade do projeto:
@@ -271,13 +302,13 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
   - **VPL = 0**: Projeto apenas cobre os custos.
 - No Codi Cash, o **Saldo Líquido Acumulado** no gráfico representa o VPL visual.
 
-### 📈 TIR (Taxa Interna de Retorno)
+### 7.2 📈 TIR (Taxa Interna de Retorno)
 
 - Taxa que zera o VPL de um projeto.
 - Representa a **rentabilidade** do projeto.
 - Quanto maior a TIR, melhor o investimento.
 
-### ⏳ Payback
+### 7.3 ⏳ Payback
 
 - Tempo necessário para **recuperar o investimento inicial** com os lucros.
 - Indicador de liquidez: quanto menor, mais rápido o retorno.
@@ -285,9 +316,9 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 
 ---
 
-## 💻 Como o Projeto Foi Implementado
+## 8. 💻 Como o Projeto Foi Implementado
 
-### 🧰 Tecnologias Principais
+### 8.1 🧰 Tecnologias Principais
 
 - **React**: UI declarativa e eficiente.
 - **TypeScript**: Tipagem estática para maior robustez.
@@ -295,9 +326,9 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 
 ---
 
-## 📦 Bibliotecas e Ferramentas
+## 9.📦 Bibliotecas e Ferramentas
 
-### 🛠️ Produção
+### 9.1 🛠️ Produção
 
 - [`@heroicons/react`](https://github.com/tailwindlabs/heroicons), [`lucide-react`](https://lucide.dev/): Ícones SVG.
 - [`@radix-ui/react-*`](https://www.radix-ui.com/): Componentes acessíveis (modais, tooltips, etc.).
@@ -308,7 +339,7 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 - [`react-router-dom`](https://reactrouter.com/): Roteamento SPA.
 - [`react-datepicker`](https://reactdatepicker.com/), [`react-icons`](https://react-icons.github.io/react-icons/): Utilitários de UI.
 
-### ⚙️ Desenvolvimento
+### 9.2 ⚙️ Desenvolvimento
 
 - [`eslint`](https://eslint.org/), [`prettier`](https://prettier.io/): Linting e formatação.
 - [`vite`](https://vitejs.dev/), [`@vitejs/plugin-react`](https://vitejs.dev/guide/): Build moderno e rápido.
@@ -317,7 +348,7 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 
 ---
 
-## ⚠️ Observação Importante
+## 10. ⚠️ Observação Importante
 
 > 🔍 **Detalhe sobre os dados automáticos de gasto**  
 > O código insere automaticamente um **"Investimento Inicial"** no início do ano. Isso é **fundamental** para o cálculo de **TIR** e **Payback**, pois essas métricas dependem de um **fluxo de caixa inicial negativo**.
@@ -334,10 +365,10 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 ---
 
 
-### 📝 Licença
+### 11. 📝 Licença
 Este projeto foi desenvolvido como aprendizado no curso da [Codi Academy](https://codiacademy.com.br/).
 
-### 👨‍💻 Autoria  
+### 12. 👨‍💻 Autoria  
 Desenvolvido por:  
 - [Gabriel Teperino](https://github.com/zSevens7)  
 - [Vitor Reis](https://github.com/vitorszreis)  
@@ -345,7 +376,7 @@ Desenvolvido por:
 
 ---
 
-### 🙏 **Agradecimentos**  
+### 13. 🙏 **Agradecimentos**  
 Obrigado por dedicar seu tempo para ler e testar este projeto! Seu interesse e feedback são muito importantes para nós.  
 Fique à vontade para abrir issues, sugestões ou colaborar!
 
