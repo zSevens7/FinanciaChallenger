@@ -95,6 +95,18 @@ O desafio consistiu em desenvolver a interface completa e funcional do sistema, 
 
 ### CHALLENGEVII-TARDE-UFJF
 
+---
+
+## 🎨 Protótipos no Figma
+
+O design visual do projeto foi inicialmente estruturado no Figma pelo grupo, servindo como base para o desenvolvimento da interface do sistema.
+
+- 🔗 [Visualizar protótipo mobile](https://www.figma.com/proto/GqZUatYhyc7vB4leHz24uO/CodiAcademy--Copy-?page-id=2612%3A9344&node-id=2612-9353&p=f&viewport=115%2C266%2C0.16&t=Dd2gEp0czH9oICpj-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=2612%3A9353&show-proto-sidebar=1)
+- 🔗 [Visualizar protótipo desktop](https://www.figma.com/proto/GqZUatYhyc7vB4leHz24uO/CodiAcademy--Copy-?page-id=618%3A11050&node-id=654-29657&p=f&viewport=309%2C338%2C0.05&t=U968KR5HwadZvLsa-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=654%3A29584&show-proto-sidebar=1)
+
+---
+
+
 ## 🚀 Guia Rápido: Adicionando Dados de Teste
 
 
