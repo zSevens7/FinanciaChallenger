@@ -320,3 +320,23 @@ O item **“Investimento Inicial”** é essencial para que as métricas **TIR**
 > A lógica pode ser expandida para comportar **projeções multi-ano** e auxiliar em um **planejamento estratégico de longo prazo**.
 
 ---
+
+
+📝 **Licença**  
+Este projeto foi desenvolvido como aprendizado no curso da [Codi Academy](https://codiacademy.com.br/).
+
+👨‍💻 **Autoria**  
+Desenvolvido por:  
+- [Gabriel Teperino](https://github.com/zSevens7)  
+- [Vitor Reis](https://github.com/vitorszreis)  
+- [Rayan Morais](https://github.com/rayancmorais)
+
+---
+
+🙏 **Agradecimentos**  
+Obrigado por dedicar seu tempo para ler e testar este projeto! Seu interesse e feedback são muito importantes para nós.  
+Fique à vontade para abrir issues, sugestões ou colaborar!
+
+---
+
+
