@@ -228,10 +228,10 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      {/* AJUSTE AQUI: Adiciona uma classe de tamanho ao ícone PanelLeftIcon */}
-      <PanelLeftIcon className={cn(
-        "size-12", // Adicionado size-6 (24px) para o ícone
-        state === "expanded" ? "" : "rotate-180",
+      {/* AJUSTE AQUI: Substitua PanelLeftIcon por Menu */}
+      <Menu className={cn( // <-- Use o componente Menu aqui
+        "size-10",
+        state === "expanded" ? "" : "rotate-180", // Você pode querer ajustar a rotação para um ícone de menu
         "transition-transform duration-200"
       )} />
       <span className="sr-only">Toggle Sidebar</span>
