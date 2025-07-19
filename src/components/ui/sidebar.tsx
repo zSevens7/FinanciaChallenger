@@ -217,25 +217,26 @@ function SidebarTrigger({
 
   return (
     <Button
-      data-sidebar="trigger"
-      data-slot="sidebar-trigger"
-      variant="ghost"
-      size="icon"
-      className={cn("size-7", className)}
-      onClick={(event) => {
-        onClick?.(event);
-        toggleSidebar();
-      }}
-      {...props}
-    >
-      {/* AJUSTE AQUI: Adiciona uma classe de tamanho ao ícone PanelLeftIcon */}
-      <PanelLeftIcon className={cn(
-        "size-12", // Adicionado size-6 (24px) para o ícone
-        state === "expanded" ? "" : "rotate-180",
-        "transition-transform duration-200"
-      )} />
-      <span className="sr-only">Toggle Sidebar</span>
-    </Button>
+        data-sidebar="trigger"
+        data-slot="sidebar-trigger"
+        variant="ghost"
+        size="icon"
+        className={cn("size-7", className)}
+        onClick={(event) => {
+          onClick?.(event);
+          toggleSidebar();
+        }}
+        {...props}
+      >
+        {/* AJUSTE AQUI: Substitua PanelLeftIcon por Menu */}
+        <Menu className={cn( // <-- Use o componente Menu aqui
+          "size-12",
+          state === "expanded" ? "" : "rotate-180", // Você pode querer ajustar a rotação para um ícone de menu
+          "transition-transform duration-200"
+        )} />
+        <span className="sr-only">Toggle Sidebar</span>
+      </Button>
+
   );
 }
 
