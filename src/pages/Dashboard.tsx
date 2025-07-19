@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import DashboardKPI from "../features/dashboard/dashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
 import { useLocalStorageData } from "../hooks/useLocalStorageData";
+// Confirme que monthNames está sendo importado corretamente
 import { monthNames, getUniqueYears, getUniqueMonthsForYear } from "../utils";
 import { useFinancialMetrics } from "../hooks/useFinancialMetrics";
 import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
@@ -129,7 +130,10 @@ const Dashboard = () => {
             >
               <option value="">Todos os Meses</option>
               {uniqueMonths.map(m => (
-                <option key={m} value={m}>{monthNames[m]}</option>
+                // Aqui está a correção/melhoria: Adicione um fallback caso monthNames[m] seja undefined
+                <option key={m} value={m}>
+                  {monthNames[m] || `Mês ${m}`} {/* Fallback: se undefined, mostra "Mês XX" */}
+                </option>
               ))}
             </select>
           )}
@@ -142,7 +146,7 @@ const Dashboard = () => {
             value={saldoLiquido.toFixed(2)}
             period={
               selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth]}/${selectedYear}`
+                ? `${monthNames[selectedMonth] || `Mês ${selectedMonth}`}/${selectedYear}` // Fallback para KPI
                 : selectedYear || "Geral"
             }
           />
@@ -152,7 +156,7 @@ const Dashboard = () => {
             value={totalDespesas.toFixed(2)}
             period={
               selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth]}/${selectedYear}`
+                ? `${monthNames[selectedMonth] || `Mês ${selectedMonth}`}/${selectedYear}` // Fallback para KPI
                 : selectedYear || "Geral"
             }
           />
@@ -162,7 +166,7 @@ const Dashboard = () => {
             value={totalVendas.toFixed(2)}
             period={
               selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth]}/${selectedYear}`
+                ? `${monthNames[selectedMonth] || `Mês ${selectedMonth}`}/${selectedYear}` // Fallback para KPI
                 : selectedYear || "Geral"
             }
           />

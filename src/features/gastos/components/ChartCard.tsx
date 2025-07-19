@@ -1,3 +1,4 @@
+// ChartCard.tsx
 import { Bar, Pie } from "react-chartjs-2";
 
 export interface ChartCardProps {
@@ -15,9 +16,9 @@ export const ChartCard = ({
   options,
   isFullWidth = false,
 }: ChartCardProps) => {
-  // Se for gráfico de pizza e isFullWidth falso, fica pequeno; senão ocupa largura total
-  const containerWidthClass =
-    chartType === "pie" && !isFullWidth ? "w-72" : "w-full";
+  // Se isFullWidth for true, ChartCard sempre ocupa a largura total do seu pai.
+  // A lógica `w-72` só é aplicada se isFullWidth for false.
+  const containerWidthClass = isFullWidth ? "w-full" : (chartType === "pie" ? "w-72" : "w-full");
 
   return (
     <div
@@ -31,7 +32,8 @@ export const ChartCard = ({
             <Bar data={data} options={options} />
           </div>
         ) : (
-          <div className="relative w-full h-full max-w-[350px] max-h-[350px]">
+          // Ajuste o max-w e max-h para permitir que o círculo do gráfico de pizza cresça
+          <div className="relative w-full h-full max-w-[400px] max-h-[400px]"> {/* <-- AUMENTADO AQUI */}
             <Pie data={data} options={options} />
           </div>
         )}

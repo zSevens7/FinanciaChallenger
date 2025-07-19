@@ -17,7 +17,7 @@ interface ChartsDisplayProps {
 export const ChartsDisplay = ({
   sectionTitle,
   charts,
-  gridCols = "lg:grid-cols-2",
+  gridCols = "lg:grid-cols-2", // Mantém o padrão flexível para telas grandes
 }: ChartsDisplayProps) => {
   if (!charts.length) return null;
 
@@ -52,49 +52,55 @@ export const ChartsDisplay = ({
                   chartType={c.chartType}
                   data={c.data}
                   options={c.options}
+                  // Para o gráfico de evolução, ele já é full width e grande por padrão.
+                  isFullWidth={true} // Força a largura total para gráficos de barra únicos
                 />
               </div>
             );
           } else if (charts.length === 2) {
-            const isBarChart = c.chartType === "bar";
-            const isPieChart = c.chartType === "pie";
-
             // Renderizar ambos juntos dentro de um grid container único por par
             if (index === 0) {
-          const barChart = charts[0];
-          const pieChart = charts[1];
+              const barChart = charts[0];
+              const pieChart = charts[1];
 
-                    return (
-                      <div
-                        key={"chart-pair-" + barChart.id + "-" + pieChart.id}
-                        className="col-span-full max-w-5xl mx-auto w-full h-auto flex flex-col md:flex-row gap-6"
-                      >
-                        <div className="flex-1 min-h-[350px] flex items-center justify-center">
-                          <ChartCard
-                            title={barChart.title}
-                            chartType={barChart.chartType}
-                            data={barChart.data}
-                            options={barChart.options}
-                          />
-                        </div>
-                        <div className="w-full md:w-[320px] min-h-[350px] flex items-center justify-center">
-                          <ChartCard
-                            title={pieChart.title}
-                            chartType={pieChart.chartType}
-                            data={pieChart.data}
-                            options={pieChart.options}
-                          />
-                        </div>
-                      </div>
-                    );
-                  }
-
+              return (
+                <div
+                  key={"chart-pair-" + barChart.id + "-" + pieChart.id}
+                  className="col-span-full max-w-6xl mx-auto w-full h-auto flex flex-col md:flex-row gap-6 items-stretch" // Adicionado max-w-6xl e items-stretch
+                >
+                  <div className="flex-1 min-h-[350px] md:min-h-[450px] flex items-center justify-center"> {/* Aumentado min-h para desktop */}
+                    <ChartCard
+                      title={barChart.title}
+                      chartType={barChart.chartType}
+                      data={barChart.data}
+                      options={barChart.options}
+                      isFullWidth={true} // Garante que o gráfico de barra ocupe o espaço disponível
+                    />
+                  </div>
+                  {/*
+                    Ajuste a largura do contêiner do gráfico de pizza aqui.
+                    Em mobile (w-full), em desktop (md:w-1/2 ou md:w-[450px] por exemplo).
+                    min-h ajuda a garantir que o card tenha uma altura mínima.
+                  */}
+                  <div className="w-full md:w-1/2 lg:w-[450px] min-h-[350px] md:min-h-[450px] flex items-center justify-center"> {/* <-- CORREÇÃO AQUI */}
+                    <ChartCard
+                      title={pieChart.title}
+                      chartType={pieChart.chartType}
+                      data={pieChart.data}
+                      options={pieChart.options}
+                      isFullWidth={true} // <-- Passa true para que o ChartCard não aplique w-72 fixo
+                    />
+                  </div>
+                </div>
+              );
+            }
             // Pula a segunda porque já renderizou o par todo no índice 0
             else {
               return null;
             }
           }
 
+          // Caso geral para gráficos únicos que não sejam "evolucao-periodo"
           return (
             <div
               key={c.id}
@@ -109,6 +115,8 @@ export const ChartsDisplay = ({
                 chartType={c.chartType}
                 data={c.data}
                 options={c.options}
+                // Ajuste para garantir que outros gráficos sejam full-width se necessário
+                isFullWidth={c.chartType === "bar"} // Ou defina como true para todos os gráficos que devem expandir
               />
             </div>
           );
