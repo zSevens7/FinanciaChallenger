@@ -24,10 +24,10 @@ export const useFinancialMetrics = (
   const targetTipoDespesa = 'investimento';
   const investmentGastos = filteredGastosForYear.filter(g => (g.tipoDespesa || '') === targetTipoDespesa);
 
-  let calculatedInitialInvestment = investmentGastos.reduce((sum, g) => sum + (g.preco || 0), 0);
-  if (calculatedInitialInvestment > 0) {
-    calculatedInitialInvestment = -calculatedInitialInvestment;
-  }
+  // ✅ CORREÇÃO APLICADA AQUI: Garante que calculatedInitialInvestment seja sempre POSITIVO
+  // A função 'preco' já é negativa para gastos. Ao somá-los, o resultado será negativo.
+  // Usamos Math.abs para obter o valor absoluto (positivo) do investimento.
+  let calculatedInitialInvestment = Math.abs(investmentGastos.reduce((sum, g) => sum + (g.preco || 0), 0));
 
   // Definindo tipo de agregação (diária ou mensal)
   const aggregationType = selectedMonth ? 'daily' : 'monthly';
@@ -36,7 +36,9 @@ export const useFinancialMetrics = (
   const chartData = useDashboardChartsData(
     filteredGastosForYear,
     filteredVendasForYear,
-    calculatedInitialInvestment,
+    // Passamos o investimento inicial como um valor negativo para o chartData,
+    // pois ele representa uma saída de caixa no gráfico.
+    calculatedInitialInvestment > 0 ? -calculatedInitialInvestment : 0, 
     selectedYear,
     aggregationType,
     selectedMonth
@@ -65,24 +67,28 @@ export const useFinancialMetrics = (
 
     // Payback
     let calculatedPayback: number | string = 'N/A';
-    if (calculatedInitialInvestment < 0 && cashFlowsForYear.length > 0) {
+    // Agora, calculatedInitialInvestment é positivo aqui.
+    // A função calculatePayback espera um valor positivo e o nega internamente.
+    if (calculatedInitialInvestment > 0 && cashFlowsForYear.length > 0) {
       const paybackVal = calculatePayback(cashFlowsForYear, calculatedInitialInvestment);
-      calculatedPayback = paybackVal === Infinity ? 'Nunca' : `${paybackVal.toFixed(2)} meses`;
-    } else if (calculatedInitialInvestment >= 0) {
+      calculatedPayback = paybackVal === 'Não recuperado' ? 'Nunca' : `${(paybackVal as number).toFixed(2)} meses`;
+    } else if (calculatedInitialInvestment <= 0) { // Se não houver investimento ou for 0
       calculatedPayback = 'Inv. Inicial Inválido';
     }
 
     // TIR
     let calculatedTir: number | string = 'N/A';
-    if (calculatedInitialInvestment < 0 && cashFlowsForYear.length > 0) {
+    // Agora, calculatedInitialInvestment é positivo aqui.
+    // A função calculateTIR espera um valor positivo e o nega internamente.
+    if (calculatedInitialInvestment > 0 && cashFlowsForYear.length > 0) {
       const tirVal = calculateTIR(cashFlowsForYear, calculatedInitialInvestment);
       calculatedTir = tirVal !== null && !isNaN(tirVal) ? `${(tirVal * 100).toFixed(2)}%` : 'Não calculável';
-    } else if (calculatedInitialInvestment >= 0) {
+    } else if (calculatedInitialInvestment <= 0) { // Se não houver investimento ou for 0
       calculatedTir = 'Inv. Inicial Inválido';
     }
 
     return {
-      initialInvestmentCalculated: calculatedInitialInvestment,
+      initialInvestmentCalculated: calculatedInitialInvestment, // Retorna o valor positivo aqui
       paybackPeriod: calculatedPayback,
       tir: calculatedTir,
       chartData

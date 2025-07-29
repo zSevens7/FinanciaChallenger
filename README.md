@@ -1,26 +1,42 @@
+# 💰 FinanciaChallenger: Uma Nova Jornada na Gestão Financeira
 
-# 💰 Codi Cash - Sistema de Gestão Financeira
+---
+
+## 🚀 Motivação e Evolução do Projeto
+
+O **FinanciaChallenger** nasce como uma evolução do **Codi Cash**, um sistema de gestão financeira originalmente desenvolvido para o **Challenge da Codi Academy**. Embora o Codi Cash tenha sido criado com foco exclusivo no **frontend** e nas necessidades da Codi Academy, o objetivo principal deste novo projeto é **expandir e refatorar** a aplicação para torná-la uma solução de gestão financeira **genérica e robusta**, acessível a qualquer usuário ou pequena empresa, e não apenas para um contexto específico.
+
+Esta nova fase representa um desafio significativo: integrar um **backend completo com banco de dados**, garantindo que o sistema seja escalável, seguro e capaz de gerenciar dados de forma persistente. A paixão por finanças é o motor por trás dessa iniciativa, buscando construir uma ferramenta poderosa e intuitiva para controle financeiro pessoal ou empresarial.
+
+---
 
 ## 🎯 Objetivo do Projeto
 
-O **Codi Cash** é um software de gestão financeira desenvolvido com o objetivo de facilitar o controle das finanças de cada unidade da **Codi Academy**. Este sistema permite o cadastro, visualização e gestão de **vendas, despesas e indicadores financeiros** através de uma interface web moderna, responsiva e intuitiva.
-
-Este projeto foi desenvolvido como parte de um **Challenge**, com foco exclusivo no desenvolvimento do **frontend** da aplicação, garantindo uma experiência de usuário otimizada e uma arquitetura de código limpa e modular.
+O **FinanciaChallenger** visa ser um software de gestão financeira completo, permitindo o cadastro, visualização e gestão de **vendas (receitas), despesas e indicadores financeiros**. Ele oferecerá uma interface web moderna, responsiva e intuitiva, com a capacidade de armazenar e processar dados de forma segura e eficiente.
 
 ---
 
-## 🚀 Escopo do Desafio (Frontend)
+## 🛣️ Próximos Passos e Funcionalidades Planejadas
 
-O desafio consistiu em desenvolver a interface completa e funcional do sistema, utilizando tecnologias modernas e garantindo:
+Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidades listadas abaixo serão implementadas nas próximas fases de desenvolvimento, transformando o projeto em uma ferramenta ainda mais poderosa e flexível:
 
-- Interfaces responsivas para diversos dispositivos (**mobile first**).
-- Alta usabilidade e navegação intuitiva.
-- Componentização e reutilização de código para escalabilidade e manutenção.
-- Estrutura de projeto limpa e organizada.
+| Característica Planejada | Descrição Detalhada |
+| :----------------------- | :------------------ |
+| **Revitalização Visual** | Mudança completa do layout e esquema de cores para uma experiência visual renovada e moderna. |
+| **Header Aprimorado** | Inclusão de um ícone de usuário no cabeçalho, visando a integração com futuras funcionalidades de autenticação. |
+| **Módulo de Vendas Genérico** | Refatoração do módulo de vendas para permitir o registro de qualquer tipo de transação de receita, tornando-o aplicável a diversos cenários, não apenas cursos. |
+| **Identidade Visual da Página** | Alteração do símbolo/favicon da página para refletir a nova identidade do FinanciaChallenger. |
+| **Página de Login e Usuário** | Implementação de um sistema de autenticação completo, com telas de login e gerenciamento de perfil de usuário. |
+| **Página de Planejamento Financeiro** | Adição de uma nova seção dedicada a ferramentas de planejamento, como orçamentos, metas e projeções financeiras. |
+| **Integração com Banco de Dados** | Desenvolvimento de um backend robusto para persistir todos os dados (vendas, despesas, usuários) em um banco de dados, garantindo segurança e escalabilidade. |
+| **Exclusão de Registros** | Adição de funcionalidade para remover entradas individuais de vendas ou despesas, oferecendo controle total sobre os dados. |
+| **Exportar para as Planilhas** | Funcionalidade para exportar dados financeiros para formatos de planilha, facilitando a análise e o compartilhamento. |
 
 ---
 
-## ✨ Funcionalidades Requeridas
+## ✨ Funcionalidades Atuais (Herança do Codi Cash)
+
+O projeto base já possui uma série de funcionalidades robustas de frontend, que servirão como alicerce para as futuras implementações:
 
 ### 1. Dashboard Principal
 
@@ -31,20 +47,20 @@ O desafio consistiu em desenvolver a interface completa e funcional do sistema, 
 ### 2. Módulo de Vendas
 
 - **Formulário de Cadastro**:
-  - Tipo de curso (online ou presencial).
-  - Dados do cliente (nome, e-mail, telefone).
-  - Valor bruto da venda.
-  - Descontos aplicados.
-  - Impostos, comissões e taxas de cartão.
-  - **Cálculo automático** do Valor Final da venda.
+    - Tipo de curso (online ou presencial).
+    - Dados do cliente (nome, e-mail, telefone).
+    - Valor bruto da venda.
+    - Descontos aplicados.
+    - Impostos, comissões e taxas de cartão.
+    - **Cálculo automático** do Valor Final da venda.
 
 - **Lista de Vendas**: Visualização de todas as vendas cadastradas, com filtros por período e tipo de curso.
 
 ### 3. Módulo de Gastos
 
 - **Cadastro de Despesas**:
-  - Fixas: Luz, água, aluguel, internet, folha de pagamento, vale transporte, imposto sobre folha.
-  - Variáveis: Manutenção, suprimentos, etc.
+    - Fixas: Luz, água, aluguel, internet, folha de pagamento, vale transporte, imposto sobre folha.
+    - Variáveis: Manutenção, suprimentos, etc.
 
 - **Gestão de Lançamentos**: Edição e exclusão de despesas.
 - **Histórico de Gastos**: Visualização detalhada de todas as despesas registradas.
@@ -64,324 +80,11 @@ O desafio consistiu em desenvolver a interface completa e funcional do sistema, 
 
 ---
 
-## 🛠️ Requisitos Técnicos
+## 🛠️ Tecnologias Atuais
+
+O frontend do **FinanciaChallenger** é construído com base nas seguintes tecnologias modernas:
 
 - **HTML5, CSS3 e JavaScript**.
-- **TailwindCSS**.
-- **ReactJS** com abordagem **mobile first**.
-- Estrutura modular com componentes reutilizáveis.
-
----
-
-## ✅ Critérios de Avaliação
-
-- Interface responsiva e funcional.
-- Boa organização do código.
-- Reutilização de componentes.
-- Alinhamento com os requisitos.
-- Apresentação final.
-
----
-
-## 📦 Entregáveis
-
-- Repositório no GitHub.
-- Link de deploy (Vercel, Netlify, etc).
-- Documentação para rodar localmente.
-- Documentação do frontend.
-- Apresentação do projeto.
-
----
-
-### CHALLENGEVII-TARDE-UFJF
-
----
-
-## 1. 🎨 Protótipos no Figma
-
-O design visual do projeto foi inicialmente estruturado no Figma pelo grupo, servindo como base para o desenvolvimento da interface do sistema.
-
-- 🔗 [Visualizar protótipo mobile](https://www.figma.com/proto/GqZUatYhyc7vB4leHz24uO/CodiAcademy--Copy-?page-id=2612%3A9344&node-id=2612-9353&p=f&viewport=115%2C266%2C0.16&t=Dd2gEp0czH9oICpj-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=2612%3A9353&show-proto-sidebar=1)
-- 🔗 [Visualizar protótipo desktop](https://www.figma.com/proto/GqZUatYhyc7vB4leHz24uO/CodiAcademy--Copy-?page-id=618%3A11050&node-id=654-29657&p=f&viewport=309%2C338%2C0.05&t=U968KR5HwadZvLsa-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=654%3A29584&show-proto-sidebar=1)
-
----
-
-## 2. 🗂️ Estrutura e Organização do Projeto
-
-A seguir, uma visão geral das pastas principais do projeto, suas responsabilidades e exemplos do que cada uma contém:
-
-| Pasta           | Descrição                                                                                         | Exemplos/Conteúdo Principal                                            |
-|-----------------|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| `assets/`       | Imagens estáticas, logos e ícones usados na interface.                                          | Logo Codi Academy                      |
-| `components/`   | Componentes React reutilizáveis em toda a aplicação.                                            | Header, Modal, Sidebar                                               |
-| `contexts/`     | Contextos React para gerenciamento global de estados e lógica compartilhada.                   | HeaderContext para título e ações do cabeçalho                       |
-| `features/`     | Componentes específicos de páginas, isolados para evitar impacto no restante do sistema.        | Componentes únicos para funcionalidades específicas                  |
-| `hooks/`        | Hooks personalizados para lógica reutilizável, como detecção de dispositivo e manipulação de dados | useFinancialMetrics, useIsMobile, useLocalStorageData                |
-| `layouts/`      | Layouts principais que estruturam a navegação e a disposição visual das páginas.                | MainLayout com sidebar responsiva                                   |
-| `libs/`         | Funções utilitárias usadas globalmente para operações comuns e helpers.                         | Função `cn` para manipulação de classes CSS com Tailwind            |
-| `pages/`        | Páginas do aplicativo que correspondem a rotas.                                                | Dashboard, Vendas, Gastos                                            |
-| `services/`     | Módulos para lógica de manipulação de dados e integração com APIs externas.                     | Agregação de dados para gráficos                                    |
-| `types/`        | Definições e interfaces TypeScript para garantir tipagem consistente e segura.                  | Interfaces Venda, Gasto                                              |
-| `utils/`        | Funções utilitárias para formatação, cálculos financeiros e manipulação de dados.               | Cálculo de TIR, Payback, formatação de datas e moedas               |
-
----
-
-### Organização Modular e Benefícios
-
-Essa estrutura modular permite:
-
-- Reutilização e isolamento de componentes para facilitar manutenção.
-- Separação clara entre lógica, visual e dados.
-- Escalabilidade do projeto, com fácil adição de novas funcionalidades.
-- Código mais legível e organizado, beneficiando o trabalho colaborativo.
-
----
-
-## 🚀 Guia Rápido: Adicionando Dados de Teste
-
-Este passo serve para inserir rapidamente dados simulados no sistema, permitindo testar e visualizar os gráficos e tabelas com informações reais de forma prática, sem a necessidade de inserir tudo manualmente.
-
-### 3. Adicionar Vendas Simuladas
-
-```javascript
-const nomes = ["João Silva", "Maria Oliveira", "Carlos Santos", "Ana Souza", "Pedro Lima", "Juliana Costa", "Lucas Rocha", "Fernanda Alves", "Rafael Martins", "Camila Ribeiro"];
-const cursos = ["online", "presencial"];
-const vendasSimuladas = [];
-
-for (let i = 0; i < 50; i++) {
-    const ano = 2023 + Math.floor(Math.random() * 3); // 2023, 2024, 2025
-    const mes = String(1 + Math.floor(Math.random() * 12)).padStart(2, "0");
-    const dia = String(1 + Math.floor(Math.random() * 28)).padStart(2, "0");
-
-    const data = `${ano}-${mes}-${dia}`;
-    const tipoCurso = cursos[Math.floor(Math.random() * cursos.length)];
-    const nomeCliente = nomes[Math.floor(Math.random() * nomes.length)];
-    const email = nomeCliente.toLowerCase().replace(" ", ".") + "@example.com";
-    const telefone = `(11) 9${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const valorBruto = Math.floor(800 + Math.random() * 2200); // entre R$800 e R$3000
-    const desconto = Math.floor(Math.random() * 200);
-    const imposto = Math.floor(valorBruto * 0.1); // 10%
-    const comissao = Math.floor(valorBruto * 0.05); // 5%
-    const valorFinal = valorBruto - desconto - imposto - comissao;
-
-    vendasSimuladas.push({
-        id: Date.now() + i,
-        data,
-        tipoCurso,
-        nomeCliente,
-        email,
-        telefone,
-        valorBruto,
-        desconto,
-        imposto,
-        comissao,
-        valorFinal,
-    });
-}
-localStorage.setItem("vendas", JSON.stringify(vendasSimuladas));
-console.log("✅ 50 vendas simuladas adicionadas no localStorage!");
-```
-### 4. Adicionar Vendas Simuladas
-```javascript
-const categorias = [
-    "moradia",
-    "contas_casa",
-    "internet_telefone",
-    "impostos_taxas",
-    "dividas_emprestimos",
-    "folha_pagamento",
-    "vale_transporte",
-    "imposto_sobre_folha",
-    "outros"
-];
-
-const tipos = [
-    "fixo_essencial",
-    "fixo_nao_essencial",
-    "variavel_essencial",
-    "variavel_nao_essencial",
-    "extraordinario",
-    "recorrente",
-    "unico",
-    "outro_tipo"
-];
-
-const nomesGasto = [
-    "Aluguel",
-    "Conta de Luz",
-    "Água",
-    "Internet",
-    "Telefone",
-    "IPTU",
-    "Empréstimo",
-    "Folha de Pagamento",
-    "Transporte Funcionários",
-    "INSS Patronal",
-    "Netflix",
-    "Spotify",
-    "Compra de Material",
-    "Assinatura de Software",
-    "Deslocamento",
-    "Hospedagem de Site",
-    "Compra Equipamento",
-    "Reparo de Máquina",
-    "Pagamento Freelancer",
-    "Outros"
-];
-
-const gastosSimulados = [];
-
-// Adiciona investimento inicial
-gastosSimulados.push({
-    id: 1,
-    data: "2023-01-01",
-    nome: "Investimento Inicial",
-    preco: -10000, // Ajustado para ser negativo, representando uma saída de caixa
-    categoria: "investimentos_poupanca",
-    tipoDespesa: "investimento"
-});
-
-// Adiciona os outros 49 gastos
-for (let i = 2; i <= 50; i++) {
-    const nome = nomesGasto[Math.floor(Math.random() * nomesGasto.length)];
-    const categoria = categorias[Math.floor(Math.random() * categorias.length)];
-    const tipoDespesa = tipos[Math.floor(Math.random() * tipos.length)];
-
-    const ano = 2023 + Math.floor(Math.random() * 3);
-    const mes = String(Math.floor(Math.random() * 12) + 1).padStart(2, "0");
-    const dia = String(Math.floor(Math.random() * 28) + 1).padStart(2, "0");
-    const data = `${ano}-${mes}-${dia}`;
-
-    const preco = parseFloat((Math.random() * 1000 + 50).toFixed(2)); // Valor positivo
-    const precoComSinal = -preco; // Transformando em negativo para representar despesa
-
-    gastosSimulados.push({
-        id: i,
-        data,
-        nome,
-        preco: precoComSinal, // Salva o preço como negativo
-        categoria,
-        tipoDespesa
-    });
-}
-
-localStorage.setItem("gastos", JSON.stringify(gastosSimulados));
-
-console.log("✅ Dados de gastos salvos no localStorage, incluindo o investimento inicial.");
-```
-
----
-
-
-## 5. 🌐 Hospedagem do Projeto
-
-O projeto está disponível online em:
-
-🔗 **https://codi-vercel2-0.vercel.app/**
-
----
-
-## 6. Entendendo o Investimento Inicial nos Gastos
-
-O item **“Investimento Inicial”** é essencial para que as métricas **TIR**, **Payback** e **VPL** funcionem corretamente.
-
-- O **TIR** e o **Payback** são calculados **por ano**, ou seja, não acumulam vários anos.
-- Portanto, para analisar esses indicadores em cada ano, deve-se adicionar manualmente um **Investimento Inicial** no início do ano (idealmente com base nos custos do ano anterior).
-
----
-
-## 7. 📊 Entendendo as Métricas Financeiras
-
-### 7.1 🔢 VPL (Valor Presente Líquido)
-
-- Calcula o valor presente de fluxos futuros descontados por uma taxa.
-- Serve para avaliar a viabilidade do projeto:
-  - **VPL > 0**: Projeto é viável.
-  - **VPL < 0**: Projeto não é viável.
-  - **VPL = 0**: Projeto apenas cobre os custos.
-- No Codi Cash, o **Saldo Líquido Acumulado** no gráfico representa o VPL visual.
-
-### 7.2 📈 TIR (Taxa Interna de Retorno)
-
-- Taxa que zera o VPL de um projeto.
-- Representa a **rentabilidade** do projeto.
-- Quanto maior a TIR, melhor o investimento.
-
-### 7.3 ⏳ Payback
-
-- Tempo necessário para **recuperar o investimento inicial** com os lucros.
-- Indicador de liquidez: quanto menor, mais rápido o retorno.
-- No sistema, é exibido **em meses**.
-
----
-
-## 8. 💻 Como o Projeto Foi Implementado
-
-### 8.1 🧰 Tecnologias Principais
-
-- **React**: UI declarativa e eficiente.
-- **TypeScript**: Tipagem estática para maior robustez.
-- **Tailwind CSS**: Estilização rápida com classes utilitárias.
-
----
-
-## 9.📦 Bibliotecas e Ferramentas
-
-### 9.1 🛠️ Produção
-
-- [`@heroicons/react`](https://github.com/tailwindlabs/heroicons), [`lucide-react`](https://lucide.dev/): Ícones SVG.
-- [`@radix-ui/react-*`](https://www.radix-ui.com/): Componentes acessíveis (modais, tooltips, etc.).
-- [`chart.js`](https://www.chartjs.org/), [`react-chartjs-2`](https://react-chartjs-2.js.org/), [`recharts`](https://recharts.org/): Gráficos interativos.
-- [`clsx`](https://www.npmjs.com/package/clsx), [`class-variance-authority`](https://cva.style/), [`tailwind-merge`](https://tailwind-merge.vercel.app/): Gerenciamento inteligente de classes CSS.
-- [`financejs`](https://github.com/ebradyjobory/finance.js): Cálculos de VPL, TIR, Payback.
-- [`moment`](https://momentjs.com/): Manipulação e formatação de datas.
-- [`react-router-dom`](https://reactrouter.com/): Roteamento SPA.
-- [`react-datepicker`](https://reactdatepicker.com/), [`react-icons`](https://react-icons.github.io/react-icons/): Utilitários de UI.
-
-### 9.2 ⚙️ Desenvolvimento
-
-- [`eslint`](https://eslint.org/), [`prettier`](https://prettier.io/): Linting e formatação.
-- [`vite`](https://vitejs.dev/), [`@vitejs/plugin-react`](https://vitejs.dev/guide/): Build moderno e rápido.
-- `@types/*`, `typescript`: Tipagens e compilação.
-- `tailwindcss`, `postcss`, `autoprefixer`: Pipeline de estilização CSS.
-
----
-
-## 10. ⚠️ Observação Importante
-
-> 🔍 **Detalhe sobre os dados automáticos de gasto**  
-> O código insere automaticamente um **"Investimento Inicial"** no início do ano. Isso é **fundamental** para o cálculo de **TIR** e **Payback**, pois essas métricas dependem de um **fluxo de caixa inicial negativo**.
->
-> ❗ **Limitação Atual:**  
-> As métricas **TIR** e **Payback** funcionam apenas **por ano**, e **não** consideram múltiplos anos.
->
-> ✅ **Recomendação:**  
-> Se deseja acompanhar esses indicadores anualmente, **adicione sempre** um gasto chamado `Investimento Inicial` no começo de cada ano, com base nos custos do final do ano anterior (por exemplo, dezembro).
->
-> 💡 **Melhoria Futuramente:**  
-> A lógica pode ser expandida para comportar **projeções multi-ano** e auxiliar em um **planejamento estratégico de longo prazo**.
-
----
-
-
-### 11. 📝 Licença
-Este projeto foi desenvolvido como aprendizado no curso da [Codi Academy](https://codiacademy.com.br/).
-
----
-
-### 12. 👨‍💻 Autoria  
-Desenvolvido por:  
-- [Gabriel Teperino](https://github.com/zSevens7)  
-- [Vitor Reis](https://github.com/vitorszreis)  
-- [Rayan Morais](https://github.com/rayancmorais)
-
----
-
-### 13. 🙏 **Agradecimentos**  
-Obrigado por dedicar seu tempo para ler e testar este projeto! Seu interesse e feedback são muito importantes para nós.  
-Fique à vontade para abrir issues, sugestões ou colaborar!
-
----
-
+- **TailwindCSS** para estilização eficiente e responsiva.
+- **ReactJS** com abordagem mobile first, garantindo uma arquitetura de código limpa e modular.
 

@@ -71,8 +71,9 @@ export function aggregateByTipoDespesa(items: Gasto[]): Record<string, number> {
 export function aggregateSalesByCourseType(vendas: Venda[]): Record<string, number> {
   const agg: Record<string, number> = {};
   vendas.forEach(venda => {
-    const type = venda.tipoCurso || "Outros";
-    agg[type] = (agg[type] || 0) + (venda.valorFinal ?? 0);
+    const type = venda.tipoVenda || "Outros";
+    // ALTERADO: Usando venda.preco em vez de venda.valorFinal
+    agg[type] = (agg[type] || 0) + (venda.preco ?? 0);
   });
   return agg;
 }
@@ -113,7 +114,8 @@ export function aggregateSalesByPeriod(
       key = year;
     }
 
-    agg[key] = (agg[key] || 0) + (venda.valorFinal ?? 0);
+    // ALTERADO: Usando venda.preco em vez de venda.valorFinal
+    agg[key] = (agg[key] || 0) + (venda.preco ?? 0);
   });
 
   return agg;
@@ -152,16 +154,16 @@ export function prepareChartData(
   });
   const values = keys.map(k => agg[k]);
 
-  const palette = [
-    "#E6E6FA", // Lavender
-    "#D8BFD8", // Thistle
-    "#DDA0DD", // Plum
-    "#BA55D3", // MediumOrchid
-    "#9932CC", // DarkOrchid
-    "#8A2BE2", // BlueViolet
-    "#6A0DAD", // DarkViolet
-    "#4B0082", // Indigo
-  ];
+const palette = [
+  "#00b894", // verde
+  "#0984e3", // azul
+  "#fdcb6e", // amarelo
+  "#d63031", // vermelho
+  "#6c5ce7", // roxo
+  "#e17055", // laranja
+  "#2d3436", // cinza escuro
+  "#fab1a0", // rosa claro
+];
 
   const backgroundColors = values.map((_, i) => palette[i % palette.length]);
   const borderColors = backgroundColors.map(c => c);
@@ -220,7 +222,7 @@ export function prepareChartData(
             aggregationType === 'daily' ? 'Dia do Mês' :
             (aggregationType === 'monthly' ? 'Mês' :
             (aggregationType === 'yearly' ? 'Ano' :
-            (aggregationType === 'category' ? 'Tipo de Curso' :
+            (aggregationType === 'category' ? 'Tipo de Venda' :
             (aggregationType === 'type' ? 'Tipo de Despesa' : 'Item'))))
           ),
           color: '#333',

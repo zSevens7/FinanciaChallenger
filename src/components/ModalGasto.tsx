@@ -27,7 +27,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
     }
 
     const precoNum = parseFloat(preco);
-    const precoNegativo = precoNum > 0 ? precoNum * -1 : precoNum; // garante valor negativo
+    const precoNegativo = precoNum > 0 ? precoNum * -1 : precoNum;
 
     const novoGasto: Gasto = {
       id: Date.now(),
@@ -60,20 +60,20 @@ function ModalGasto({ onClose }: ModalGastoProps) {
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-2 right-2 text-purple-600 hover:text-purple-800 text-2xl font-bold focus:outline-none"
+            className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-2xl font-bold focus:outline-none"
             aria-label="Fechar"
           >
             ×
           </button>
         )}
 
-        <h2 className="text-purple-600 text-2xl font-bold mb-6 text-center">
+        <h2 className="text-red-500 text-2xl font-bold mb-6 text-center">
           Adicionar Gasto
         </h2>
 
         {/* Campo Data */}
         <div className="mb-4">
-          <label htmlFor="data" className="block text-purple-600 mb-1 font-medium">
+          <label htmlFor="data" className="block text-red-500 mb-1 font-medium">
             Data
           </label>
           <input
@@ -81,13 +81,13 @@ function ModalGasto({ onClose }: ModalGastoProps) {
             id="data"
             value={dataGasto}
             onChange={(e) => setDataGasto(e.target.value)}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-purple-600"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500"
           />
         </div>
 
         {/* Campo Nome do Gasto */}
         <div className="mb-4">
-          <label htmlFor="nomeGasto" className="block text-purple-600 mb-1 font-medium">
+          <label htmlFor="nomeGasto" className="block text-red-500 mb-1 font-medium">
             Nome do Gasto
           </label>
           <input
@@ -96,13 +96,13 @@ function ModalGasto({ onClose }: ModalGastoProps) {
             value={nomeGasto}
             onChange={(e) => setNomeGasto(e.target.value)}
             placeholder="Digite o nome"
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-purple-600"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500"
           />
         </div>
 
         {/* Campo Preço */}
         <div className="mb-4">
-          <label htmlFor="preco" className="block text-purple-600 mb-1 font-medium">
+          <label htmlFor="preco" className="block text-red-500 mb-1 font-medium">
             Preço (R$)
           </label>
           <input
@@ -111,20 +111,20 @@ function ModalGasto({ onClose }: ModalGastoProps) {
             value={preco}
             onChange={(e) => setPreco(e.target.value)}
             placeholder="Digite o preço"
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-purple-600"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500"
           />
         </div>
 
         {/* Campo Categoria */}
         <div className="mb-4">
-          <label htmlFor="categoria" className="block text-purple-600 mb-1 font-medium">
+          <label htmlFor="categoria" className="block text-red-500 mb-1 font-medium">
             Categoria
           </label>
           <select
             id="categoria"
             value={categoria}
             onChange={(e) => setCategoria(e.target.value)}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-purple-600 bg-white"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500 bg-white"
           >
             <option value="">Selecione a categoria</option>
             <option value="moradia">Moradia (Aluguel, Condomínio)</option>
@@ -142,14 +142,14 @@ function ModalGasto({ onClose }: ModalGastoProps) {
 
         {/* Campo Tipo de Despesa */}
         <div className="mb-6">
-          <label htmlFor="tipoDespesa" className="block text-purple-600 mb-1 font-medium">
+          <label htmlFor="tipoDespesa" className="block text-red-500 mb-1 font-medium">
             Tipo de Despesa
           </label>
           <select
             id="tipoDespesa"
             value={tipoDespesa}
             onChange={(e) => setTipoDespesa(e.target.value)}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-purple-600 bg-white"
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500 bg-white"
           >
             <option value="">Selecione o tipo</option>
             <option value="fixo_essencial">Fixo Essencial</option>
@@ -177,7 +177,7 @@ function ModalGasto({ onClose }: ModalGastoProps) {
           )}
           <button
             onClick={handleSave}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
             Salvar
           </button>
