@@ -49,6 +49,7 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 - ➕ **Botões de ação reativados** na página de **Gastos** (`ActionButtons`), agora posicionados ao lado direito dos filtros de ano/mês.
 - ➕ **Adicionados os botões de ação** na página de **Vendas** (`HeaderActionButtons`), também posicionados ao lado dos filtros, com layout responsivo.
 - 🧱 **Refatorado o layout** das seções de filtros (ano/mês) nas páginas de **Gastos** e **Vendas**, agrupando filtros e botões em um contêiner flexível (`div`) para melhor organização visual.
+- ⚙️ **Adicionado um icone de perfil** no headercontext, ou seja, todas paginas terão um icone de perfil e no futuro vou adicionar a pagina de perfil.
 
 
 ---
