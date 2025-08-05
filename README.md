@@ -34,6 +34,17 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 
 ---
 
+## 📌 Mudanças já feitas
+
+**🗓 Data:** 29/07/2025
+
+- 🖼️ Trocada a logo da **Codi** para uma logo de um **banco genérico**.
+- 🛒 Alterado o *ModalVendas* para um modal de vendas **genéricas**.
+- 🎨 Alteradas as cores dos modals de *roxos* para *verde* e *vermelho*.
+- 📊 Ajustadas as tabelas da página de vendas.
+
+---
+
 ## ✨ Funcionalidades Atuais (Herança do Codi Cash)
 
 O projeto base já possui uma série de funcionalidades robustas de frontend, que servirão como alicerce para as futuras implementações:
