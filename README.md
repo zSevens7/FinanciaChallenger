@@ -43,6 +43,14 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 - 🎨 Alteradas as cores dos modals de *roxos* para *verde* e *vermelho*.
 - 📊 Ajustadas as tabelas da página de vendas.
 
+
+**🗓 Data:** 05/08/2025
+
+- ➕ **Botões de ação reativados** na página de **Gastos** (`ActionButtons`), agora posicionados ao lado direito dos filtros de ano/mês.
+- ➕ **Adicionados os botões de ação** na página de **Vendas** (`HeaderActionButtons`), também posicionados ao lado dos filtros, com layout responsivo.
+- 🧱 **Refatorado o layout** das seções de filtros (ano/mês) nas páginas de **Gastos** e **Vendas**, agrupando filtros e botões em um contêiner flexível (`div`) para melhor organização visual.
+
+
 ---
 
 ## ✨ Funcionalidades Atuais (Herança do Codi Cash)
