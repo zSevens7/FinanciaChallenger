@@ -182,22 +182,32 @@ const Vendas = () => {
 
       <SummarySection title="Total de Lucro" totalAcumulado={totalAcumuladoLucro} />
 
-      <FilterControls
-        selectedYear={selectedYear}
-        setSelectedYear={(y) => {
-          setSelectedYear(y);
-          setSelectedMonth("");
-          setCurrentPage(1);
-        }}
-        uniqueYears={uniqueYears}
-        selectedMonth={selectedMonth}
-        setSelectedMonth={(m) => {
-          setSelectedMonth(m);
-          setCurrentPage(1);
-        }}
-        uniqueMonths={uniqueMonths}
-        setCurrentPage={setCurrentPage}
-      />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          {/* Filtros de Ano/Mês */}
+          <FilterControls
+            selectedYear={selectedYear}
+            setSelectedYear={(y) => {
+              setSelectedYear(y);
+              setSelectedMonth("");
+              setCurrentPage(1);
+            }}
+            uniqueYears={uniqueYears}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={(m) => {
+              setSelectedMonth(m);
+              setCurrentPage(1);
+            }}
+            uniqueMonths={uniqueMonths}
+            setCurrentPage={setCurrentPage}
+          />
+
+          {/* Botões de ação */}
+          <HeaderActionButtons
+            onAdicionarVenda={handleAdicionarVenda}
+            onLimparDadosVendas={handleLimparDadosVendas}
+          />
+        </div>
+
 
       <VendasTable vendas={paginatedVendas} onDelete={handleDeleteVenda} />
 

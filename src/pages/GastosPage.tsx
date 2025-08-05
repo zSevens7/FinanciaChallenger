@@ -81,16 +81,7 @@ export const GastosPage = () => {
   const handleAdicionarGasto = useCallback(() => setShowModal(true), []);
   const handleLimparDadosGastos = useCallback(() => setShowConfirm(true), []);
 
-  useEffect(() => {
-    setPageHeader(
-      "Gastos",
-      <ActionButtons
-        onAdicionarGasto={handleAdicionarGasto}
-        onLimparDados={handleLimparDadosGastos}
-      />
-    );
-    return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarGasto, handleLimparDadosGastos]);
+
 
   // Determine o tipo de agregação para os gráficos baseados nos filtros
   const aggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
@@ -135,6 +126,10 @@ export const GastosPage = () => {
     () => aggregateByTipoDespesa(filtered),
     [filtered]
   );
+
+
+
+
 
   // --- OPÇÕES PADRÃO PARA GRÁFICOS DE BARRA ---
   // Essas opções serão sobrescritas ou mescladas com as de prepareChartData
@@ -200,28 +195,38 @@ export const GastosPage = () => {
       <div className="container mx-auto bg-white rounded-xl shadow-2xl p-6">
         <SummarySection totalAcumulado={totalAcum} />
 
-        <FilterControls
-          selectedYear={year}
-          setSelectedYear={(y) => {
-            setYear(y);
-            setMonth("");
-            setPage(1);
-          }}
-          uniqueYears={[...new Set(gastos.map((g) => g.data.split("-")[0]))]}
-          selectedMonth={month}
-          setSelectedMonth={(m) => {
-            setMonth(m);
-            setPage(1);
-          }}
-          uniqueMonths={[
-            ...new Set(
-              gastos
-                .filter((g) => g.data.startsWith(year))
-                .map((g) => g.data.split("-")[1])
-            ),
-          ]}
-          setCurrentPage={setPage}
-        />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              {/* Filtros de Ano/Mês */}
+              <FilterControls
+                selectedYear={year}
+                setSelectedYear={(y) => {
+                  setYear(y);
+                  setMonth("");
+                  setPage(1);
+                }}
+                uniqueYears={[...new Set(gastos.map((g) => g.data.split("-")[0]))]}
+                selectedMonth={month}
+                setSelectedMonth={(m) => {
+                  setMonth(m);
+                  setPage(1);
+                }}
+                uniqueMonths={[
+                  ...new Set(
+                    gastos
+                      .filter((g) => g.data.startsWith(year))
+                      .map((g) => g.data.split("-")[1])
+                  ),
+                ]}
+                setCurrentPage={setPage}
+              />
+
+              {/* Botões de ação */}
+              <ActionButtons
+                onAdicionarGasto={handleAdicionarGasto}
+                onLimparDados={handleLimparDadosGastos}
+              />
+            </div>
+
 
         <section className="mb-8">
           <h2 className="text-xl mt-10 font-semibold mb-3">
