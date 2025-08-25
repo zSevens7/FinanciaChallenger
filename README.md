@@ -51,6 +51,10 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 - 🧱 **Refatorado o layout** das seções de filtros (ano/mês) nas páginas de **Gastos** e **Vendas**, agrupando filtros e botões em um contêiner flexível (`div`) para melhor organização visual.
 - ⚙️ **Adicionado um icone de perfil** no headercontext, ou seja, todas paginas terão um icone de perfil e no futuro vou adicionar a pagina de perfil.
 
+**🗓 Data:** 25/08/2025
+
+-⚙️ **Criada a página de login** (LoginPage.tsx) com a estrutura visual completa.
+-✨ **Implementada a lógica de simulação de login**, que exibe uma mensagem de erro ("Usuário ou senha inválidos") para credenciais incorretas.
 
 ---
 
