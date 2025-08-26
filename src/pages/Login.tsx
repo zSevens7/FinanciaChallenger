@@ -1,26 +1,33 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Importe o useNavigate
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Importa o hook useAuth
 
 const LoginPage: React.FC = () => {
-  // 1. Gerenciamento de estado dos campos
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(""); // 1. Estado para a mensagem de erro
-  const navigate = useNavigate(); // Hook para redirecionamento
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { login, user } = useAuth(); // Obtém a função login e o estado user do contexto
 
-  // 2. Função para lidar com o envio do formulário
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault(); // Evita o recarregamento da página
-
-    // Lógica de validação simples (mock)
-    if (email === "teste@exemplo.com" && password === "senha123") {
-      setError(""); // Limpa qualquer erro anterior
-      console.log("Login bem-sucedido!");
-      // Em uma aplicação real, você faria a chamada para a API aqui
-      // Por agora, vamos simular o redirecionamento para o dashboard
+  // 1. Redireciona o usuário se ele já estiver logado
+  useEffect(() => {
+    if (user) {
       navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  // 2. Função para lidar com o envio do formulário (agora assíncrona)
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(""); // Limpa qualquer erro anterior
+
+    // 3. Usa a função login do contexto em vez da lógica hardcoded
+    const success = await login(email, password);
+
+    if (success) {
+      console.log("Login bem-sucedido!");
+      // O useEffect acima irá lidar com o redirecionamento
     } else {
-      // 3. Define a mensagem de erro
       setError("Usuário ou senha inválidos. Por favor, tente novamente.");
     }
   };
@@ -63,7 +70,6 @@ const LoginPage: React.FC = () => {
               />
             </div>
 
-            {/* Exibição da mensagem de erro */}
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button

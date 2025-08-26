@@ -2,37 +2,22 @@
 import { useState, useEffect, useMemo } from "react";
 import DashboardKPI from "../features/dashboard/dashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
-import { useLocalStorageData } from "../hooks/useLocalStorageData";
-// Confirme que monthNames está sendo importado corretamente
 import { monthNames, getUniqueYears, getUniqueMonthsForYear } from "../utils";
-import { useFinancialMetrics } from "../hooks/useFinancialMetrics";
 import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
 import { usePageHeader } from "../contexts/HeaderContext";
 import { DashboardTransactionsTable } from "../components/DashHistory/DashBoardTransactionsTable";
+import { useVendas } from "../contexts/VendasContext";
+import { useGastos } from "../contexts/GastosContext";
+import type { Gasto, Venda } from "../utils/financialCalculations";
+import { useDashboardChartsData } from "../features/dashboard/hooks/useDashboardChartsData";
 
 const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
-  const { gastos, vendas, refreshAllData } = useLocalStorageData();
+  const { vendas } = useVendas();
+  const { gastos } = useGastos();
   const { setPageHeader } = usePageHeader();
-
-  const { initialInvestmentCalculated, paybackPeriod, tir, chartData } = useFinancialMetrics(
-    gastos,
-    vendas,
-    selectedYear,
-    selectedMonth
-  );
-
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === "gastos" || event.key === "vendas" || event.key === null) {
-        refreshAllData();
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [refreshAllData]);
 
   useEffect(() => {
     setPageHeader("Dashboard", <></>);
@@ -58,41 +43,31 @@ const Dashboard = () => {
     }
 
     const allItems = [...filteredGastos, ...filteredVendas];
-
     return { filteredGastos, filteredVendas, allItems };
   }, [gastos, vendas, selectedYear, selectedMonth]);
 
   const { filteredGastos, filteredVendas, allItems } = filteredDataForDisplay;
 
-  // Como 'preco' de gastos é negativo, somamos valor absoluto para mostrar total de despesas positivo
-  const totalDespesas = filteredGastos.reduce((sum, g) => sum + Math.abs(g.preco || 0), 0);
+  const totalDespesas = filteredGastos.reduce((sum, g) => sum + (g.preco || 0), 0);
+  const totalVendas = filteredVendas.reduce((sum, v) => sum + (v.preco || 0), 0);
+  const saldoLiquido = totalVendas - totalDespesas;
 
-  // Total vendas é positivo normal
-  const totalVendas = filteredVendas.reduce((sum, v) => sum + (v.valorFinal || 0), 0);
-
-  // Saldo líquido = vendas + gastos (gastos são negativos, logo já subtrai)
-  const saldoLiquido = totalVendas + filteredGastos.reduce((sum, g) => sum + (g.preco || 0), 0);
-
-  // Preparar transações para tabela, mantendo preço negativo em gastos
   const allTransactions = [
     ...filteredGastos.map(g => ({
-      id: g.id.toString(),
+      id: g.id,
       data: g.data,
       type: "expense" as const,
-      amount: g.preco, // negativo
+      amount: g.preco,
       descricao: g.descricao,
-      comentario: g.comentario,
-      tipo: g.tipoDespesa
+      tipo: g.tipo
     })),
     ...filteredVendas.map(v => ({
-      id: v.id.toString(),
+      id: v.id,
       data: v.data,
       type: "sale" as const,
-      amount: v.valorFinal ?? 0,
-      nomeCliente: v.nomeCliente,
-      tipoCurso: v.tipoCurso,
-      comentario: v.comentario,
-      tipo: v.tipoCurso
+      amount: v.preco,
+      descricao: v.descricao,
+      tipo: v.tipoVenda
     }))
   ].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
@@ -103,6 +78,16 @@ const Dashboard = () => {
     return getUniqueMonthsForYear(items, selectedYear);
   }, [allItems, selectedYear]);
 
+  // ✅ Passa filteredVendas direto para o hook, sem adaptações
+  const { salesExpensesData, cumulativeCashFlowData } = useDashboardChartsData(
+    filteredGastos,
+    filteredVendas,
+    0, // investimento inicial
+    selectedYear,
+    selectedMonth ? "monthly" : "yearly",
+    selectedMonth
+  );
+
   return (
     <PageContainer>
       <div className="flex flex-col gap-8 mb-8">
@@ -110,16 +95,11 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-start w-full">
           <select
             value={selectedYear}
-            onChange={e => {
-              setSelectedYear(e.target.value);
-              setSelectedMonth("");
-            }}
+            onChange={e => { setSelectedYear(e.target.value); setSelectedMonth(""); }}
             className="p-2 border border-purple-300 rounded-md bg-white"
           >
             <option value="">Todos os Anos</option>
-            {uniqueYears.map(y => (
-              <option key={y} value={y}>{y}</option>
-            ))}
+            {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
 
           {selectedYear && (
@@ -130,10 +110,7 @@ const Dashboard = () => {
             >
               <option value="">Todos os Meses</option>
               {uniqueMonths.map(m => (
-                // Aqui está a correção/melhoria: Adicione um fallback caso monthNames[m] seja undefined
-                <option key={m} value={m}>
-                  {monthNames[m] || `Mês ${m}`} {/* Fallback: se undefined, mostra "Mês XX" */}
-                </option>
+                <option key={m} value={m}>{monthNames[m] || `Mês ${m}`}</option>
               ))}
             </select>
           )}
@@ -144,60 +121,21 @@ const Dashboard = () => {
           <DashboardKPI
             title="Saldo Líquido"
             value={saldoLiquido.toFixed(2)}
-            period={
-              selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth] || `Mês ${selectedMonth}`}/${selectedYear}` // Fallback para KPI
-                : selectedYear || "Geral"
-            }
+            period={selectedMonth && selectedYear ? `${monthNames[selectedMonth]}/${selectedYear}` : selectedYear || "Geral"}
           />
-
           <DashboardKPI
             title="Total Despesas"
             value={totalDespesas.toFixed(2)}
-            period={
-              selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth] || `Mês ${selectedMonth}`}/${selectedYear}` // Fallback para KPI
-                : selectedYear || "Geral"
-            }
+            period={selectedMonth && selectedYear ? `${monthNames[selectedMonth]}/${selectedYear}` : selectedYear || "Geral"}
           />
-
           <DashboardKPI
             title="Total de Vendas"
             value={totalVendas.toFixed(2)}
-            period={
-              selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth] || `Mês ${selectedMonth}`}/${selectedYear}` // Fallback para KPI
-                : selectedYear || "Geral"
-            }
+            period={selectedMonth && selectedYear ? `${monthNames[selectedMonth]}/${selectedYear}` : selectedYear || "Geral"}
           />
-
-          <div className="hidden sm:block">
-            <DashboardKPI
-              title="Investimento Inicial"
-              value={initialInvestmentCalculated.toFixed(2)}
-              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-              valueColorClass={initialInvestmentCalculated < 0 ? "text-red-600" : "text-green-600"}
-            />
-          </div>
-
-          <div className="hidden sm:block">
-            <DashboardKPI
-              title="Payback"
-              value={paybackPeriod.toString()}
-              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-            />
-          </div>
-
-          <div className="hidden sm:block">
-            <DashboardKPI
-              title="TIR"
-              value={tir.toString()}
-              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-            />
-          </div>
         </div>
 
-        {/* Tabela de transações */}
+        {/* Tabela */}
         <DashboardTransactionsTable transactions={allTransactions} />
 
         {/* Gráficos */}
@@ -207,8 +145,8 @@ const Dashboard = () => {
 
             <section className="w-full">
               <h3 className="text-xl font-semibold text-[#964bca] mb-3 text-center">Total Vendas vs. Total Despesas</h3>
-              {chartData.salesExpensesData.length > 0 ? (
-                <SalesExpensesChart data={chartData.salesExpensesData} />
+              {salesExpensesData.length > 0 ? (
+                <SalesExpensesChart data={salesExpensesData} />
               ) : (
                 <p className="text-center text-gray-500">Nenhum dado de vendas ou despesas para o período selecionado.</p>
               )}
@@ -216,8 +154,8 @@ const Dashboard = () => {
 
             <section className="w-full">
               <h3 className="text-xl font-semibold text-[#964bca] mb-3 text-center">Saldo Líquido Acumulado (VPL Visual)</h3>
-              {chartData.cumulativeCashFlowData.length > 0 ? (
-                <CumulativeCashFlowChart data={chartData.cumulativeCashFlowData} />
+              {cumulativeCashFlowData.length > 0 ? (
+                <CumulativeCashFlowChart data={cumulativeCashFlowData} />
               ) : (
                 <p className="text-center text-gray-500">Nenhum dado de fluxo de caixa acumulado para o período selecionado.</p>
               )}

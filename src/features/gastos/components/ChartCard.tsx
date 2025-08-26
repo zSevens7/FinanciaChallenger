@@ -3,7 +3,7 @@ import { Bar, Pie } from "react-chartjs-2";
 
 export interface ChartCardProps {
   title: string;
-  chartType: "bar" | "pie";
+  chartType: "bar" | "pie" | "line"; // Adiciona "line" como tipo válido
   data: any;
   options: any;
   isFullWidth?: boolean; // prop opcional para controlar largura

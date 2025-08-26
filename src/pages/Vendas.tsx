@@ -86,11 +86,12 @@ const Vendas = () => {
   const handleAdicionarVenda = useCallback(() => setShowModal(true), []);
   const handleLimparDadosVendas = useCallback(() => setShowConfirm(true), []);
 
-  const handleDeleteVenda = useCallback((id: number) => {
-    const updatedVendas = allVendas.filter(venda => venda.id !== id);
-    localStorage.setItem("vendas", JSON.stringify(updatedVendas));
-    setAllVendas(updatedVendas);
-  }, [allVendas]);
+const handleDeleteVenda = useCallback((id: string) => {
+  const updatedVendas = allVendas.filter(venda => venda.id !== id);
+  localStorage.setItem("vendas", JSON.stringify(updatedVendas));
+  setAllVendas(updatedVendas);
+}, [allVendas]);
+
 
   useEffect(() => {
     setPageHeader(

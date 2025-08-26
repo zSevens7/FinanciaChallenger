@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Importa o hook useAuth
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState("");
@@ -8,11 +9,13 @@ const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { register } = useAuth(); // Obtém a função de registro do contexto
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError(""); // Limpa erros anteriores
 
-    // Validações básicas no frontend
+    // 1. Validações básicas no frontend (ainda são importantes!)
     if (password.length < 6) {
       setError("A senha deve ter pelo menos 6 caracteres.");
       return;
@@ -22,11 +25,16 @@ const RegisterPage: React.FC = () => {
       return;
     }
     
-    // Lógica de registro (simulada)
-    // Em uma aplicação real, aqui você faria a chamada para a API de registro.
-    // Por enquanto, vamos apenas simular o sucesso.
-    console.log("Usuário registrado com sucesso!");
-    navigate("/login"); // Redireciona para a página de login após o registro
+    // 2. Chama a função de registro do contexto
+    const success = await register({ name, email, password });
+
+    if (success) {
+      console.log("Usuário registrado com sucesso!");
+      navigate("/"); // Redireciona para a página de login após o registro
+    } else {
+      // 3. Define a mensagem de erro com base no retorno do contexto
+      setError("Erro ao registrar. O e-mail pode já estar em uso.");
+    }
   };
 
   return (
@@ -41,7 +49,7 @@ const RegisterPage: React.FC = () => {
           </p>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
-            {/* Campo Nome */}
+            {/* ... os campos Nome, Email, Senha e Confirmar Senha permanecem os mesmos ... */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Nome
@@ -55,7 +63,6 @@ const RegisterPage: React.FC = () => {
               />
             </div>
             
-            {/* Campo Email */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Email
@@ -69,7 +76,6 @@ const RegisterPage: React.FC = () => {
               />
             </div>
 
-            {/* Campo Senha */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Senha
@@ -83,7 +89,6 @@ const RegisterPage: React.FC = () => {
               />
             </div>
 
-            {/* Campo Confirmar Senha */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Confirmar Senha
@@ -97,7 +102,6 @@ const RegisterPage: React.FC = () => {
               />
             </div>
 
-            {/* Exibição da mensagem de erro */}
             {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <button
@@ -116,7 +120,6 @@ const RegisterPage: React.FC = () => {
           </div>
         </div>
       </div>
-
       <footer className="text-center py-4 text-white text-sm">
         Feito por <span className="font-semibold">Gabriel Teperino Percegoni Figueira</span> •{" "}
         <a

@@ -1,62 +1,79 @@
 import { useState } from "react";
-import type { Gasto } from "../types";
+// ✅ CORREÇÃO: Importe Gasto e GastoInput do seu arquivo de tipos, se existir, para maior consistência
+// Se não, mantenha a importação do GastosContext
+import { Gasto } from "../types/index";
 
 interface ModalGastoProps {
   onClose?: () => void;
+  onSave: (newGasto: Omit<Gasto, 'id'>) => void; // ✅ ADICIONADO: Prop onSave para passar o novo gasto
 }
 
-function ModalGasto({ onClose }: ModalGastoProps) {
-  const [dataGasto, setDataGasto] = useState(new Date().toISOString().split("T")[0]);
-  const [nomeGasto, setNomeGasto] = useState("");
-  const [preco, setPreco] = useState("");
-  const [categoria, setCategoria] = useState("");
-  const [tipoDespesa, setTipoDespesa] = useState("");
+// Omitindo 'id' para a entrada, já que o contexto o gerará
+type GastoInput = Omit<Gasto, "id">;
+
+function ModalGasto({ onClose, onSave }: ModalGastoProps) { // ✅ ADICIONADO: Prop onSave
+  const [inputGasto, setInputGasto] = useState<GastoInput>({
+    descricao: "", 
+    preco: 0, // ✅ CORREÇÃO: Mudado de 'valor' para 'preco' para consistência
+    data: new Date().toISOString().split("T")[0],
+    categoria: "",
+    tipo: "", 
+    nome: "", // ✅ ADICIONADO: Propriedade 'nome'
+    tipoDespesa: "", // ✅ ADICIONADO: Propriedade 'tipoDespesa'
+  });
+  const [error, setError] = useState<string>("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setInputGasto((prev) => ({
+      ...prev,
+      [name]: name === 'preco' ? parseFloat(value) : value, // ✅ CORREÇÃO: Mudado de 'valor' para 'preco'
+    }));
+  };
 
   const handleSave = () => {
+    // ✅ CORREÇÃO: Validação alterada para usar 'preco'
     if (
-      !dataGasto ||
-      !nomeGasto.trim() ||
-      !preco ||
-      isNaN(parseFloat(preco)) ||
-      parseFloat(preco) <= 0 ||
-      !categoria ||
-      !tipoDespesa
+      !inputGasto.data ||
+      !inputGasto.descricao.trim() ||
+      !inputGasto.preco ||
+      isNaN(inputGasto.preco) ||
+      inputGasto.preco <= 0 ||
+      !inputGasto.categoria ||
+      !inputGasto.tipo
     ) {
-      alert("Por favor, preencha todos os campos corretamente e com valores válidos.");
+      setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
       return;
     }
-
-    const precoNum = parseFloat(preco);
-    const precoNegativo = precoNum > 0 ? precoNum * -1 : precoNum;
-
-    const novoGasto: Gasto = {
-      id: Date.now(),
-      data: dataGasto,
-      nome: nomeGasto.trim(),
-      preco: precoNegativo,
-      categoria,
-      tipoDespesa,
+    
+    // ✅ CORREÇÃO: Gasto enviado com a propriedade 'preco'
+    const newGasto: Omit<Gasto, 'id'> = {
+        ...inputGasto,
+        nome: inputGasto.descricao, // Adicionando 'nome'
+        tipoDespesa: inputGasto.tipo, // Adicionando 'tipoDespesa'
+        preco: inputGasto.preco > 0 ? inputGasto.preco : 0, // Garantindo que o preco não seja negativo
     };
 
-    const gastosExistentes = JSON.parse(localStorage.getItem("gastos") || "[]") as Gasto[];
-    const novosGastos = [...gastosExistentes, novoGasto];
-
-    localStorage.setItem("gastos", JSON.stringify(novosGastos));
-
-    setDataGasto(new Date().toISOString().split("T")[0]);
-    setNomeGasto("");
-    setPreco("");
-    setCategoria("");
-    setTipoDespesa("");
-
+    onSave(newGasto); // ✅ CORREÇÃO: Chama a função onSave recebida por props
+    
+    // Limpe os campos do formulário
+    setInputGasto({
+      descricao: "",
+      preco: 0,
+      data: new Date().toISOString().split("T")[0],
+      categoria: "",
+      tipo: "",
+      nome: "",
+      tipoDespesa: "",
+    });
+    
+    // Feche o modal
     if (onClose) onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-auto z-50">
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md transform transition-all relative">
-
-        {/* Botão de Fechar "X" */}
         {onClose && (
           <button
             onClick={onClose}
@@ -66,35 +83,38 @@ function ModalGasto({ onClose }: ModalGastoProps) {
             ×
           </button>
         )}
-
         <h2 className="text-red-500 text-2xl font-bold mb-6 text-center">
           Adicionar Gasto
         </h2>
 
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
         {/* Campo Data */}
         <div className="mb-4">
-          <label htmlFor="data" className="block text-red-500 mb-1 font-medium">
-            Data
-          </label>
+          <label htmlFor="data" className="block text-red-500 mb-1 font-medium">Data</label>
           <input
             type="date"
             id="data"
-            value={dataGasto}
-            onChange={(e) => setDataGasto(e.target.value)}
+            name="data"
+            value={inputGasto.data}
+            onChange={handleChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500"
           />
         </div>
 
         {/* Campo Nome do Gasto */}
         <div className="mb-4">
-          <label htmlFor="nomeGasto" className="block text-red-500 mb-1 font-medium">
-            Nome do Gasto
-          </label>
+          <label htmlFor="descricao" className="block text-red-500 mb-1 font-medium">Nome do Gasto</label>
           <input
             type="text"
-            id="nomeGasto"
-            value={nomeGasto}
-            onChange={(e) => setNomeGasto(e.target.value)}
+            id="descricao"
+            name="descricao"
+            value={inputGasto.descricao}
+            onChange={handleChange}
             placeholder="Digite o nome"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500"
           />
@@ -102,14 +122,13 @@ function ModalGasto({ onClose }: ModalGastoProps) {
 
         {/* Campo Preço */}
         <div className="mb-4">
-          <label htmlFor="preco" className="block text-red-500 mb-1 font-medium">
-            Preço (R$)
-          </label>
+          <label htmlFor="preco" className="block text-red-500 mb-1 font-medium">Preço (R$)</label>
           <input
             type="number"
             id="preco"
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
+            name="preco"
+            value={inputGasto.preco === 0 ? "" : inputGasto.preco}
+            onChange={handleChange}
             placeholder="Digite o preço"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500"
           />
@@ -117,13 +136,12 @@ function ModalGasto({ onClose }: ModalGastoProps) {
 
         {/* Campo Categoria */}
         <div className="mb-4">
-          <label htmlFor="categoria" className="block text-red-500 mb-1 font-medium">
-            Categoria
-          </label>
+          <label htmlFor="categoria" className="block text-red-500 mb-1 font-medium">Categoria</label>
           <select
             id="categoria"
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value)}
+            name="categoria"
+            value={inputGasto.categoria}
+            onChange={handleChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500 bg-white"
           >
             <option value="">Selecione a categoria</option>
@@ -142,13 +160,12 @@ function ModalGasto({ onClose }: ModalGastoProps) {
 
         {/* Campo Tipo de Despesa */}
         <div className="mb-6">
-          <label htmlFor="tipoDespesa" className="block text-red-500 mb-1 font-medium">
-            Tipo de Despesa
-          </label>
+          <label htmlFor="tipo" className="block text-red-500 mb-1 font-medium">Tipo de Despesa</label>
           <select
-            id="tipoDespesa"
-            value={tipoDespesa}
-            onChange={(e) => setTipoDespesa(e.target.value)}
+            id="tipo"
+            name="tipo"
+            value={inputGasto.tipo}
+            onChange={handleChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500 bg-white"
           >
             <option value="">Selecione o tipo</option>

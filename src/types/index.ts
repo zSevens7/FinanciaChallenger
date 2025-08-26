@@ -9,13 +9,15 @@ interface TransacaoMonetaria {
 
 // Vendas (ganhos)
 export interface Venda extends TransacaoMonetaria {
-  id: number;
+  id: string; // padronizar string, já que você usa uuid
   tipoVenda: "salario" | "produto" | "servico";
 }
 
 // Gastos (despesas)
 export interface Gasto extends TransacaoMonetaria {
-  id: string;
-  categoria: string;     // Ex: moradia, transporte
-  tipoDespesa: string;   // Ex: fixo_essencial, extraordinario
+  id: string;              // ✅ string (uuid)
+  categoria: string;       // Ex: moradia, transporte
+  tipoDespesa: string;     // Ex: fixo_essencial, extraordinario
+  nome?: string;           // ✅ opcional, se precisar
+  tipo?: string;           // ✅ opcional, se precisar
 }

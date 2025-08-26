@@ -1,32 +1,50 @@
 import { useState } from "react";
+import { useVendas, VendaInput, TipoVenda } from "../contexts/VendasContext";
 
 interface ModalVendaProps {
   onClose?: () => void;
 }
 
 function ModalVenda({ onClose }: ModalVendaProps) {
-  const [dataVenda, setDataVenda] = useState("");
-  const [tipoVenda, setTipoVenda] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [valor, setValor] = useState("");
+  const { addVenda } = useVendas();
+
+  const [inputVenda, setInputVenda] = useState<VendaInput>({
+    data: new Date().toISOString().split("T")[0],
+    descricao: "",
+    preco: 0,         // agora 'preco' é obrigatório
+    tipoVenda: "produto", // valor padrão compatível com types.ts
+  });
+  const [error, setError] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setInputVenda(prev => ({
+      ...prev,
+      [name]: name === "preco" ? parseFloat(value) : value,
+    }));
+  };
 
   const handleSave = () => {
-    const novaVenda = {
-      id: Date.now(),
-      data: dataVenda,
-      tipoVenda,
-      descricao,
-      preco: parseFloat(valor), // <-- Corrigido aqui
-    };
+    if (
+      !inputVenda.data ||
+      !inputVenda.descricao.trim() ||
+      !inputVenda.preco ||
+      isNaN(inputVenda.preco) ||
+      inputVenda.preco <= 0 ||
+      !inputVenda.tipoVenda
+    ) {
+      setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
+      return;
+    }
 
-    const vendasExistentes = JSON.parse(localStorage.getItem("vendas") || "[]");
-    const novasVendas = [...vendasExistentes, novaVenda];
-    localStorage.setItem("vendas", JSON.stringify(novasVendas));
+    addVenda(inputVenda);
 
-    setDataVenda("");
-    setTipoVenda("");
-    setDescricao("");
-    setValor("");
+    setInputVenda({
+      data: new Date().toISOString().split("T")[0],
+      descricao: "",
+      preco: 0,
+      tipoVenda: "produto",
+    });
 
     if (onClose) onClose();
   };
@@ -48,49 +66,34 @@ function ModalVenda({ onClose }: ModalVendaProps) {
           Adicionar Venda
         </h2>
 
-        {/* Data da Venda */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
+        {/* Data */}
         <div className="mb-4">
-          <label htmlFor="dataVenda" className="block text-green-600 mb-1">
-            Data
-          </label>
+          <label htmlFor="dataVenda" className="block text-green-600 mb-1">Data</label>
           <input
             type="date"
             id="dataVenda"
-            value={dataVenda}
-            onChange={(e) => setDataVenda(e.target.value)}
+            name="data"
+            value={inputVenda.data}
+            onChange={handleChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
           />
         </div>
 
-        {/* Tipo da Venda */}
-        <div className="mb-4">
-          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">
-            Tipo da Venda
-          </label>
-          <select
-            id="tipoVenda"
-            value={tipoVenda}
-            onChange={(e) => setTipoVenda(e.target.value)}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
-          >
-            <option value="">Selecione o tipo</option>
-            <option value="salario">Salário</option>
-            <option value="produto">Produto</option>
-            <option value="servico">Serviço</option>
-            <option value="outro">Outro</option>
-          </select>
-        </div>
-
         {/* Descrição */}
         <div className="mb-4">
-          <label htmlFor="descricao" className="block text-green-600 mb-1">
-            Descrição
-          </label>
+          <label htmlFor="descricao" className="block text-green-600 mb-1">Descrição</label>
           <input
             type="text"
             id="descricao"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
+            name="descricao"
+            value={inputVenda.descricao}
+            onChange={handleChange}
             placeholder="Ex: Venda de curso online"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
           />
@@ -98,17 +101,32 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Valor */}
         <div className="mb-6">
-          <label htmlFor="valor" className="block text-green-600 mb-1">
-            Valor (R$)
-          </label>
+          <label htmlFor="preco" className="block text-green-600 mb-1">Valor (R$)</label>
           <input
             type="number"
-            id="valor"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
+            id="preco"
+            name="preco"
+            value={inputVenda.preco === 0 ? "" : inputVenda.preco}
+            onChange={handleChange}
             placeholder="Digite o valor"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
           />
+        </div>
+
+        {/* Tipo de Venda */}
+        <div className="mb-4">
+          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">Tipo de Venda</label>
+          <select
+            id="tipoVenda"
+            name="tipoVenda"
+            value={inputVenda.tipoVenda}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
+          >
+            <option value="salario">Salário</option>
+            <option value="produto">Produto</option>
+            <option value="servico">Serviço</option>
+          </select>
         </div>
 
         {/* Botão Salvar */}

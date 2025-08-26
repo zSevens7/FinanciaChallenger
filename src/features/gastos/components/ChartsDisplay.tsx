@@ -3,7 +3,7 @@ import { ChartCard } from "./ChartCard";
 interface ChartInfo {
   id: string;
   title: string;
-  chartType: "bar" | "pie";
+   chartType: "bar" | "pie" | "line"; // ✅ adiciona "line"
   data: any;
   options: any;
 }

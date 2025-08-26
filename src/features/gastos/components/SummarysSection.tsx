@@ -1,3 +1,4 @@
+// src/features/gastos/components/SummarysSection.tsx
 interface SummarySectionProps {
   totalAcumulado: number;
 }

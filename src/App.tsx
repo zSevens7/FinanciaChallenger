@@ -1,75 +1,69 @@
 // src/App.tsx
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
-import { HeaderProvider } from "./contexts/HeaderContext";
 import React from "react";
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { AuthProvider } from './contexts/AuthContext';
+import { HeaderProvider } from "./contexts/HeaderContext";
+import { VendasProvider } from "./contexts/VendasContext";
+import { GastosProvider } from "./contexts/GastosContext";
 
-import { useState } from "react"; // ✅ precisa importar
-
+import PrivateRoute from './components/PrivateRoute';
 import { AppSidebarContent } from "./components/AppSidebar";
+import { SidebarProvider, Sidebar, SidebarTrigger, useSidebar } from "./components/ui/sidebar";
+import TitleEffect from "./components/ui/tittle";
+
 import Header from "./components/Header";
 import Dashboard from "./pages/Dashboard";
 import GastosPage from "./pages/GastosPage";
 import Vendas from "./pages/Vendas";
-import Login from "./pages/Login"; // ✅ importar a página de login
-import RegisterPage from './pages/RegisterPage'; // A nova página de registro
-import ForgotPasswordPage from './pages/ForgotPasswordPage'; // A nova página de recuperação de senha
-import ProfilePage from './pages/ProfilePage'; // A nova página de perfil
-
-import { SidebarProvider, Sidebar, SidebarTrigger, useSidebar } from "./components/ui/sidebar";
-import TitleEffect from "./components/ui/tittle";
-
+import Login from "./pages/Login";
+import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
-    <BrowserRouter> {/* Use Router em vez de BrowserRouter se já importou como Router */}
-      <HeaderProvider>
-        <SidebarProvider defaultOpen={true}>
-          <Routes>
-            {/* Rotas de Autenticação (sem sidebar/header principal) */}
-            <Route path="/" element={<Login />} /> {/* Rota principal de login */}
-            <Route path="/register" element={<RegisterPage />} /> {/* Sua nova rota de registro */}
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* Sua nova rota de recuperação de senha */}
-            {/* <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}{/* Adicione quando criar */}
+    <AuthProvider>
+      <VendasProvider>
+        <GastosProvider>
+          <BrowserRouter>
+            <HeaderProvider>
+              <SidebarProvider defaultOpen={true}>
+                <Routes>
+                  {/* Rotas públicas */}
+                  <Route path="/" element={<Login />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            {/* Rotas Protegidas (com Sidebar/Header) */}
-            <Route
-              path="*" // Esta rota captura qualquer coisa que não foi capturada acima
-              element={
-                <LayoutWithSidebar>
-                  <Routes>
+                  {/* Rotas protegidas */}
+                  <Route element={<PrivateRoute><LayoutWithSidebar /></PrivateRoute>}>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/gastos" element={<GastosPage />} />
                     <Route path="/vendas" element={<Vendas />} />
                     <Route path="/profile" element={<ProfilePage />} />
-                    {/* ...outras rotas da aplicação principal */}
-                  </Routes>
-                </LayoutWithSidebar>
-              }
-            />
-          </Routes>
-        </SidebarProvider>
-      </HeaderProvider>
-    </BrowserRouter>
+                  </Route>
+                </Routes>
+              </SidebarProvider>
+            </HeaderProvider>
+          </BrowserRouter>
+        </GastosProvider>
+      </VendasProvider>
+    </AuthProvider>
   );
 }
 
 export default App;
 
-
-
-function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
+// -------------------------
+// Layout com Sidebar
+function LayoutWithSidebar() {
   const { open, isMobile } = useSidebar();
   const location = useLocation();
-  const [pageTitle, setPageTitle] = useState("Minha Aplicação");
-  const [pageIcon, setPageIcon] = useState("");
+  const [pageTitle, setPageTitle] = React.useState("Minha Aplicação");
+  const [pageIcon, setPageIcon] = React.useState("");
 
   React.useEffect(() => {
     switch (location.pathname) {
-      case "/":
-            setPageTitle("Login");
-            setPageIcon("🔑")
-            break;
-      case "/dashboard": // ✅ mudou de '/' para '/dashboard'
+      case "/dashboard":
         setPageTitle("Dashboard");
         setPageIcon("📊");
         break;
@@ -81,18 +75,10 @@ function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
         setPageTitle("Vendas");
         setPageIcon("📈");
         break;
-      case "/register":
-        setPageTitle("Registrar");
-        setPageIcon("📝")
+      case "/profile":
+        setPageTitle("Perfil");
+        setPageIcon("👤");
         break;
-        case "/forgot-password":
-          setPageTitle("Recuperar Senha");
-          setPageIcon("🔒")
-          break;
-        case "/profile":
-          setPageTitle("Perfil");
-          setPageIcon("👤")
-          break;
       default:
         setPageTitle("Minha Aplicação");
         setPageIcon("");
@@ -102,6 +88,7 @@ function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen">
       <TitleEffect baseTitle={pageTitle} icon={pageIcon} />
+
       <Sidebar collapsible="offcanvas" side="left">
         <AppSidebarContent />
       </Sidebar>
@@ -117,8 +104,11 @@ function LayoutWithSidebar({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
           </div>
         )}
+
         <Header />
-        {children}
+
+        {/* 🔑 Outlet renderiza o conteúdo das rotas protegidas */}
+        <Outlet />
       </main>
     </div>
   );

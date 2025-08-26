@@ -1,3 +1,4 @@
+// src/features/gastos/components/GastosTable.tsx
 import { formatDate } from "../../../utils"
 import { useState } from "react";
 import type { Gasto } from "../../../types";
@@ -5,6 +6,7 @@ import type { Gasto } from "../../../types";
 // Props para tabela de gastos
 export interface GastosTableProps {
   gastos: Gasto[]
+  onDelete?: (id: string) => void; // Opcional, se quiser botões de deletar por linha
 }
 
 export const GastosTable = ({ gastos }: GastosTableProps) => {

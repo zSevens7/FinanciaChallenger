@@ -6,7 +6,7 @@ import type { Venda } from "../../types/index";
 
 export interface VendasTableProps {
   vendas: Venda[];
-  onDelete?: (id: number) => void; // callback para deletar
+  onDelete?: (id: string) => void; // ✅ agora id é string
 }
 
 export const VendasTable = ({ vendas, onDelete }: VendasTableProps) => {
@@ -62,7 +62,7 @@ export const VendasTable = ({ vendas, onDelete }: VendasTableProps) => {
                     <td className="p-3 text-center">
                       {onDelete && (
                         <button
-                          onClick={() => onDelete(venda.id)}
+                          onClick={() => onDelete(venda.id)} // ✅ id é string
                           className="text-red-600 hover:text-red-800 font-bold focus:outline-none"
                           aria-label={`Deletar venda ${venda.id}`}
                           title="Deletar venda"

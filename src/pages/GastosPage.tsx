@@ -1,19 +1,15 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  aggregateByPeriod,
-  aggregateByCategory,
-  aggregateByTipoDespesa,
-  prepareChartData,
-} from "../services/agreggation"; // Certifique-se que prepareChartData existe e retorna { data, options }
+// src/pages/GastosPage.tsx
 
+import { useState, useEffect, useCallback, useMemo } from "react";
+import ConfirmModal from "../components/ConfirmModal";
+import PageContainer from "../features/gastos/components/PageContainer";
+// ✅ CORREÇÃO: Caminhos de importação corrigidos
 import { ActionButtons } from "../features/gastos/components/ActionButtons";
 import { FilterControls } from "../features/gastos/components/FilterControls";
+import { Pagination } from "../features/gastos/components/Pagination";
 import { SummarySection } from "../features/gastos/components/SummarysSection";
 import { GastosTable } from "../features/gastos/components/GastosTable";
-import { Pagination } from "../features/gastos/components/Pagination";
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay";
-import ModalGasto from "../components/ModalGasto";
-import ConfirmModal from "../components/ConfirmModal";
 
 import {
   Chart as ChartJS,
@@ -28,11 +24,21 @@ import {
   LineElement,
   TimeScale,
 } from 'chart.js';
-import PageContainer from "../features/gastos/components/PageContainer";
 
+import { getUniqueYears, getUniqueMonthsForYear } from "../utils";
+import {
+  // ✅ CORREÇÃO: Nomes de funções corrigidos para corresponder ao arquivo agreggation.ts
+  aggregateByCategory,
+  aggregateByPeriod,
+  prepareChartData,
+} from "../services/agreggation";
+import { useGastos } from "../contexts/GastosContext";
 import { usePageHeader } from "../contexts/HeaderContext";
+import ModalGasto from "../components/ModalGasto";
+import type { Gasto } from "../types";
 
-// Registro dos componentes do Chart.js
+
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -46,359 +52,198 @@ ChartJS.register(
   TimeScale
 );
 
-export const GastosPage = () => {
-  const [gastos, setGastos] = useState<any[]>([]); // Considere usar um tipo mais específico como `Gasto[]`
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState("");
-  const [page, setPage] = useState(1);
+const GastosPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { gastos, addGasto, removeAllGastos, removeGasto } = useGastos();
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedMonth, setSelectedMonth] = useState<string>("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const { setPageHeader } = usePageHeader();
 
-  const refresh = useCallback(() => {
-    const data = JSON.parse(localStorage.getItem("gastos") || "[]");
-    data.sort(
-      (a: any, b: any) =>
-        new Date(b.data).getTime() - new Date(a.data).getTime()
-    );
-    setGastos(data);
-  }, []);
+  const handleAdicionarGasto = useCallback(() => setShowModal(true), []);
+  const handleLimparDados = useCallback(() => setShowConfirm(true), []);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  const clearAll = () => {
-    localStorage.removeItem("gastos");
-    setYear("");
-    setMonth("");
-    setPage(1);
-    refresh();
+  const clearData = () => {
+    // ✅ CORREÇÃO: Agora o contexto de gastos deve ter essa função
+    removeAllGastos();
     setShowConfirm(false);
   };
 
-  const handleAdicionarGasto = useCallback(() => setShowModal(true), []);
-  const handleLimparDadosGastos = useCallback(() => setShowConfirm(true), []);
+  const handleDeleteGasto = useCallback((id: string) => {
+    // ✅ CORREÇÃO: Agora o contexto de gastos deve ter essa função
+    removeGasto(id);
+  }, [removeGasto]);
+
+  const handleSaveGasto = useCallback((newGasto: Omit<Gasto, "id">) => {
+    addGasto(newGasto as Gasto);
+    setShowModal(false);
+  }, [addGasto]);
 
 
+  useEffect(() => {
+    setPageHeader(
+      "Gastos",
+      <ActionButtons
+        onAdicionarGasto={handleAdicionarGasto}
+        onLimparDados={handleLimparDados}
+      />
+    );
+    return () => setPageHeader(null, null);
+  }, [setPageHeader, handleAdicionarGasto, handleLimparDados]);
 
-  // Determine o tipo de agregação para os gráficos baseados nos filtros
-  const aggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
-    if (month && year) return 'daily';
-    if (year) return 'monthly';
-    return 'yearly'; // Ajuste 'prepareChartData' e 'aggregateByPeriod' para lidar com 'yearly'
-  }, [year, month]);
+  const uniqueYears = useMemo(() => getUniqueYears(gastos), [gastos]);
+  const uniqueMonths = useMemo(() => {
+    if (!selectedYear) return [];
+    return getUniqueMonthsForYear(gastos, selectedYear);
+  }, [gastos, selectedYear]);
 
+  const periodAggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
+    if (selectedYear && selectedMonth) return 'daily';
+    if (selectedYear) return 'monthly';
+    return 'yearly';
+  }, [selectedYear, selectedMonth]);
 
-  const filtered = useMemo(() => {
-    return gastos.filter((g) => {
-      const gDate = new Date(g.data);
-      const gYear = gDate.getFullYear().toString();
-      const gMonth = (gDate.getMonth() + 1).toString().padStart(2, '0');
+  const filteredGastos = useMemo(() => {
+    return gastos.filter(gasto => {
+      const dateObj = new Date(gasto.data);
+      const year = dateObj.getFullYear().toString();
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
 
-      const matchesYear = !year || gYear === year;
-      const matchesMonth = !month || gMonth === month;
+      const matchesYear = selectedYear ? year === selectedYear : true;
+      const matchesMonth = selectedMonth ? month === selectedMonth : true;
 
       return matchesYear && matchesMonth;
     });
-  }, [gastos, year, month]);
+  }, [gastos, selectedYear, selectedMonth]);
 
-  const totalPages = Math.ceil(filtered.length / 5);
-  const paginated = useMemo(() => {
-    return filtered.slice((page - 1) * 5, page * 5);
-  }, [filtered, page]);
+  const totalFilteredGastos = filteredGastos.length;
+  const totalPages = Math.ceil(totalFilteredGastos / itemsPerPage);
 
-  const totalAcum = useMemo(() => {
-    return filtered.reduce((sum, g) => sum + (g.preco || 0), 0);
-  }, [filtered]);
+  const paginatedGastos = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredGastos.slice(startIndex, endIndex);
+  }, [filteredGastos, currentPage, itemsPerPage]);
 
-  const periodAgg = useMemo(
-    () => aggregateByPeriod(gastos, year, month, aggregationType),
-    [gastos, year, month, aggregationType]
-  );
-  
-  const catAgg = useMemo(
-    () => aggregateByCategory(filtered),
-    [filtered]
-  );
-  const tipoAgg = useMemo(
-    () => aggregateByTipoDespesa(filtered),
-    [filtered]
+  const totalAcumuladoGasto = useMemo(() => {
+    return filteredGastos.reduce((sum, gasto) => sum + gasto.preco, 0);
+  }, [filteredGastos]);
+
+  const expensesByPeriodAgg = useMemo(
+    // ✅ CORREÇÃO: Nome da função corrigido para aggregateByPeriod
+    () => aggregateByPeriod(gastos, selectedYear, selectedMonth, periodAggregationType),
+    [gastos, selectedYear, selectedMonth, periodAggregationType]
   );
 
+  const expensesByCategoryAgg = useMemo(
+    // ✅ CORREÇÃO: Nome da função corrigido para aggregateByCategory
+    () => aggregateByCategory(filteredGastos),
+    [filteredGastos]
+  );
 
+  const chartDataPeriodExpenses = useMemo(() => {
+    return prepareChartData(
+      expensesByPeriodAgg,
+      selectedYear && !selectedMonth ? `Gastos Mensais em ${selectedYear} (R$)` : 'Evolução dos Gastos (R$)',
+      selectedYear && !selectedMonth ? "bar" : "line",
+      periodAggregationType
+    );
+  }, [expensesByPeriodAgg, selectedYear, selectedMonth, periodAggregationType]);
 
+  const chartDataCategoryExpenses = useMemo(() =>
+    prepareChartData(expensesByCategoryAgg, "Gastos por Categoria (R$)", "bar", 'category')
+    , [expensesByCategoryAgg]);
 
-
-  // --- OPÇÕES PADRÃO PARA GRÁFICOS DE BARRA ---
-  // Essas opções serão sobrescritas ou mescladas com as de prepareChartData
-  const defaultBarChartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false, // CRÍTICO para que o gráfico preencha o contêiner
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      tooltip: {
-        mode: 'index' as const,
-        intersect: false,
-      },
-    },
-    scales: {
-      x: {
-        ticks: {
-          autoSkip: true,
-          maxRotation: 0,
-          minRotation: 0,
-          font: {
-            size: 10, // Menor fonte para mobile
-          },
-          padding: 5,
-        },
-        grid: {
-          display: false, // Remover linhas de grade verticais
-        },
-      },
-      y: {
-        beginAtZero: true,
-        ticks: {
-          font: {
-            size: 10, // Menor fonte para mobile
-          },
-        },
-      },
-    },
-  }), []); // Memoiza para evitar recriação desnecessária
-
-  // --- OPÇÕES PADRÃO PARA GRÁFICOS DE PIZZA ---
-  const defaultPieChartOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false, // CRÍTICO para que o gráfico preencha o contêiner
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      tooltip: {
-        mode: 'index' as const,
-        intersect: false,
-      },
-      title: { // Título para PIE charts
-        display: true,
-      }
-    },
-  }), []); // Memoiza para evitar recriação desnecessária
-
+  const chartDataCategoryExpensesPie = useMemo(() =>
+    prepareChartData(expensesByCategoryAgg, "Distribuição por Categoria (%)", "pie", 'category')
+    , [expensesByCategoryAgg]);
 
   return (
     <PageContainer>
-      <div className="container mx-auto bg-white rounded-xl shadow-2xl p-6">
-        <SummarySection totalAcumulado={totalAcum} />
+      {showModal && <ModalGasto onClose={() => setShowModal(false)} onSave={handleSaveGasto} />}
 
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              {/* Filtros de Ano/Mês */}
-              <FilterControls
-                selectedYear={year}
-                setSelectedYear={(y) => {
-                  setYear(y);
-                  setMonth("");
-                  setPage(1);
-                }}
-                uniqueYears={[...new Set(gastos.map((g) => g.data.split("-")[0]))]}
-                selectedMonth={month}
-                setSelectedMonth={(m) => {
-                  setMonth(m);
-                  setPage(1);
-                }}
-                uniqueMonths={[
-                  ...new Set(
-                    gastos
-                      .filter((g) => g.data.startsWith(year))
-                      .map((g) => g.data.split("-")[1])
-                  ),
-                ]}
-                setCurrentPage={setPage}
-              />
+      <ConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={clearData}
+        title="Confirmar Limpeza de Dados de Gastos"
+        message="Tem certeza que deseja apagar todos os dados de gastos? Esta ação não poderá ser desfeita."
+      />
 
-              {/* Botões de ação */}
-              <ActionButtons
-                onAdicionarGasto={handleAdicionarGasto}
-                onLimparDados={handleLimparDadosGastos}
-              />
-            </div>
+      <SummarySection totalAcumulado={totalAcumuladoGasto} />
 
-
-        <section className="mb-8">
-          <h2 className="text-xl mt-10 font-semibold mb-3">
-            Detalhes dos Gastos
-          </h2>
-          <GastosTable gastos={paginated} />
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
-        </section>
-
-        {filtered.length > 0 && (
-          <>
-            {/* Gráfico com evolução ao longo do tempo (por período) */}
-            <ChartsDisplay
-              sectionTitle="Evolução dos Gastos"
-              charts={[
-                {
-                  id: "evolucao-periodo",
-                  title: "Total de Gastos ao Longo do Tempo",
-                  chartType: "bar",
-                  // Mesclar opções padrão com as específicas do prepareChartData
-                  ...(() => {
-                    const prepared = prepareChartData(periodAgg, "Total de Gastos (R$)", "bar", aggregationType);
-                    return {
-                      ...prepared,
-                      options: {
-                        ...defaultBarChartOptions,
-                        ...prepared.options, // Sobrescrever com opções do prepareChartData se houver
-                        plugins: {
-                          ...defaultBarChartOptions.plugins,
-                          ...prepared.options?.plugins,
-                          title: { // Título específico para este gráfico
-                            display: true,
-                            text: 'Total de Gastos ao Longo do Tempo',
-                          }
-                        }
-                      }
-                    };
-                  })(),
-                },
-              ]}
-              // gridCols="max-w-4xl mx-auto" // Já está no ChartsDisplay
-            />
-
-            {/* Análise por Categoria */}
-            <ChartsDisplay
-              sectionTitle="Análise por Categoria"
-              charts={[
-                {
-                  id: "categoria-valor",
-                  title: "Total por Categoria (R$)",
-                  chartType: "bar",
-                  ...(() => {
-                    const prepared = prepareChartData(catAgg, "Valor Total (R$)", "bar", 'category');
-                    return {
-                      ...prepared,
-                      options: {
-                        ...defaultBarChartOptions,
-                        ...prepared.options,
-                        plugins: {
-                          ...defaultBarChartOptions.plugins,
-                          ...prepared.options?.plugins,
-                          title: {
-                            display: true,
-                            text: 'Total por Categoria (R$)',
-                          }
-                        }
-                      }
-                    };
-                  })(),
-                },
-                {
-                  id: "categoria-distribuicao",
-                  title: "Distribuição por Categoria (%)",
-                  chartType: "pie",
-                  ...(() => {
-                    const prepared = prepareChartData(catAgg, "Distribuição por Categoria (%)", "pie", 'monthly');
-                    return {
-                      ...prepared,
-                      options: {
-                        ...defaultPieChartOptions,
-                        ...prepared.options,
-                        plugins: {
-                          ...defaultPieChartOptions.plugins,
-                          ...prepared.options?.plugins,
-                          title: {
-                            display: true,
-                            text: 'Distribuição por Categoria (%)',
-                          }
-                        }
-                      }
-                    };
-                  })(),
-                },
-              ]}
-            />
-
-            {/* Análise por Tipo de Despesa */}
-            <ChartsDisplay
-              sectionTitle="Análise por Tipo de Despesa"
-              charts={[
-                {
-                  id: "tipo-valor",
-                  title: "Total por Tipo de Despesa (R$)",
-                  chartType: "bar",
-                  ...(() => {
-                    const prepared = prepareChartData(tipoAgg, "Total por Tipo de Despesa (R$)", "bar", 'monthly');
-                    return {
-                      ...prepared,
-                      options: {
-                        ...defaultBarChartOptions,
-                        ...prepared.options,
-                        plugins: {
-                          ...defaultBarChartOptions.plugins,
-                          ...prepared.options?.plugins,
-                          title: {
-                            display: true,
-                            text: 'Total por Tipo de Despesa (R$)',
-                          }
-                        }
-                      }
-                    };
-                  })(),
-                },
-                {
-                  id: "tipo-distribuicao",
-                  title: "Distribuição por Tipo de Despesa (%)",
-                  chartType: "pie",
-                  ...(() => {
-                    const prepared = prepareChartData(tipoAgg, "Distribuição por Tipo de Despesa (%)", "pie", 'monthly');
-                    return {
-                      ...prepared,
-                      options: {
-                        ...defaultPieChartOptions,
-                        ...prepared.options,
-                        plugins: {
-                          ...defaultPieChartOptions.plugins,
-                          ...prepared.options?.plugins,
-                          title: {
-                            display: true,
-                            text: 'Distribuição por Tipo de Despesa (%)',
-                          }
-                        }
-                      }
-                    };
-                  })(),
-                },
-              ]}
-            />
-          </>
-        )}
-
-        {showModal && (
-          <ModalGasto
-            onClose={() => {
-              setShowModal(false);
-              refresh();
-            }}
-          />
-        )}
-
-        <ConfirmModal
-          isOpen={showConfirm}
-          onClose={() => setShowConfirm(false)}
-          onConfirm={clearAll}
-          title="Confirmar Limpeza de Dados"
-          message="Deseja apagar todos os gastos? Esta ação não pode ser desfeita."
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <FilterControls
+          selectedYear={selectedYear}
+          setSelectedYear={(y) => {
+            setSelectedYear(y);
+            setSelectedMonth("");
+            setCurrentPage(1);
+          }}
+          uniqueYears={uniqueYears}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={(m) => {
+            setSelectedMonth(m);
+            setCurrentPage(1);
+          }}
+          uniqueMonths={uniqueMonths}
+          setCurrentPage={setCurrentPage}
+        />
+        <ActionButtons
+          onAdicionarGasto={handleAdicionarGasto}
+          onLimparDados={handleLimparDados}
         />
       </div>
+
+      <GastosTable gastos={paginatedGastos} onDelete={handleDeleteGasto} />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
+
+      {filteredGastos.length > 0 && (
+        <>
+          <ChartsDisplay
+            sectionTitle="Evolução dos Gastos"
+            charts={[
+              {
+                id: "evolucao-gastos",
+                title: "Total de Gastos por Período (R$)",
+                chartType: selectedYear && !selectedMonth ? "bar" : "line",
+                data: chartDataPeriodExpenses.data,
+                options: chartDataPeriodExpenses.options,
+              },
+            ]}
+            gridCols="max-w-4xl mx-auto"
+          />
+
+          <ChartsDisplay
+            sectionTitle="Análise por Categoria"
+            charts={[
+              {
+                id: "gastos-categoria-valor",
+                title: "Valor Total por Categoria (R$)",
+                chartType: "bar",
+                data: chartDataCategoryExpenses.data,
+                options: chartDataCategoryExpenses.options,
+              },
+              {
+                id: "gastos-categoria-distribuicao",
+                title: "Distribuição por Categoria (%)",
+                chartType: "pie",
+                data: chartDataCategoryExpensesPie.data,
+                options: chartDataCategoryExpensesPie.options,
+              },
+            ]}
+          />
+        </>
+      )}
     </PageContainer>
   );
 };
