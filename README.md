@@ -43,6 +43,29 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 - 🎨 Alteradas as cores dos modals de *roxos* para *verde* e *vermelho*.
 - 📊 Ajustadas as tabelas da página de vendas.
 
+
+**🗓 Data:** 05/08/2025
+
+- ➕ **Botões de ação reativados** na página de **Gastos** (`ActionButtons`), agora posicionados ao lado direito dos filtros de ano/mês.
+- ➕ **Adicionados os botões de ação** na página de **Vendas** (`HeaderActionButtons`), também posicionados ao lado dos filtros, com layout responsivo.
+- 🧱 **Refatorado o layout** das seções de filtros (ano/mês) nas páginas de **Gastos** e **Vendas**, agrupando filtros e botões em um contêiner flexível (`div`) para melhor organização visual.
+- ⚙️ **Adicionado um icone de perfil** no headercontext, ou seja, todas paginas terão um icone de perfil e no futuro vou adicionar a pagina de perfil.
+
+**🗓 Data:** 25/08/2025
+
+-⚙️ **Criada a página de login** (LoginPage.tsx) com a estrutura visual completa.
+-✨ **Implementada a lógica de simulação de login**, que exibe uma mensagem de erro ("Usuário ou senha inválidos") para credenciais incorretas.
+
+
+**🗓 Data:** 26/08/2025
+
+- 👤 **Criada a página de perfil** (`ProfilePage.tsx`) para exibir dados do usuário.
+- 🛠️ **Implementados dois modais:** `EditProfileModal.tsx` e `ChangePasswordModal.tsx` para edição de dados e senha.
+- 🔗 **Integrados os modais à página de perfil**, usando o estado do React para controlar sua abertura e fechamento.
+- 🔄 **Refatorada a lógica de atualização** do estado do usuário com o spread operator para corrigir um erro de tipagem.
+- 🧭 **Atualizada a navegação** no `Header` e na `AppSidebar` para incluir o item "Perfil" e o botão "Sair" (logout simulado).
+
+
 ---
 
 ## ✨ Funcionalidades Atuais (Herança do Codi Cash)

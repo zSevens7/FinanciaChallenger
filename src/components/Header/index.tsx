@@ -33,7 +33,7 @@ function Header() {
 
         {/* Right section: Perfil */}
         <div className="flex items-center space-x-4">
-          <a href="/perfil">
+          <a href="/profile">
             <img
               src={perfil}
               alt="Perfil"
