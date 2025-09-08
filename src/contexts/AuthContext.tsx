@@ -1,92 +1,88 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+// src/contexts/AuthContext.tsx
+import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import api from "../services/api"; // Axios configurado com baseURL e interceptor
 
-// 1. Definir o tipo dos dados do usuário e do contexto
-interface User {
-  id: string;
-  name: string;
+// Tipos do usuário
+export interface User {
+  id: number;
+  username: string;
   email: string;
-}
-
-// Criamos uma nova interface que inclui a senha, para ser usada apenas na lógica de autenticação.
-interface UserWithPassword extends User {
-  password?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-   register: (newUser: Omit<UserWithPassword, 'id'>) => Promise<boolean>;
+  register: (username: string, email: string, password: string) => Promise<boolean>;
 }
 
-// 2. Criar o contexto
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 3. Criar o provedor do contexto
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // Lógica de login e registro simulada com localStorage
-  // Futuramente, esta lógica será substituída por chamadas a uma API
+  // Login via email
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Agora o "banco de dados" de usuários usa a interface com a senha
-    const users: UserWithPassword[] = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((u) => u.email === email && u.password === password);
+    try {
+      const response = await api.post<{ token: string }>("/auth/login", { email, password });
+      const token = response.data.token;
+      localStorage.setItem("token", token);
 
-    if (foundUser) {
-      // Mas o estado do usuário continua sem a senha, por segurança
-      const { password, ...userWithoutPassword } = foundUser;
-      setUser(userWithoutPassword);
-      // Salva o usuário logado para manter a sessão
-      localStorage.setItem('currentUser', JSON.stringify({ id: foundUser.id, email: foundUser.email }));
+      // Buscar os dados do usuário logado
+      const userResponse = await api.get<{ user: User }>("/auth/profile");
+      setUser(userResponse.data.user);
+
       return true;
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error.response?.data?.error || error.message);
+      return false;
     }
-    return false;
   };
 
+  // Logout
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem("token");
   };
 
-  const register = async (newUser: Omit<UserWithPassword, 'id'>): Promise<boolean> => {
-    const users: UserWithPassword[] = JSON.parse(localStorage.getItem('users') || '[]');
-    const userExists = users.some((u) => u.email === newUser.email);
-    
-    if (userExists) {
-      return false; // Usuário já existe
+  // Registro
+  const register = async (username: string, email: string, password: string): Promise<boolean> => {
+    try {
+      await api.post("/auth/register", { username, email, password });
+      return true;
+    } catch (error: any) {
+      console.error("Erro ao registrar usuário:", error.response?.data?.error || error.message);
+      return false;
     }
-
-    const newUserData = { ...newUser, id: `user-${Date.now()}` }; // Gera um ID simples
-    users.push(newUserData as UserWithPassword);
-    localStorage.setItem('users', JSON.stringify(users));
-    return true;
   };
 
-  // Efeito para carregar o usuário da sessão (localStorage) ao iniciar a app
+  // Manter usuário logado após reload
   useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      const { id, email } = JSON.parse(storedUser);
-      const users: UserWithPassword[] = JSON.parse(localStorage.getItem('users') || '[]');
-      const foundUser = users.find((u) => u.email === email);
-      if (foundUser) {
-        const { password, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
+    const loadUser = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const userResponse = await api.get<{ user: User }>("/auth/profile");
+          setUser(userResponse.data.user);
+        } catch (err) {
+          console.error("Erro ao carregar usuário:", err);
+          logout();
+        }
       }
-    }
+    };
+    loadUser();
   }, []);
 
-  const value = { user, login, logout, register };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, login, logout, register }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-// 4. Hook personalizado para usar o contexto facilmente
+// Hook para usar o contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider');
-  }
+  if (!context) throw new Error("useAuth deve ser usado dentro de um AuthProvider");
   return context;
 };

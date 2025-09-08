@@ -26,7 +26,8 @@ const RegisterPage: React.FC = () => {
     }
     
     // 2. Chama a função de registro do contexto
-    const success = await register({ name, email, password });
+    const success = await register(name, email, password);
+
 
     if (success) {
       console.log("Usuário registrado com sucesso!");
