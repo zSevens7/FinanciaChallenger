@@ -65,6 +65,85 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 - 🔄 **Refatorada a lógica de atualização** do estado do usuário com o spread operator para corrigir um erro de tipagem.
 - 🧭 **Atualizada a navegação** no `Header` e na `AppSidebar` para incluir o item "Perfil" e o botão "Sair" (logout simulado).
 
+**🗓 Data:** 26/08/2025 – Fase 3 (Refatoração e Centralização) 
+
+-  🔧 **Criados contextos para Gastos e Vendas** (GastosContext.tsx e VendasContext.tsx) para centralizar o estado e substituir chamadas diretas ao localStorage.
+-  🔒 **Implementado PrivateRoute** para proteger rotas internas usando AuthContext.
+-  ♻️ **Refatoradas páginas Dashboard, Gastos e Vendas** para consumir dados dos contextos em vez do localStorage.
+-  🗄️ **Centralizado o estado do usuário** no AuthContext com funções de login, logout e registro.
+-  🧩 **Preparação para backend futuro**, mantendo todo o estado de dados e autenticação gerenciados pelos contextos no frontend.
+
+**🗓 Data:** 08/09/2025
+
+### Backend
+- 📁 **Criada a pasta `backend`** com estrutura inicial.  
+- 📄 **Criado `package.json`** do backend.  
+- 🖥️ **Criado `server.js`** para rodar o backend e gerenciar o banco de dados.  
+- 🛡️ **Criada a pasta `middleware`** com `authMiddleware.js` para autenticação.  
+- 📂 **Criada a pasta `routes`** com `auth.js` para rotas de autenticação.  
+- 🔍 **Criado `checkUsers.js`** para verificar se o banco de dados possui usuários.  
+- 🔐 **Criado arquivo `.env`** para variáveis de ambiente (não enviado para o GitHub).
+
+### Frontend
+- 🛠️ **Arquivos ajustados:** `AppSidebar.tsx`, `AuthContext.tsx`, `ProfilePage.tsx`, `RegisterPage.tsx`.  
+  - Agora é possível **criar contas reais** e logar com elas.  
+  - Logout no perfil está funcionando corretamente.  
+- 🌐 **Criado `services/api.ts`** para conectar frontend ao backend.  
+
+### Observações
+- ⚠️ O arquivo `.env` não deve ser enviado para o GitHub, conforme padrão do `.gitignore`.
+
+---
+---
+## Estrutura do Projeto
+
+| Pasta / Arquivo | Função / Descrição |
+|-----------------|------------------|
+| backend/ | Código do backend (Node.js + Express) |
+| backend/package.json | Gerenciador de dependências do backend |
+| backend/server.js | Arquivo principal do backend para rodar servidor e banco de dados |
+| backend/middleware/authMiddleware.js | Middleware de autenticação do backend |
+| backend/routes/auth.js | Rotas de autenticação (login, register) |
+| backend/checkUsers.js | Verifica se existem usuários no banco de dados |
+| backend/.env | Variáveis de ambiente do backend (não enviado para GitHub) |
+| node_modules/ | Dependências do frontend |
+| public/ | Arquivos públicos estáticos (HTML, favicon, etc.) |
+| src/ | Código fonte principal do frontend |
+| src/assets/ | Imagens, ícones e outros recursos estáticos |
+| src/assets/icons/ | Ícones usados no projeto |
+| src/components/ | Componentes reutilizáveis que não pertencem a uma página específica |
+| src/components/DashHistory/ | Componentes da tabela de histórico |
+| src/components/Header/ | Componentes relacionados ao cabeçalho |
+| src/components/ui/ | Componentes de interface genéricos (botões, modals, sidebar) |
+| src/components/AppSidebar.tsx | Sidebar principal do app |
+| src/components/ConfirmModal.tsx | Modal de confirmação genérico |
+| src/components/FloatingBox.tsx | Caixa flutuante reutilizável |
+| src/components/MobileSidebar.tsx | Sidebar para versão mobile |
+| src/components/ModalGasto.tsx | Modal para registrar gastos |
+| src/components/ModalVenda.tsx | Modal para registrar vendas |
+| src/components/PrimaryButton.tsx | Botão primário estilizado |
+| src/components/PrivateRoute.tsx | Componente para proteger rotas privadas |
+| src/contexts/ | Contextos React (Auth, Vendas, Gastos) para gerenciamento de estado global |
+| src/features/ | Funcionalidades específicas do app |
+| src/features/dashboard/ | Componentes e hooks do dashboard |
+| src/features/dashboard/components/ | Gráficos, KPIs e widgets do dashboard |
+| src/features/dashboard/hooks/ | Hooks específicos do dashboard |
+| src/features/dashboard/dashboardKPI.tsx | Componente KPI do dashboard |
+| src/features/gastos/components/ | Componentes da página de gastos |
+| src/features/profile/ | Componentes da página de perfil |
+| src/features/vendas/ | Componentes da página de vendas |
+| src/hooks/ | Hooks personalizados reutilizáveis |
+| src/layouts/ | Layouts de páginas |
+| src/lib/ | Bibliotecas utilitárias |
+| src/pages/ | Páginas do aplicativo (Dashboard, Login, Perfil, etc.) |
+| src/services/ | Serviços de API ou lógica externa (ex: `api.ts` para comunicação com backend) |
+| src/types/ | Tipagens TypeScript do projeto |
+| src/utils/ | Funções utilitárias gerais |
+| App.css | Estilos globais do app |
+| App.tsx | Componente principal do React |
+| index.css | Estilos globais adicionais |
+| main.tsx | Ponto de entrada do React |
+
 
 ---
 
