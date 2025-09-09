@@ -1,13 +1,19 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path"; // <--- importar o path
+
+dotenv.config({ path: path.resolve('../.env') }); // ajusta conforme a estrutura do projeto
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
+console.log('DB_NAME:', process.env.DB_NAME);
 
 import authRoutes from "./routes/auth.js";
 import gastosRoutes from "./routes/gastos.js";
 import vendasRoutes from "./routes/vendas.js"; 
 import { authenticateToken } from "./middleware/authMiddleware.js";
 
-dotenv.config();
 const app = express();
 
 app.use(cors());

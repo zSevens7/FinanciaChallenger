@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
-// Conexão MySQL
+// Conexão MySQL remota
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -17,6 +17,16 @@ const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
 });
+
+// Teste de conexão inicial
+(async () => {
+  try {
+    const [rows] = await db.execute("SELECT 1 + 1 AS result");
+    console.log("✅ Conexão com MySQL OK:", rows[0].result);
+  } catch (err) {
+    console.error("❌ Erro ao conectar no MySQL:", err);
+  }
+})();
 
 // Registro de usuário
 router.post("/register", async (req, res) => {
@@ -32,11 +42,15 @@ router.post("/register", async (req, res) => {
         `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`,
         [username, hashedPassword, email]
       );
-      res.status(201).json({ message: "Usuário registrado com sucesso!", userId: result.insertId });
+      console.log("Novo usuário registrado:", email);
+      res.status(201).json({
+        message: "Usuário registrado com sucesso!",
+        userId: result.insertId,
+      });
     } catch (err) {
       if (err.code === "ER_DUP_ENTRY")
         return res.status(409).json({ error: "Usuário ou email já existem." });
-      console.error(err);
+      console.error("Erro ao inserir usuário:", err);
       return res.status(500).json({ error: "Erro no servidor." });
     }
   } catch (error) {
@@ -68,9 +82,10 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    console.log("Usuário logado:", email);
     res.json({ message: "Login bem-sucedido!", token });
   } catch (err) {
-    console.error(err);
+    console.error("Erro no login:", err);
     res.status(500).json({ error: "Erro no servidor." });
   }
 });
@@ -87,7 +102,7 @@ router.get("/profile", authenticateToken, async (req, res) => {
     if (!user) return res.status(404).json({ error: "Usuário não encontrado." });
     res.json({ user });
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao buscar perfil:", err);
     res.status(500).json({ error: "Erro no servidor." });
   }
 });
