@@ -1,34 +1,25 @@
-// backend/src/routes/vendas.js
-import { Router } from "express";
-const router = Router();
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-let vendas = [];
+import authRoutes from "./routes/auth.js";
+import gastosRoutes from "./routes/gastos.js";
+import vendasRoutes from "./routes/vendas.js"; 
+import { authenticateToken } from "./middleware/authMiddleware.js";
 
-router.get("/", (req, res) => {
-  res.json({ vendas });
+dotenv.config();
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/gastos", authenticateToken, gastosRoutes);
+app.use("/api/vendas", authenticateToken, vendasRoutes);
+
+app.get("/", (req, res) => {
+  res.json({ message: "API FinanciaChallenger rodando 🚀" });
 });
 
-router.post("/", (req, res) => {
-  const venda = { ...req.body, id: Date.now().toString() };
-  vendas.push(venda);
-  res.json({ venda });
-});
-
-router.put("/:id", (req, res) => {
-  const { id } = req.params;
-  const index = vendas.findIndex(v => v.id === id);
-  if (index !== -1) {
-    vendas[index] = { ...vendas[index], ...req.body };
-    res.json({ venda: vendas[index] });
-  } else {
-    res.status(404).json({ message: "Venda não encontrada" });
-  }
-});
-
-router.delete("/:id", (req, res) => {
-  const { id } = req.params;
-  vendas = vendas.filter(v => v.id !== id);
-  res.status(204).send();
-});
-
-export default router; // <-- importante: export default
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
