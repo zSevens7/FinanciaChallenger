@@ -48,13 +48,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Registro
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {
-      await api.post("/auth/register", { username, email, password });
+      const res = await api.post<{ token: string, user: User }>("/auth/register", { username, email, password });
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.user);
       return true;
     } catch (error: any) {
       console.error("Erro ao registrar usuário:", error.response?.data?.error || error.message);
       return false;
     }
   };
+
 
   // Manter usuário logado após reload
   useEffect(() => {

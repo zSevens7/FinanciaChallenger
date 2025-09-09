@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { Gasto } from "../types"; 
+import { Gasto } from "../types";
+import api from "../services/api";
 
 // Interface do contexto de gastos
 interface GastosContextType {
@@ -8,8 +8,8 @@ interface GastosContextType {
   addGasto: (g: Omit<Gasto, "id">) => Promise<void>;
   updateGasto: (id: string, g: Omit<Gasto, "id">) => Promise<void>;
   deleteGasto: (id: string) => Promise<void>;
-  removeGasto: (id: string) => void;         // remove um gasto pelo ID (síncrono)
-  removeAllGastos: () => void;               // limpa todos os gastos (síncrono)
+  removeGasto: (id: string) => void;
+  removeAllGastos: () => void;
 }
 
 const GastosContext = createContext<GastosContextType | undefined>(undefined);
@@ -17,68 +17,64 @@ const GastosContext = createContext<GastosContextType | undefined>(undefined);
 export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
-  // Carregar gastos do LocalStorage ao iniciar
+  // Carregar gastos do backend ao iniciar
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("gastos");
-      if (saved) {
-        const parsedGastos: Gasto[] = JSON.parse(saved);
-        setGastos(parsedGastos);
+    const loadGastos = async () => {
+      try {
+        const response = await api.get<Gasto[]>("/gastos");
+        setGastos(response.data);
+      } catch (err) {
+        console.error("Erro ao carregar gastos do backend:", err);
+        setGastos([]);
       }
-    } catch (e) {
-      console.error("Falha ao carregar gastos do LocalStorage", e);
-      setGastos([]);
-    }
+    };
+    loadGastos();
   }, []);
 
-  // Salvar gastos no LocalStorage sempre que houver mudança
-  useEffect(() => {
-    try {
-      localStorage.setItem("gastos", JSON.stringify(gastos));
-    } catch (e) {
-      console.error("Falha ao salvar gastos no LocalStorage", e);
-    }
-  }, [gastos]);
-
-  // Adicionar novo gasto
+  // Adicionar gasto
   const addGasto = async (g: Omit<Gasto, "id">) => {
-    const newGasto: Gasto = { ...g, id: uuidv4() };
-    setGastos(prev => [...prev, newGasto]);
+    try {
+      const response = await api.post<Gasto>("/gastos", g);
+      setGastos(prev => [...prev, response.data]);
+    } catch (err) {
+      console.error("Erro ao adicionar gasto:", err);
+    }
   };
 
-  // Atualizar gasto existente
+  // Atualizar gasto
   const updateGasto = async (id: string, updatedGasto: Omit<Gasto, "id">) => {
-    setGastos(prev =>
-      prev.map(gasto =>
-        gasto.id === id ? { ...gasto, ...updatedGasto } : gasto
-      )
-    );
+    try {
+      await api.put(`/gastos/${id}`, updatedGasto);
+      setGastos(prev =>
+        prev.map(gasto => (gasto.id === id ? { ...gasto, ...updatedGasto } : gasto))
+      );
+    } catch (err) {
+      console.error("Erro ao atualizar gasto:", err);
+    }
   };
 
-  // Deletar gasto (async, caso queira futuramente conectar a backend)
+  // Deletar gasto
   const deleteGasto = async (id: string) => {
-    setGastos(prev => prev.filter(gasto => gasto.id !== id));
+    try {
+      await api.delete(`/gastos/${id}`);
+      setGastos(prev => prev.filter(gasto => gasto.id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar gasto:", err);
+    }
   };
 
-  // Remover gasto (síncrono, para UI)
+  // Remover gasto local (UI)
   const removeGasto = (id: string) => {
     setGastos(prev => prev.filter(gasto => gasto.id !== id));
   };
 
-  // Remover todos os gastos
+  // Limpar todos os gastos
   const removeAllGastos = () => {
     setGastos([]);
   };
 
   return (
-    <GastosContext.Provider value={{ 
-      gastos, 
-      addGasto, 
-      updateGasto, 
-      deleteGasto, 
-      removeGasto, 
-      removeAllGastos 
-    }}>
+    <GastosContext.Provider value={{ gastos, addGasto, updateGasto, deleteGasto, removeGasto, removeAllGastos }}>
       {children}
     </GastosContext.Provider>
   );

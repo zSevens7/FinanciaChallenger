@@ -37,7 +37,7 @@ const LoginPage: React.FC = () => {
       <div className="flex flex-1 items-center justify-center p-4">
         <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-2">
-            FinanciaChallenger
+            SevensCash
           </h1>
           <p className="text-center text-gray-500 mb-6">
             Bem-vindo de volta 👋 Faça login na sua conta

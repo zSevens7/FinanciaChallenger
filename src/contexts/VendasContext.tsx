@@ -1,70 +1,62 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-
-// Novo tipo VendaInput compatível com types.ts
-export type TipoVenda = "salario" | "produto" | "servico";
-
-export interface VendaInput {
-  data: string;
-  descricao: string;
-  preco: number;
-  tipoVenda: TipoVenda;
-}
-
-export interface Venda extends VendaInput {
-  id: string;
-}
+// src/contexts/VendasContext.tsx
+import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import api from "../services/api"; // axios configurado com baseURL e JWT
+import { VendaInput, Venda } from "../types/index";
 
 interface VendasContextType {
   vendas: Venda[];
-  addVenda: (venda: VendaInput) => void;
-  deleteVenda: (id: string) => void;
-  updateVenda: (id: string, updatedVenda: VendaInput) => void;
+  addVenda: (vendaInput: VendaInput) => Promise<void>;
+  updateVenda: (id: string, vendaInput: VendaInput) => Promise<void>;
+  deleteVenda: (id: string) => Promise<void>;
 }
 
 const VendasContext = createContext<VendasContextType | undefined>(undefined);
 
 export const VendasProvider = ({ children }: { children: ReactNode }) => {
-  const [vendas, setVendas] = useState<Venda[]>(() => {
-    try {
-      const saved = localStorage.getItem("vendas");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [vendas, setVendas] = useState<Venda[]>([]);
 
-  React.useEffect(() => {
-    localStorage.setItem("vendas", JSON.stringify(vendas));
-  }, [vendas]);
-
-  const addVenda = (vendaInput: VendaInput) => {
-    const newVenda: Venda = {
-      id: uuidv4(),
-      data: vendaInput.data,
-      descricao: vendaInput.descricao,
-      preco: vendaInput.preco,
-      tipoVenda: vendaInput.tipoVenda,
+  // Carregar vendas do backend ao iniciar
+  useEffect(() => {
+    const loadVendas = async () => {
+      try {
+        const res = await api.get<{ vendas: Venda[] }>("/vendas");
+        setVendas(res.data.vendas);
+      } catch (err) {
+        console.error("Erro ao carregar vendas do backend:", err);
+      }
     };
-    setVendas(prev => [...prev, newVenda]);
+    loadVendas();
+  }, []);
+
+  const addVenda = async (vendaInput: VendaInput) => {
+    try {
+      const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
+      setVendas(prev => [...prev, res.data.venda]);
+    } catch (err) {
+      console.error("Erro ao adicionar venda:", err);
+    }
   };
 
-  const deleteVenda = (id: string) => {
-    setVendas(prev => prev.filter(v => v.id !== id));
+  const updateVenda = async (id: string, vendaInput: VendaInput) => {
+    try {
+      const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, vendaInput);
+      setVendas(prev => prev.map(v => (v.id === id ? res.data.venda : v)));
+    } catch (err) {
+      console.error("Erro ao atualizar venda:", err);
+    }
   };
 
-  const updateVenda = (id: string, updatedVenda: VendaInput) => {
-    setVendas(prev =>
-      prev.map(v => 
-        v.id === id
-          ? { id: v.id, data: updatedVenda.data, descricao: updatedVenda.descricao, preco: updatedVenda.preco, tipoVenda: updatedVenda.tipoVenda }
-          : v
-      )
-    );
+  const deleteVenda = async (id: string) => {
+    try {
+      await api.delete(`/vendas/${id}`);
+      setVendas(prev => prev.filter(v => v.id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar venda:", err);
+    }
   };
 
   return (
-    <VendasContext.Provider value={{ vendas, addVenda, deleteVenda, updateVenda }}>
+    <VendasContext.Provider value={{ vendas, addVenda, updateVenda, deleteVenda }}>
       {children}
     </VendasContext.Provider>
   );
