@@ -108,4 +108,14 @@ router.get("/profile", authenticateToken, async (req, res) => {
   }
 });
 
+// Adicione esta rota antes do "export default router"
+router.get('/check', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Auth API is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
+
 export default router;

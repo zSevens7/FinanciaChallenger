@@ -13,7 +13,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  register: (username: string, email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,18 +46,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Registro
-  const register = async (username: string, email: string, password: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      const res = await api.post<{ token: string, user: User }>("/auth/register", { username, email, password });
+      // Aqui enviamos `username` para o backend
+      const res = await api.post<{ token: string, user: User }>("/auth/register", {
+        username: name,
+        email,
+        password
+      });
+
+      // Salvar token e usuário no frontend
       localStorage.setItem("token", res.data.token);
       setUser(res.data.user);
+
       return true;
     } catch (error: any) {
       console.error("Erro ao registrar usuário:", error.response?.data?.error || error.message);
       return false;
     }
   };
-
 
   // Manter usuário logado após reload
   useEffect(() => {

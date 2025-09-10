@@ -15,7 +15,12 @@ const RegisterPage: React.FC = () => {
     event.preventDefault();
     setError(""); // Limpa erros anteriores
 
-    // 1. Validações básicas no frontend (ainda são importantes!)
+    // Validações básicas no frontend
+    if (!name || !email || !password || !confirmPassword) {
+      setError("Preencha todos os campos.");
+      return;
+    }
+
     if (password.length < 6) {
       setError("A senha deve ter pelo menos 6 caracteres.");
       return;
@@ -24,17 +29,20 @@ const RegisterPage: React.FC = () => {
       setError("As senhas não coincidem.");
       return;
     }
-    
-    // 2. Chama a função de registro do contexto
-    const success = await register(name, email, password);
 
+    try {
+      // Chama a função de registro do contexto
+      const success = await register(name, email, password);
 
-    if (success) {
-      console.log("Usuário registrado com sucesso!");
-      navigate("/"); // Redireciona para a página de login após o registro
-    } else {
-      // 3. Define a mensagem de erro com base no retorno do contexto
-      setError("Erro ao registrar. O e-mail pode já estar em uso.");
+      if (success) {
+        console.log("Usuário registrado com sucesso!");
+        navigate("/"); // Redireciona para a página de login após o registro
+      } else {
+        setError("Erro ao registrar. O e-mail pode já estar em uso.");
+      }
+    } catch (err) {
+      console.error("Erro inesperado ao registrar:", err);
+      setError("Erro inesperado. Tente novamente mais tarde.");
     }
   };
 
@@ -50,7 +58,6 @@ const RegisterPage: React.FC = () => {
           </p>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
-            {/* ... os campos Nome, Email, Senha e Confirmar Senha permanecem os mesmos ... */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Nome
@@ -63,7 +70,7 @@ const RegisterPage: React.FC = () => {
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
-            
+
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Email

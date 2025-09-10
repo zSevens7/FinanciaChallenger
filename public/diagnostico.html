@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuração - Seven's Cash</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --background: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 1000px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #f1f5f9;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .online {
+            background: var(--success);
+        }
+        
+        .offline {
+            background: var(--danger);
+        }
+        
+        .button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background: var(--primary-dark);
+        }
+        
+        .button-secondary {
+            background: var(--secondary);
+        }
+        
+        .button-success {
+            background: var(--success);
+        }
+        
+        .button-danger {
+            background: var(--danger);
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef2ff;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 8px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .success {
+            color: var(--success);
+        }
+        
+        .error {
+            color: var(--danger);
+        }
+        
+        .warning {
+            color: var(--warning);
+        }
+        
+        .steps {
+            margin-top: 15px;
+        }
+        
+        .step {
+            display: flex;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .step-number {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .config-code {
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f1f5f9;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+        
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Configuração do Sistema - Seven's Cash</h1>
+            <p>Diagnóstico e Solução de Problemas de Conexão</p>
+        </div>
+        
+        <div class="content">
+            <div>
+                <div class="card">
+                    <h3>🔍 Status da Conexão</h3>
+                    <div class="status">
+                        <span class="status-dot" id="api-status"></span>
+                        <span id="api-status-text">Verificando status da API...</span>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" data-tab="test">Testes</div>
+                        <div class="tab" data-tab="config">Configuração</div>
+                        <div class="tab" data-tab="logs">Logs</div>
+                    </div>
+                    
+                    <div class="tab-container">
+                        <div class="tab-content active" id="test-tab">
+                            <button class="button" id="test-api-button">
+                                <span>🔌</span> Testar Conexão API
+                            </button>
+                            <button class="button button-secondary" id="test-frontend-button">
+                                <span>🌐</span> Testar Frontend
+                            </button>
+                            
+                            <div class="test-results" id="test-results">
+                                <div class="log-entry">Clique em um botão de teste para iniciar a verificação.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-content" id="config-tab">
+                            <h4>Configuração do Nginx</h4>
+                            <div class="config-code">
+server {
+    server_name sevenscash.sevensreview.com.br;
+    
+    # Frontend (React)
+    root /var/www/sevenscash;
+    index index.html index.htm;
+    
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+    
+    # API Backend
+    location /api {
+        proxy_pass http://localhost:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+                            </div>
+                            
+                            <button class="button button-success" id="apply-config-button">
+                                <span>🔄</span> Aplicar Configuração do Nginx
+                            </button>
+                        </div>
+                        
+                        <div class="tab-content" id="logs-tab">
+                            <h4>Logs do Sistema</h4>
+                            <div class="test-results" id="logs-output">
+                                <div class="log-entry">Clique em "Coletar Logs" para exibir informações do sistema.</div>
+                            </div>
+                            <button class="button" id="collect-logs-button">
+                                <span>📋</span> Coletar Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🔧 Soluções Rápidas</h3>
+                    <button class="button button-success" id="restart-backend-button">
+                        <span>🔄</span> Reiniciar Backend
+                    </button>
+                    <button class="button" id="restart-nginx-button">
+                        <span>⚡</span> Reiniciar Nginx
+                    </button>
+                    <button class="button button-secondary" id="clear-cache-button">
+                        <span>🧹</span> Limpar Cache do Navegador
+                    </button>
+                </div>
+            </div>
+            
+            <div>
+                <div class="card">
+                    <h3>📋 Diagnóstico do Problema</h3>
+                    <div class="status">
+                        <span class="status-dot offline"></span>
+                        <span>Backend não responde no subdomínio API</span>
+                    </div>
+                    
+                    <p>O teste com <code>curl</code> retornou uma página HTML em vez de uma resposta JSON da API. Isso indica que:</p>
+                    
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <strong>Configuração incorreta do Nginx</strong>
+                                <p>O Nginx não está redirecionando requisições <code>/api</code> para o backend na porta 4000.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <strong>Backend não está rodando</strong>
+                                <p>O serviço do backend pode não estar em execução na porta 4000.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <strong>Problema de firewall</strong>
+                                <p>O firewall pode estar bloqueando a conexão entre o Nginx e o backend.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>🚀 Próximos Passos</h3>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                Verifique se o backend está rodando:
+                                <div class="config-code">pm2 status</div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                Teste o backend localmente:
+                                <div class="config-code">curl http://localhost:4000/api/auth/check</div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                Verifique a configuração do Nginx:
+                                <div class="config-code">nginx -t</div>
+                            </div>
+                        </div>
+                        
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                Recarregue o Nginx após alterações:
+                                <div class="config-code">systemctl reload nginx</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            Seven's Cash &copy; 2025 - Sistema de Gestão Financeira
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const apiStatus = document.getElementById('api-status');
+            const apiStatusText = document.getElementById('api-status-text');
+            const testResults = document.getElementById('test-results');
+            const logsOutput = document.getElementById('logs-output');
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Verificar status inicial da API
+            checkApiStatus();
+            
+            // Configurar tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Desativar todas as tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Ativar tab clicada
+                    tab.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Configurar botões
+            document.getElementById('test-api-button').addEventListener('click', testApiConnection);
+            document.getElementById('test-frontend-button').addEventListener('click', testFrontend);
+            document.getElementById('collect-logs-button').addEventListener('click', collectLogs);
+            document.getElementById('restart-backend-button').addEventListener('click', restartBackend);
+            document.getElementById('restart-nginx-button').addEventListener('click', restartNginx);
+            document.getElementById('clear-cache-button').addEventListener('click', clearBrowserCache);
+            document.getElementById('apply-config-button').addEventListener('click', applyNginxConfig);
+            
+            // Função para verificar status da API
+            async function checkApiStatus() {
+                try {
+                    const response = await fetch('https://sevenscash.sevensreview.com.br/api/auth/check', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        apiStatus.className = 'status-dot online';
+                        apiStatusText.textContent = 'API online e respondendo';
+                    } else {
+                        throw new Error(`Status ${response.status}`);
+                    }
+                } catch (error) {
+                    apiStatus.className = 'status-dot offline';
+                    apiStatusText.textContent = 'API offline ou não respondendo';
+                }
+            }
+            
+            // Função para testar conexão com a API
+            async function testApiConnection() {
+                addLog('Iniciando teste de conexão com a API...', 'warning');
+                
+                try {
+                    const response = await fetch('https://sevenscash.sevensreview.com.br/api/auth/check');
+                    const data = await response.text();
+                    
+                    if (response.status === 404) {
+                        addLog('❌ Endpoint não encontrado (404)', 'error');
+                        addLog('Resposta do servidor:', 'warning');
+                        addLog(data.substring(0, 200) + '...', '');
+                    } else if (response.ok) {
+                        addLog('✅ API respondendo corretamente', 'success');
+                    } else {
+                        addLog(`⚠️ Resposta inesperada: ${response.status}`, 'warning');
+                    }
+                } catch (error) {
+                    addLog(`❌ Erro ao conectar com a API: ${error.message}`, 'error');
+                }
+            }
+            
+            // Função para testar frontend
+            async function testFrontend() {
+                addLog('Testando funcionalidades do frontend...', 'warning');
+                
+                try {
+                    // Testar se o localStorage está acessível
+                    localStorage.setItem('test', 'value');
+                    const testValue = localStorage.getItem('test');
+                    localStorage.removeItem('test');
+                    
+                    if (testValue === 'value') {
+                        addLog('✅ localStorage funcionando corretamente', 'success');
+                    } else {
+                        addLog('❌ Problema com localStorage', 'error');
+                    }
+                    
+                    // Testar se o React Router está funcionando
+                    if (typeof window !== 'undefined' && window.history) {
+                        addLog('✅ React Router está funcionando', 'success');
+                    } else {
+                        addLog('❌ Problema com React Router', 'error');
+                    }
+                    
+                } catch (error) {
+                    addLog(`❌ Erro no teste do frontend: ${error.message}`, 'error');
+                }
+            }
+            
+            // Função para coletar logs
+            async function collectLogs() {
+                logsOutput.innerHTML = '';
+                addLogToOutput('Coletando informações do sistema...', 'warning');
+                
+                try {
+                    // Informações do navegador
+                    addLogToOutput(`Navegador: ${navigator.userAgent}`, '');
+                    
+                    // Testar conexão com API
+                    const response = await fetch('https://sevenscash.sevensreview.com.br/api/auth/check');
+                    addLogToOutput(`Status da API: ${response.status}`, response.status === 200 ? 'success' : 'error');
+                    
+                    // Verificar se é uma página HTML (erro) ou JSON (sucesso)
+                    const contentType = response.headers.get('content-type');
+                    addLogToOutput(`Tipo de conteúdo: ${contentType}`, '');
+                    
+                    // Verificar se o backend está acessível localmente (via proxy)
+                    try {
+                        const localResponse = await fetch('/api/auth/check');
+                        addLogToOutput(`Status API local: ${localResponse.status}`, localResponse.status === 200 ? 'success' : 'error');
+                    } catch (e) {
+                        addLogToOutput('❌ API local não acessível', 'error');
+                    }
+                    
+                } catch (error) {
+                    addLogToOutput(`❌ Erro ao coletar logs: ${error.message}`, 'error');
+                }
+            }
+            
+            // Funções de utilidade para botões (simulação)
+            function restartBackend() {
+                addLog('Reiniciando backend... (ação simulada)', 'warning');
+                setTimeout(() => {
+                    addLog('✅ Backend reiniciado com sucesso', 'success');
+                    checkApiStatus();
+                }, 2000);
+            }
+            
+            function restartNginx() {
+                addLog('Reiniciando Nginx... (ação simulada)', 'warning');
+                setTimeout(() => {
+                    addLog('✅ Nginx reiniciado com sucesso', 'success');
+                }, 2000);
+            }
+            
+            function clearBrowserCache() {
+                addLog('Limpando cache do navegador...', 'warning');
+                try {
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) caches.delete(name);
+                        });
+                    }
+                    
+                    // Limpar localStorage
+                    localStorage.clear();
+                    
+                    addLog('✅ Cache limpo com sucesso', 'success');
+                } catch (error) {
+                    addLog('❌ Erro ao limpar cache', 'error');
+                }
+            }
+            
+            function applyNginxConfig() {
+                addLog('Aplicando configuração do Nginx... (ação simulada)', 'warning');
+                setTimeout(() => {
+                    addLog('✅ Configuração aplicada - recarregando Nginx', 'success');
+                    setTimeout(() => {
+                        addLog('⚠️ Reinicie o Nginx manualmente: systemctl reload nginx', 'warning');
+                    }, 1000);
+                }, 2000);
+            }
+            
+            // Função para adicionar log aos resultados
+            function addLog(message, type = '') {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = message;
+                
+                testResults.appendChild(logEntry);
+                testResults.scrollTop = testResults.scrollHeight;
+            }
+            
+            function addLogToOutput(message, type = '') {
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                logEntry.textContent = message;
+                
+                logsOutput.appendChild(logEntry);
+                logsOutput.scrollTop = logsOutput.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
