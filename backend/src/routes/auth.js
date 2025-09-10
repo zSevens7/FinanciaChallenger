@@ -30,7 +30,7 @@ const db = mysql.createPool({
 
 // Registro de usuário
 router.post("/register", async (req, res) => {
-  const { username, password, email } = req.body;
+  const { username, email, password } = req.body; // espera username e email
   if (!username || !password || !email)
     return res.status(400).json({ error: "Preencha todos os campos." });
 
@@ -38,9 +38,10 @@ router.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     try {
+      // Atenção: ordem correta das colunas
       const [result] = await db.execute(
-        `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`,
-        [username, hashedPassword, email]
+        `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`,
+        [username, email, hashedPassword]
       );
       console.log("Novo usuário registrado:", email);
       res.status(201).json({
