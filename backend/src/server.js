@@ -1,32 +1,41 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
-import path from "path"; // <--- importar o path
-
-dotenv.config({ path: path.resolve('../.env') }); // ajusta conforme a estrutura do projeto
-console.log('DB_HOST:', process.env.DB_HOST);
-console.log('DB_USER:', process.env.DB_USER);
-console.log('DB_PASSWORD:', process.env.DB_PASSWORD);
-console.log('DB_NAME:', process.env.DB_NAME);
-
-import authRoutes from "./routes/auth.js";
-import gastosRoutes from "./routes/gastos.js";
-import vendasRoutes from "./routes/vendas.js"; 
+import mysql from "mysql2/promise";
+import createAuthRoutes from "./routes/auth.js";
 import { authenticateToken } from "./middleware/authMiddleware.js";
 
-const app = express();
+dotenv.config();
 
-app.use(cors());
+const app = express();
 app.use(express.json());
 
-// Remove o prefixo "/api" das rotas aqui
-app.use("/auth", authRoutes);
-app.use("/gastos", authenticateToken, gastosRoutes);
-app.use("/vendas", authenticateToken, vendasRoutes);
+// 1. Initialize the DB pool here
+const db = mysql
+  .createPool({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+  });
 
-app.get("/", (req, res) => {
-  res.json({ message: "API FinanciaChallenger rodando 🚀" });
-});
+// 2. Test the connection once at startup
+;(async () => {
+  try {
+    const [rows] = await db.execute("SELECT 1 + 1 AS result");
+    console.log("✅ MySQL connection OK:", rows[0].result);
+  } catch (err) {
+    console.error("❌ MySQL connection error:", err);
+    process.exit(1);
+  }
+})();
+
+// 3. Mount the auth routes, passing `db`
+app.use("/auth", createAuthRoutes(db));
+
+// 4. Your other middleware/routes here...
+app.get("/", (req, res) => res.send("🚀 API is running"));
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));

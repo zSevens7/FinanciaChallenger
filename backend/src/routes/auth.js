@@ -1,46 +1,22 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import mysql from "mysql2/promise";
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import dotenv from "dotenv";
 
-dotenv.config();
-const router = express.Router();
+// Export a function that accepts the DB pool
+export default function createAuthRoutes(db) {
+  const router = express.Router();
 
-// Conexão MySQL remota
-const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
-
-// Teste de conexão inicial
-(async () => {
-  try {
-    const [rows] = await db.execute("SELECT 1 + 1 AS result");
-    console.log("✅ Conexão com MySQL OK:", rows[0].result);
-  } catch (err) {
-    console.error("❌ Erro ao conectar no MySQL:", err);
-  }
-})();
-
-// Registro de usuário
-router.post("/register", async (req, res) => {
-  const { username, email, password } = req.body; // espera username e email
-  if (!username || !password || !email)
-    return res.status(400).json({ error: "Preencha todos os campos." });
-
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+  // Register
+  router.post("/register", async (req, res) => {
+    const { username, email, password } = req.body;
+    if (!username || !email || !password)
+      return res.status(400).json({ error: "Preencha todos os campos." });
 
     try {
-      // Atenção: ordem correta das colunas
+      const hashedPassword = await bcrypt.hash(password, 10);
       const [result] = await db.execute(
-        `INSERT INTO users (username, email, password) VALUES (?, ?, ?)`,
+        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
         [username, email, hashedPassword]
       );
       console.log("Novo usuário registrado:", email);
@@ -50,72 +26,72 @@ router.post("/register", async (req, res) => {
       });
     } catch (err) {
       if (err.code === "ER_DUP_ENTRY")
-        return res.status(409).json({ error: "Usuário ou email já existem." });
+        return res
+          .status(409)
+          .json({ error: "Usuário ou email já existem." });
       console.error("Erro ao inserir usuário:", err);
-      return res.status(500).json({ error: "Erro no servidor." });
+      res.status(500).json({ error: "Erro no servidor." });
     }
-  } catch (error) {
-    console.error("Erro ao criptografar senha:", error);
-    return res.status(500).json({ error: "Erro no servidor." });
-  }
-});
-
-// Login pelo email
-router.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: "Preencha todos os campos." });
-
-  try {
-    const [rows] = await db.execute(`SELECT * FROM users WHERE email = ?`, [email]);
-    const user = rows[0];
-
-    if (!user)
-      return res.status(400).json({ error: "Usuário ou senha inválidos." });
-
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid)
-      return res.status(400).json({ error: "Usuário ou senha inválidos." });
-
-    const token = jwt.sign(
-      { id: user.id, username: user.username },
-      process.env.JWT_SECRET || "fallback_secret",
-      { expiresIn: "1h" }
-    );
-
-    console.log("Usuário logado:", email);
-    res.json({ message: "Login bem-sucedido!", token });
-  } catch (err) {
-    console.error("Erro no login:", err);
-    res.status(500).json({ error: "Erro no servidor." });
-  }
-});
-
-// Perfil do usuário logado
-router.get("/profile", authenticateToken, async (req, res) => {
-  try {
-    const { id } = req.user;
-    const [rows] = await db.execute(
-      `SELECT id, username, email, created_at FROM users WHERE id = ?`,
-      [id]
-    );
-    const user = rows[0];
-    if (!user) return res.status(404).json({ error: "Usuário não encontrado." });
-    res.json({ user });
-  } catch (err) {
-    console.error("Erro ao buscar perfil:", err);
-    res.status(500).json({ error: "Erro no servidor." });
-  }
-});
-
-// Adicione esta rota antes do "export default router"
-router.get('/check', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Auth API is working',
-    timestamp: new Date().toISOString()
   });
-});
 
+  // Login
+  router.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ error: "Preencha todos os campos." });
 
-export default router;
+    try {
+      const [rows] = await db.execute(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
+      const user = rows[0];
+      if (!user)
+        return res.status(400).json({ error: "Usuário ou senha inválidos." });
+
+      const valid = await bcrypt.compare(password, user.password);
+      if (!valid)
+        return res.status(400).json({ error: "Usuário ou senha inválidos." });
+
+      const token = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_SECRET || "fallback_secret",
+        { expiresIn: "1h" }
+      );
+
+      console.log("Usuário logado:", email);
+      res.json({ message: "Login bem-sucedido!", token });
+    } catch (err) {
+      console.error("Erro no login:", err);
+      res.status(500).json({ error: "Erro no servidor." });
+    }
+  });
+
+  // Profile
+  router.get("/profile", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.user;
+      const [rows] = await db.execute(
+        "SELECT id, username, email, created_at FROM users WHERE id = ?",
+        [id]
+      );
+      const user = rows[0];
+      if (!user) return res.status(404).json({ error: "Usuário não encontrado." });
+      res.json({ user });
+    } catch (err) {
+      console.error("Erro ao buscar perfil:", err);
+      res.status(500).json({ error: "Erro no servidor." });
+    }
+  });
+
+  // Health check
+  router.get("/check", (_req, res) =>
+    res.json({
+      status: "OK",
+      message: "Auth API is working",
+      timestamp: new Date().toISOString(),
+    })
+  );
+
+  return router;
+}
