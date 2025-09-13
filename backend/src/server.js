@@ -19,9 +19,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/gastos", authenticateToken, gastosRoutes);
-app.use("/api/vendas", authenticateToken, vendasRoutes);
+// Remove o prefixo "/api" das rotas aqui
+app.use("/auth", authRoutes);
+app.use("/gastos", authenticateToken, gastosRoutes);
+app.use("/vendas", authenticateToken, vendasRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API FinanciaChallenger rodando 🚀" });
