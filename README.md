@@ -93,7 +93,7 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 ### Observações
 - ⚠️ O arquivo `.env` não deve ser enviado para o GitHub, conforme padrão do `.gitignore`.
 
-# **🗓 Data:** 14/09/2025
+**🗓 Data:** 14/09/2025
 
 ## 🔧 Configuração do Servidor e Resolução de Problemas
 - 🐛 Corrigido erro 404 ao dar F5 nas rotas do React Router através da configuração adequada do Nginx para Single Page Applications (SPA), adicionando `try_files $uri $uri/ /index.html;` no bloco `location /`.
