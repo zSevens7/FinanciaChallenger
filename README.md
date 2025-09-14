@@ -93,6 +93,31 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 ### Observações
 - ⚠️ O arquivo `.env` não deve ser enviado para o GitHub, conforme padrão do `.gitignore`.
 
+# **🗓 Data:** 14/09/2025
+
+## 🔧 Configuração do Servidor e Resolução de Problemas
+- 🐛 Corrigido erro 404 ao dar F5 nas rotas do React Router através da configuração adequada do Nginx para Single Page Applications (SPA), adicionando `try_files $uri $uri/ /index.html;` no bloco `location /`.
+- 🔧 Ajustada a configuração do Nginx para redirecionar corretamente as requisições da API (`/api/`) para o backend na porta 4000, resolvendo problemas de CORS e proxy reverso.
+- 🖥️ Configurado o backend para escutar em todas as interfaces (`0.0.0.0`) e na porta 4000, garantindo que o Nginx possa se comunicar com ele.
+- 🚀 Testes bem-sucedidos de registro de usuários tanto via `curl` quanto no navegador, confirmando que a API e o frontend estão se comunicando corretamente.
+- 📝 Documentação do processo de solução de problemas e configuração para referência futura.
+
+## 🌐 Frontend
+- 🔗 Rotas do React Router agora funcionam corretamente, incluindo ao recarregar a página (F5) em qualquer rota.
+- 🧪 Testes de registro e login realizados com sucesso no navegador, integrando completamente o frontend com o backend.
+
+## 📊 Banco de Dados
+- 👥 Tabela de usuários está sendo preenchida corretamente com novos registros, confirmando a integração com o MySQL.
+
+## ✅ Status Atual
+- ✅ Backend rodando na porta 4000 e respondendo às requisições.
+- ✅ Nginx configurado como proxy reverso e servindo o frontend React.
+- ✅ Frontend integrado com o backend através da API.
+- ✅ Problemas de CORS e rotas resolvidos.
+- ❌ Arrumar o envio do link do email quando o usuário esquece a senha.
+- ❌ Os dados de vendas/gastos ainda não estão interligando ao banco de dados ou backend; é necessário investigar a causa.
+
+
 ---
 ---
 ## Estrutura do Projeto
