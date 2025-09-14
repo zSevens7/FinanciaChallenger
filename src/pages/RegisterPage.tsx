@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // Importa o hook useAuth
+import { useAuth } from "../contexts/AuthContext";
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState("");
@@ -8,41 +8,58 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { register } = useAuth(); // Obtém a função de registro do contexto
+  const { register } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(""); // Limpa erros anteriores
+    setError("");
+    setIsLoading(true);
 
-    // Validações básicas no frontend
+    // Validações
     if (!name || !email || !password || !confirmPassword) {
       setError("Preencha todos os campos.");
+      setIsLoading(false);
       return;
     }
 
     if (password.length < 6) {
       setError("A senha deve ter pelo menos 6 caracteres.");
+      setIsLoading(false);
       return;
     }
+    
     if (password !== confirmPassword) {
       setError("As senhas não coincidem.");
+      setIsLoading(false);
       return;
     }
 
     try {
-      // Chama a função de registro do contexto
       const success = await register(name, email, password);
 
       if (success) {
         console.log("Usuário registrado com sucesso!");
-        navigate("/"); // Redireciona para a página de login após o registro
+        navigate("/");
       } else {
-        setError("Erro ao registrar. O e-mail pode já estar em uso.");
+        setError("Erro ao registrar. Verifique os dados e tente novamente.");
       }
-    } catch (err) {
-      console.error("Erro inesperado ao registrar:", err);
-      setError("Erro inesperado. Tente novamente mais tarde.");
+    } catch (err: any) {
+      console.error("Erro no registro:", err);
+      
+      // Tratamento específico de erros
+      if (err.response?.status === 409) {
+        setError("Este e-mail já está em uso.");
+      } else if (err.response?.status === 404) {
+        setError("Serviço indisponível no momento. Tente novamente mais tarde.");
+      } else if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+        setError("Problema de conexão. Verifique sua internet e tente novamente.");
+      } else {
+        setError("Erro inesperado. Tente novamente mais tarde.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -58,6 +75,7 @@ const RegisterPage: React.FC = () => {
           </p>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* Campos do formulário (mantidos iguais) */}
             <div>
               <label className="block text-gray-700 font-medium mb-1">
                 Nome
@@ -68,6 +86,7 @@ const RegisterPage: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                required
               />
             </div>
 
@@ -81,6 +100,7 @@ const RegisterPage: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                required
               />
             </div>
 
@@ -94,6 +114,8 @@ const RegisterPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+                minLength={6}
               />
             </div>
 
@@ -107,22 +129,33 @@ const RegisterPage: React.FC = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                required
+                minLength={6}
               />
             </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition duration-300"
+              disabled={isLoading}
+              className={`w-full py-2 rounded-lg font-semibold transition duration-300 ${
+                isLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white"
+              }`}
             >
-              Registrar
+              {isLoading ? "Processando..." : "Registrar"}
             </button>
           </form>
 
           <div className="text-center mt-4 text-sm text-gray-600">
             Já tem uma conta?{" "}
-            <Link to="/login" className="hover:underline">
+            <Link to="/login" className="text-indigo-600 hover:underline">
               Entrar
             </Link>
           </div>

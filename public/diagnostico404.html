@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Completo - Erro 404 e CORS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .code-block {
+            background-color: #1f2937;
+            color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+        }
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        .log-error { color: #f87171; }
+        .log-success { color: #4ade80; }
+        .log-warning { color: #fbbf24; }
+        .test-btn {
+            transition: all 0.3s ease;
+        }
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-indigo-200 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">
+                <i class="fas fa-server mr-2"></i>Diagnóstico Completo - Erro 404 e CORS
+            </h1>
+            <p class="text-indigo-600">Solução para problemas de conexão entre frontend e backend</p>
+        </header>
+
+        <div class="bg-white rounded-xl shadow-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-700 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>Status do Sistema
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h3 class="font-semibold text-green-800">
+                        <i class="fas fa-network-wired mr-2"></i>Backend
+                    </h3>
+                    <p class="mt-2 text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>Funcionando na porta 4000
+                    </p>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h3 class="font-semibold text-green-800">
+                        <i class="fas fa-server mr-2"></i>Nginx
+                    </h3>
+                    <p class="mt-2 text-green-600">
+                        <i class="fas fa-check-circle mr-1"></i>Proxy configurado corretamente
+                    </p>
+                </div>
+            </div>
+            
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <p class="text-yellow-700">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Problema:</strong> O backend está funcionando, mas ainda há erro 404 nas requisições do navegador.
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-700 mb-4">
+                <i class="fas fa-cogs mr-2"></i>Solução: Verificar Configuração de Rotas
+            </h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-2">
+                    <span class="step-number">1</span>
+                    Verificar rotas no backend
+                </h3>
+                <p class="mb-2">Certifique-se de que as rotas estão configuradas corretamente no server.js:</p>
+                <div class="code-block">
+                    <code>// Configurar rotas
+app.use('/auth', createAuthRoutes(pool));
+
+// Rota de health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running', timestamp: new Date().toISOString() });
+});</code>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-2">
+                    <span class="step-number">2</span>
+                    Verificar configuração do Nginx
+                </h3>
+                <p class="mb-2">O Nginx deve redirecionar /api/ para o backend na porta 4000:</p>
+                <div class="code-block">
+                    <code>location ~ ^/api/(.*)$ {
+    proxy_pass http://127.0.0.1:4000/$1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+    proxy_read_timeout 300;
+    send_timeout 300;
+}</code>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-2">
+                    <span class="step-number">3</span>
+                    Verificar se o CORS está configurado
+                </h3>
+                <p class="mb-2">No server.js, adicione a configuração do CORS:</p>
+                <div class="code-block">
+                    <code>import cors from "cors";
+
+// Configure CORS
+app.use(cors({
+    origin: ['https://sevenscash.sevensreview.com.br', 'http://localhost:3000'],
+    credentials: true
+}));</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-xl p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-700 mb-4">
+                <i class="fas fa-vial mr-2"></i>Testar Solução
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">Testar Health Check</h3>
+                    <p class="mb-2">Verifique se o backend está respondendo:</p>
+                    <button id="testHealth" class="test-btn bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 w-full">
+                        <i class="fas fa-heartbeat mr-2"></i>Testar Health
+                    </button>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">Testar Auth Check</h3>
+                    <p class="mb-2">Teste a rota de autenticação:</p>
+                    <button id="testAuth" class="test-btn bg-indigo-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-indigo-700 w-full">
+                        <i class="fas fa-shield-alt mr-2"></i>Testar Auth
+                    </button>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-blue-800 mb-2">Testar Registro</h3>
+                    <p class="mb-2">Teste o registro de usuário:</p>
+                    <button id="testRegister" class="test-btn bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700 w-full">
+                        <i class="fas fa-user-plus mr-2"></i>Testar Registro
+                    </button>
+                </div>
+            </div>
+            
+            <div id="testResults" class="mt-4 p-4 hidden rounded-lg"></div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-xl p-6">
+            <h2 class="text-2xl font-semibold text-indigo-700 mb-4">
+                <i class="fas fa-terminal mr-2"></i>Comandos para Executar no Servidor
+            </h2>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-2">Testar backend diretamente:</h3>
+                <div class="code-block">
+                    <code># Testar health check
+curl -X GET http://127.0.0.1:4000/health
+
+# Testar auth check
+curl -X GET http://127.0.0.1:4000/auth/check
+
+# Testar registro
+curl -X POST http://127.0.0.1:4000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser", "email": "test@example.com", "password": "testpassword123"}'</code>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h3 class="text-lg font-medium text-gray-800 mb-2">Testar através do Nginx:</h3>
+                <div class="code-block">
+                    <code># Testar health check
+curl -X GET https://sevenscash.sevensreview.com.br/api/health
+
+# Testar auth check
+curl -X GET https://sevenscash.sevensreview.com.br/api/auth/check
+
+# Testar registro
+curl -X POST https://sevenscash.sevensreview.com.br/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username": "testuser", "email": "test@example.com", "password": "testpassword123"}'</code>
+                </div>
+            </div>
+            
+            <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                <p class="text-green-700">
+                    <i class="fas fa-lightbulb mr-2"></i>
+                    <strong>Dica:</strong> Se os testes com curl funcionarem mas o navegador não, o problema é definitivamente de CORS. Certifique-se de que o CORS está configurado corretamente no backend.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function runTest(url, method = 'GET', data = null) {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.classList.remove('hidden', 'bg-red-100', 'bg-green-100', 'border-red-400', 'border-green-400', 'text-red-700', 'text-green-700');
+            resultsDiv.classList.add('bg-blue-100', 'border-blue-400', 'text-blue-700', 'border-l-4', 'p-4');
+            resultsDiv.innerHTML = `<p><i class="fas fa-spinner fa-spin mr-2"></i>Executando teste...</p>`;
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(url, options);
+                const responseData = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.classList.remove('bg-blue-100', 'border-blue-400', 'text-blue-700');
+                    resultsDiv.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+                    resultsDiv.innerHTML = `<p><i class="fas fa-check-circle mr-2"></i>Teste bem-sucedido!</p>
+                    <pre class="mt-2 p-2 bg-green-200 rounded">${JSON.stringify(responseData, null, 2)}</pre>`;
+                } else {
+                    throw new Error(`${response.status} - ${response.statusText}`);
+                }
+            } catch (error) {
+                resultsDiv.classList.remove('bg-blue-100', 'border-blue-400', 'text-blue-700');
+                resultsDiv.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+                resultsDiv.innerHTML = `<p><i class="fas fa-times-circle mr-2"></i>Erro no teste: ${error.message}</p>`;
+            }
+        }
+
+        document.getElementById('testHealth').addEventListener('click', () => {
+            runTest('https://sevenscash.sevensreview.com.br/api/health');
+        });
+
+        document.getElementById('testAuth').addEventListener('click', () => {
+            runTest('https://sevenscash.sevensreview.com.br/api/auth/check');
+        });
+
+        document.getElementById('testRegister').addEventListener('click', () => {
+            const testData = {
+                username: 'testuser_' + Math.floor(Math.random() * 1000),
+                email: `test_${Math.floor(Math.random() * 1000)}@example.com`,
+                password: 'testpassword123'
+            };
+            runTest('https://sevenscash.sevensreview.com.br/api/auth/register', 'POST', testData);
+        });
+    </script>
+</body>
+</html>
