@@ -93,5 +93,123 @@ export default function createAuthRoutes(db) {
     })
   );
 
+// Rota para solicitar recuperação de senha
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Verificar se o email existe no banco de dados
+    const [users] = await db.execute(
+      "SELECT id, username, email FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ 
+        error: "E-mail não encontrado em nosso sistema." 
+      });
+    }
+
+    const user = users[0];
+    
+    // Gerar token de recuperação (exemplo simples)
+    const crypto = require('crypto');
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hora
+
+    // Salvar token no banco de dados
+    await db.execute(
+      "UPDATE users SET reset_token = ?, reset_token_expiry = ? WHERE id = ?",
+      [resetToken, resetTokenExpiry, user.id]
+    );
+
+    // Aqui você implementaria o envio de email real
+    // Por enquanto, vamos apenas logar o token
+    console.log(`Token de recuperação para ${email}: ${resetToken}`);
+    console.log(`Link: https://sevenscash.sevensreview.com.br/reset-password?token=${resetToken}`);
+
+    res.json({ 
+      message: "Instruções de recuperação enviadas para seu e-mail.",
+      // Em produção, remova o token da resposta
+      debug_token: resetToken // Apenas para desenvolvimento
+    });
+  } catch (err) {
+    console.error("Erro ao processar recuperação de senha:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+// Rota para solicitar ajuda humana
+router.post("/password-support", async (req, res) => {
+  const { username, message } = req.body;
+
+  try {
+    // Verificar se o usuário existe
+    const [users] = await db.execute(
+      "SELECT id, username, email FROM users WHERE username = ?",
+      [username]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ 
+        error: "Usuário não encontrado em nosso sistema." 
+      });
+    }
+
+    const user = users[0];
+    
+    // Aqui você implementaria o envio de email para o suporte
+    console.log("=== SOLICITAÇÃO DE SUPORTE ===");
+    console.log(`Usuário: ${username}`);
+    console.log(`Email do usuário: ${user.email}`);
+    console.log(`Mensagem: ${message || "Não informada"}`);
+    console.log("==============================");
+
+    res.json({ 
+      message: "Sua solicitação foi enviada para nossa equipe de suporte. Entraremos em contato em breve."
+    });
+  } catch (err) {
+    console.error("Erro ao processar solicitação de suporte:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
+// Rota para redefinir a senha com token
+router.post("/reset-password", async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    // Verificar se o token é válido e não expirou
+    const [users] = await db.execute(
+      "SELECT id, reset_token_expiry FROM users WHERE reset_token = ? AND reset_token_expiry > ?",
+      [token, Date.now()]
+    );
+
+    if (users.length === 0) {
+      return res.status(400).json({ 
+        error: "Token inválido ou expirado." 
+      });
+    }
+
+    const user = users[0];
+    
+    // Criptografar nova senha
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Atualizar senha e limpar token
+    await db.execute(
+      "UPDATE users SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE id = ?",
+      [hashedPassword, user.id]
+    );
+
+    res.json({ 
+      message: "Senha redefinida com sucesso!" 
+    });
+  } catch (err) {
+    console.error("Erro ao redefinir senha:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
   return router;
 }

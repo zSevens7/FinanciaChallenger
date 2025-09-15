@@ -19,6 +19,8 @@ import Login from "./pages/Login";
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+
 
 function App() {
   return (
@@ -33,6 +35,7 @@ function App() {
                   <Route path="/" element={<Login />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
 
                   {/* Rotas protegidas */}
                   <Route element={<PrivateRoute><LayoutWithSidebar /></PrivateRoute>}>
