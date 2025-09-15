@@ -1,6 +1,6 @@
 // src/App.tsx
 import React from "react";
-import { BrowserRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
 import { HeaderProvider } from "./contexts/HeaderContext";
 import { VendasProvider } from "./contexts/VendasContext";
@@ -27,12 +27,13 @@ function App() {
     <AuthProvider>
       <VendasProvider>
         <GastosProvider>
-          <BrowserRouter>
+          <HashRouter>
             <HeaderProvider>
               <SidebarProvider defaultOpen={true}>
                 <Routes>
                   {/* Rotas públicas */}
                   <Route path="/" element={<Login />} />
+                  <Route path="/login" element={<Login />} /> {/* Adicione esta linha */}
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -47,7 +48,7 @@ function App() {
                 </Routes>
               </SidebarProvider>
             </HeaderProvider>
-          </BrowserRouter>
+          </HashRouter>
         </GastosProvider>
       </VendasProvider>
     </AuthProvider>

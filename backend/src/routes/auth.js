@@ -127,7 +127,7 @@ export default function createAuthRoutes(db) {
       // Aqui você implementaria o envio de email real
       // Por enquanto, vamos apenas logar o token
       console.log(`Token de recuperação para ${email}: ${resetToken}`);
-      console.log(`Link: https://sevenscash.sevensreview.com.br/reset-password?token=${resetToken}`);
+      console.log(`Link: https://sevenscash.sevensreview.com.br/#/reset-password?token=${resetToken}`);
 
       res.json({ 
         message: "Instruções de recuperação enviadas para seu e-mail.",
