@@ -2,6 +2,8 @@ import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { authenticateToken } from "../middleware/authMiddleware.js";
+import crypto from 'crypto';
+
 
 // Export a function that accepts the DB pool
 export default function createAuthRoutes(db) {
