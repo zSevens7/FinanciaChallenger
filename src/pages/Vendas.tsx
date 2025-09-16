@@ -31,6 +31,7 @@ import {
   aggregateSalesByPeriod,
   prepareChartData,
 } from "../services/agreggation";
+import { VendaInput } from "../types/index";
 
 ChartJS.register(
   CategoryScale,
@@ -48,8 +49,7 @@ ChartJS.register(
 const Vendas = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  // note: removi addVenda daqui porque seu ModalVenda já chama addVenda pelo contexto
-  const { vendas, deleteVenda, refreshVendas } = useVendas();
+  const { vendas, addVenda, deleteVenda, refreshVendas } = useVendas();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,9 +64,7 @@ const Vendas = () => {
     reloadVendas();
   }, [reloadVendas]);
 
-  const closeModal = () => {
-    setShowModal(false);
-  };
+  const closeModal = () => setShowModal(false);
 
   const clearData = async () => {
     alert("Funcionalidade de limpar todos os dados não está implementada no backend");
@@ -75,6 +73,19 @@ const Vendas = () => {
 
   const handleAdicionarVenda = useCallback(() => setShowModal(true), []);
   const handleLimparDadosVendas = useCallback(() => setShowConfirm(true), []);
+
+  const handleSaveVenda = useCallback(
+    async (vendaData: VendaInput) => {
+      try {
+        await addVenda(vendaData);
+        setShowModal(false);
+        setCurrentPage(1);
+      } catch (err) {
+        console.error("Erro ao adicionar venda:", err);
+      }
+    },
+    [addVenda]
+  );
 
   const handleDeleteVenda = async (id: string) => {
     try {
@@ -130,18 +141,18 @@ const Vendas = () => {
   }, [filteredVendas, currentPage, itemsPerPage]);
 
   const totalAcumuladoLucro = useMemo(() => {
-    return filteredVendas.reduce((sum, venda) => sum + (venda.preco ?? 0), 0);
+    return filteredVendas.reduce((sum, venda) => sum + venda.preco, 0);
   }, [filteredVendas]);
 
   const salesByPeriodAgg = useMemo(
     () =>
       aggregateSalesByPeriod(
-        vendas,
+        filteredVendas,
         selectedYear,
         selectedMonth,
         periodAggregationType
       ),
-    [vendas, selectedYear, selectedMonth, periodAggregationType]
+    [filteredVendas, selectedYear, selectedMonth, periodAggregationType]
   );
 
   const salesByCourseTypeAgg = useMemo(
@@ -184,7 +195,7 @@ const Vendas = () => {
 
   return (
     <PageContainer>
-      {showModal && <ModalVenda onClose={closeModal} />}
+      {showModal && <ModalVenda onClose={closeModal} onSave={handleSaveVenda} />}
 
       <ConfirmModal
         isOpen={showConfirm}

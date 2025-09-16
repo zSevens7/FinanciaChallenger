@@ -4,9 +4,10 @@ import { VendaInput } from "../types/index";
 
 interface ModalVendaProps {
   onClose?: () => void;
+  onSave?: (vendaData: VendaInput) => Promise<void>; // nova prop para salvar
 }
 
-function ModalVenda({ onClose }: ModalVendaProps) {
+function ModalVenda({ onClose, onSave }: ModalVendaProps) {
   const { addVenda } = useVendas();
 
   const [inputVenda, setInputVenda] = useState<VendaInput>({
@@ -39,15 +40,19 @@ function ModalVenda({ onClose }: ModalVendaProps) {
     }
 
     try {
-      await addVenda(inputVenda);
-      
+      if (onSave) {
+        await onSave(inputVenda); // usa onSave passado pelo parent
+      } else {
+        await addVenda(inputVenda); // fallback: usa addVenda do contexto
+      }
+
       setInputVenda({
         data: new Date().toISOString().split("T")[0],
         descricao: "",
         preco: 0,
         tipoVenda: "produto",
       });
-      
+
       setError("");
       if (onClose) onClose();
     } catch (err) {
@@ -74,14 +79,19 @@ function ModalVenda({ onClose }: ModalVendaProps) {
         </h2>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            role="alert"
+          >
             <span className="block sm:inline">{error}</span>
           </div>
         )}
 
         {/* Data */}
         <div className="mb-4">
-          <label htmlFor="dataVenda" className="block text-green-600 mb-1">Data</label>
+          <label htmlFor="dataVenda" className="block text-green-600 mb-1">
+            Data
+          </label>
           <input
             type="date"
             id="dataVenda"
@@ -94,7 +104,9 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Descrição */}
         <div className="mb-4">
-          <label htmlFor="descricao" className="block text-green-600 mb-1">Descrição</label>
+          <label htmlFor="descricao" className="block text-green-600 mb-1">
+            Descrição
+          </label>
           <input
             type="text"
             id="descricao"
@@ -108,7 +120,9 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Valor */}
         <div className="mb-6">
-          <label htmlFor="preco" className="block text-green-600 mb-1">Valor (R$)</label>
+          <label htmlFor="preco" className="block text-green-600 mb-1">
+            Valor (R$)
+          </label>
           <input
             type="number"
             id="preco"
@@ -122,7 +136,9 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Tipo de Venda */}
         <div className="mb-4">
-          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">Tipo de Venda</label>
+          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">
+            Tipo de Venda
+          </label>
           <select
             id="tipoVenda"
             name="tipoVenda"
