@@ -4,23 +4,27 @@ import { VendaInput } from "../types/index";
 
 interface ModalVendaProps {
   onClose?: () => void;
-  onSave?: (vendaData: VendaInput) => Promise<void>; // nova prop para salvar
+  onSave?: (vendaData: VendaInput) => Promise<void>; // opcional, para usar se quiser sobrescrever addVenda
 }
 
 function ModalVenda({ onClose, onSave }: ModalVendaProps) {
   const { addVenda } = useVendas();
 
-  const [inputVenda, setInputVenda] = useState<VendaInput>({
+  const [inputVenda, setInputVenda] = useState<Omit<VendaInput, "valor">>({
     data: new Date().toISOString().split("T")[0],
     descricao: "",
     preco: 0,
     tipoVenda: "produto",
   });
+
   const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setInputVenda((prev: VendaInput) => ({
+
+    setInputVenda((prev) => ({
       ...prev,
       [name]: name === "preco" ? parseFloat(value) || 0 : value,
     }));
@@ -35,17 +39,26 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
       inputVenda.preco <= 0 ||
       !inputVenda.tipoVenda
     ) {
-      setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
+      setError(
+        "Por favor, preencha todos os campos corretamente e com valores válidos."
+      );
       return;
     }
 
     try {
+      // Payload para enviar ao backend
+      const payload: VendaInput = {
+        ...inputVenda,
+        valor: inputVenda.preco, // valor obrigatório para backend
+      };
+
       if (onSave) {
-        await onSave(inputVenda); // usa onSave passado pelo parent
+        await onSave(payload); // se onSave foi passado pelo parent
       } else {
-        await addVenda(inputVenda); // fallback: usa addVenda do contexto
+        await addVenda(payload); // fallback: usa contexto
       }
 
+      // reset form
       setInputVenda({
         data: new Date().toISOString().split("T")[0],
         descricao: "",

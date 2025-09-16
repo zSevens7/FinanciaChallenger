@@ -13,11 +13,13 @@ export interface TransacaoMonetaria {
 export interface Venda extends TransacaoMonetaria {
   id: string; // padronizado como string (uuid)
   tipoVenda: "salario" | "produto" | "servico";
+  valor: number;         // <-- ADICIONAR
   categoria?: string;
   tipo?: string | null;
   nome?: string | null;
   tipo_venda?: string | null;
 }
+
 
 // Tipo usado para criar/editar vendas (sem id)
 export type VendaInput = Omit<Venda, "id">;
