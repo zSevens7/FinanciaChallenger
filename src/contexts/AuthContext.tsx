@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (name: string, email: string, password: string) => Promise<boolean>;
+  updateProfile: (username: string, email: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -83,8 +84,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadUser();
   }, []);
 
+  // AuthContext.tsx
+  const updateProfile = async (username: string, email: string): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const res = await api.put<{ user: User }>("/auth/profile", { username, email });
+      setUser(res.data.user); // atualiza o contexto
+      return true;
+    } catch (err) {
+      console.error("Erro ao atualizar perfil:", err);
+      return false;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, logout, register, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );

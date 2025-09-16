@@ -17,18 +17,21 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   const loadVendas = async () => {
     try {
+      console.log("🟡 Buscando vendas do backend...");
       const res = await api.get<{ vendas: Venda[] }>("/vendas");
 
-      // Garante que cada venda tenha 'preco' para frontend e 'valor' para backend
-      const vendasComPreco = res.data.vendas.map(v => ({
+      // TRANSFORMAÇÃO CORRETA PARA FRONTEND
+      const vendasTransformadas = res.data.vendas.map(v => ({
         ...v,
-        preco: v.preco ?? v.valor ?? 0,
-        valor: v.valor ?? v.preco ?? 0,
+        preco: Number(v.valor) || 0,
+        tipoVenda: v.tipo_venda as "salario" | "produto" | "servico",
+        data: v.data.split("T")[0], // pega só YYYY-MM-DD
       }));
 
-      setVendas(vendasComPreco);
+      console.log("🟢 Vendas transformadas:", vendasTransformadas);
+      setVendas(vendasTransformadas);
     } catch (err) {
-      console.error("Erro ao carregar vendas do backend:", err);
+      console.error("🔴 Erro ao carregar vendas do backend:", err);
     }
   };
 
@@ -38,33 +41,32 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   const addVenda = async (vendaInput: VendaInput) => {
     try {
-      // Garante que enviamos 'valor' para o backend
-      const payload = { ...vendaInput, valor: vendaInput.valor ?? vendaInput.preco };
+      console.log("🟡 Adicionando venda:", vendaInput);
+      const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
+      console.log("🟢 Venda adicionada com sucesso:", res.data.venda);
 
-      const res = await api.post<{ venda: Venda }>("/vendas", payload);
-
-      const novaVenda = {
+      const novaVenda: Venda = {
         ...res.data.venda,
-        preco: res.data.venda.preco ?? res.data.venda.valor ?? 0,
-        valor: res.data.venda.valor ?? res.data.venda.preco ?? 0,
+        preco: Number(res.data.venda.valor) || 0,
+        tipoVenda: res.data.venda.tipo_venda as "salario" | "produto" | "servico",
+        data: res.data.venda.data.split("T")[0],
       };
 
       setVendas(prev => [...prev, novaVenda]);
     } catch (err) {
-      console.error("Erro ao adicionar venda:", err);
+      console.error("🔴 Erro ao adicionar venda:", err);
       throw err;
     }
   };
 
   const updateVenda = async (id: string, vendaInput: VendaInput) => {
     try {
-      const payload = { ...vendaInput, valor: vendaInput.valor ?? vendaInput.preco };
-      const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, payload);
-
-      const vendaAtualizada = {
+      const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, vendaInput);
+      const vendaAtualizada: Venda = {
         ...res.data.venda,
-        preco: res.data.venda.preco ?? res.data.venda.valor ?? 0,
-        valor: res.data.venda.valor ?? res.data.venda.preco ?? 0,
+        preco: Number(res.data.venda.valor) || 0,
+        tipoVenda: res.data.venda.tipo_venda as "salario" | "produto" | "servico",
+        data: res.data.venda.data.split("T")[0],
       };
 
       setVendas(prev => prev.map(v => (v.id === id ? vendaAtualizada : v)));
@@ -85,15 +87,13 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <VendasContext.Provider
-      value={{
-        vendas,
-        addVenda,
-        updateVenda,
-        deleteVenda,
-        refreshVendas: loadVendas,
-      }}
-    >
+    <VendasContext.Provider value={{ 
+      vendas, 
+      addVenda, 
+      updateVenda, 
+      deleteVenda,
+      refreshVendas: loadVendas 
+    }}>
       {children}
     </VendasContext.Provider>
   );
