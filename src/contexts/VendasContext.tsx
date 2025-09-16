@@ -18,7 +18,14 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const loadVendas = async () => {
     try {
       const res = await api.get<{ vendas: Venda[] }>("/vendas");
-      setVendas(res.data.vendas);
+
+      // Garante que cada venda tenha 'preco' definido (para frontend)
+      const vendasComPreco = res.data.vendas.map(v => ({
+        ...v,
+        preco: v.preco ?? v.valor ?? 0,
+      }));
+
+      setVendas(vendasComPreco);
     } catch (err) {
       console.error("Erro ao carregar vendas do backend:", err);
     }
@@ -31,8 +38,13 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const addVenda = async (vendaInput: VendaInput) => {
     try {
       const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
-      // Atualiza a lista local com a nova venda
-      setVendas(prev => [...prev, res.data.venda]);
+
+      const novaVenda = {
+        ...res.data.venda,
+        preco: res.data.venda.preco ?? res.data.venda.valor ?? 0,
+      };
+
+      setVendas(prev => [...prev, novaVenda]);
     } catch (err) {
       console.error("Erro ao adicionar venda:", err);
       throw err;
@@ -42,7 +54,13 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const updateVenda = async (id: string, vendaInput: VendaInput) => {
     try {
       const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, vendaInput);
-      setVendas(prev => prev.map(v => (v.id === id ? res.data.venda : v)));
+
+      const vendaAtualizada = {
+        ...res.data.venda,
+        preco: res.data.venda.preco ?? res.data.venda.valor ?? 0,
+      };
+
+      setVendas(prev => prev.map(v => (v.id === id ? vendaAtualizada : v)));
     } catch (err) {
       console.error("Erro ao atualizar venda:", err);
       throw err;
@@ -60,12 +78,12 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <VendasContext.Provider value={{ 
-      vendas, 
-      addVenda, 
-      updateVenda, 
+    <VendasContext.Provider value={{
+      vendas,
+      addVenda,
+      updateVenda,
       deleteVenda,
-      refreshVendas: loadVendas 
+      refreshVendas: loadVendas,
     }}>
       {children}
     </VendasContext.Provider>
