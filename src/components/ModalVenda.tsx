@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useVendas, VendaInput, TipoVenda } from "../contexts/VendasContext";
+import { useVendas } from "../contexts/VendasContext";
+import { VendaInput } from "../types/index";
 
 interface ModalVendaProps {
   onClose?: () => void;
@@ -11,20 +12,20 @@ function ModalVenda({ onClose }: ModalVendaProps) {
   const [inputVenda, setInputVenda] = useState<VendaInput>({
     data: new Date().toISOString().split("T")[0],
     descricao: "",
-    preco: 0,         // agora 'preco' é obrigatório
-    tipoVenda: "produto", // valor padrão compatível com types.ts
+    preco: 0,
+    tipoVenda: "produto",
   });
   const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setInputVenda(prev => ({
+    setInputVenda((prev: VendaInput) => ({
       ...prev,
-      [name]: name === "preco" ? parseFloat(value) : value,
+      [name]: name === "preco" ? parseFloat(value) || 0 : value,
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (
       !inputVenda.data ||
       !inputVenda.descricao.trim() ||
@@ -37,16 +38,22 @@ function ModalVenda({ onClose }: ModalVendaProps) {
       return;
     }
 
-    addVenda(inputVenda);
-
-    setInputVenda({
-      data: new Date().toISOString().split("T")[0],
-      descricao: "",
-      preco: 0,
-      tipoVenda: "produto",
-    });
-
-    if (onClose) onClose();
+    try {
+      await addVenda(inputVenda);
+      
+      setInputVenda({
+        data: new Date().toISOString().split("T")[0],
+        descricao: "",
+        preco: 0,
+        tipoVenda: "produto",
+      });
+      
+      setError("");
+      if (onClose) onClose();
+    } catch (err) {
+      setError("Erro ao adicionar venda. Tente novamente.");
+      console.error("Erro ao salvar venda:", err);
+    }
   };
 
   return (

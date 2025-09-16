@@ -1,16 +1,15 @@
-// src/pages/Vendas.tsx
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import ModalVenda from "../components/ModalVenda";
 import ConfirmModal from "../components/ConfirmModal";
 import PageContainer from "../features/vendas/PageContainer";
-
 import { HeaderActionButtons } from "../features/vendas/ActionButtons";
 import { FilterControls } from "../features/vendas/FilterControls";
 import { Pagination } from "../features/vendas/Pagination";
 import { SummarySection } from "../features/vendas/SummarySection";
 import { VendasTable } from "../features/vendas/VendasTable";
 import { ChartsDisplay } from "../features/vendas/ChartDisplay";
+import { useVendas } from "../contexts/VendasContext";
+import { usePageHeader } from "../contexts/HeaderContext";
 
 import {
   Chart as ChartJS,
@@ -31,11 +30,7 @@ import {
   aggregateSalesByCourseType,
   aggregateSalesByPeriod,
   prepareChartData,
-  AggregationType
 } from "../services/agreggation";
-import type { Venda } from "../types/index";
-
-import { usePageHeader } from "../contexts/HeaderContext";
 
 ChartJS.register(
   CategoryScale,
@@ -53,45 +48,43 @@ ChartJS.register(
 const Vendas = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [allVendas, setAllVendas] = useState<Venda[]>([]);
+  const { vendas, addVenda, deleteVenda, refreshVendas } = useVendas();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
   const { setPageHeader } = usePageHeader();
 
-  const refreshVendas = useCallback(() => {
-    const data = JSON.parse(localStorage.getItem("vendas") || "[]") as Venda[];
-    data.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
-    setAllVendas(data);
-  }, []);
-
-  useEffect(() => {
+  const reloadVendas = useCallback(() => {
     refreshVendas();
   }, [refreshVendas]);
 
+  useEffect(() => {
+    reloadVendas();
+  }, [reloadVendas]);
+
   const closeModal = () => {
     setShowModal(false);
-    refreshVendas();
+    reloadVendas();
   };
 
-  const clearData = () => {
-    localStorage.removeItem("vendas");
-    setAllVendas([]);
+  const clearData = async () => {
+    // Esta função precisa ser implementada no backend
+    // Por enquanto, vamos apenas mostrar um aviso
+    alert("Funcionalidade de limpar todos os dados não está implementada no backend");
     setShowConfirm(false);
   };
 
   const handleAdicionarVenda = useCallback(() => setShowModal(true), []);
   const handleLimparDadosVendas = useCallback(() => setShowConfirm(true), []);
 
-const handleDeleteVenda = useCallback((id: string) => {
-  const updatedVendas = allVendas.filter(venda => venda.id !== id);
-  localStorage.setItem("vendas", JSON.stringify(updatedVendas));
-  setAllVendas(updatedVendas);
-}, [allVendas]);
-
+  const handleDeleteVenda = async (id: string) => {
+    try {
+      await deleteVenda(id);
+    } catch (err) {
+      console.error("Erro ao deletar venda:", err);
+    }
+  };
 
   useEffect(() => {
     setPageHeader(
@@ -104,11 +97,11 @@ const handleDeleteVenda = useCallback((id: string) => {
     return () => setPageHeader(null, null);
   }, [setPageHeader, handleAdicionarVenda, handleLimparDadosVendas]);
 
-  const uniqueYears = useMemo(() => getUniqueYears(allVendas), [allVendas]);
+  const uniqueYears = useMemo(() => getUniqueYears(vendas), [vendas]);
   const uniqueMonths = useMemo(() => {
     if (!selectedYear) return [];
-    return getUniqueMonthsForYear(allVendas, selectedYear);
-  }, [allVendas, selectedYear]);
+    return getUniqueMonthsForYear(vendas, selectedYear);
+  }, [vendas, selectedYear]);
 
   const periodAggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
     if (selectedYear && selectedMonth) return 'daily';
@@ -117,7 +110,7 @@ const handleDeleteVenda = useCallback((id: string) => {
   }, [selectedYear, selectedMonth]);
 
   const filteredVendas = useMemo(() => {
-    return allVendas.filter(venda => {
+    return vendas.filter(venda => {
       const dateObj = new Date(venda.data);
       const year = dateObj.getFullYear().toString();
       const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
@@ -127,7 +120,7 @@ const handleDeleteVenda = useCallback((id: string) => {
 
       return matchesYear && matchesMonth;
     });
-  }, [allVendas, selectedYear, selectedMonth]);
+  }, [vendas, selectedYear, selectedMonth]);
 
   const totalFilteredVendas = filteredVendas.length;
   const totalPages = Math.ceil(totalFilteredVendas / itemsPerPage);
@@ -143,8 +136,8 @@ const handleDeleteVenda = useCallback((id: string) => {
   }, [filteredVendas]);
 
   const salesByPeriodAgg = useMemo(
-    () => aggregateSalesByPeriod(allVendas, selectedYear, selectedMonth, periodAggregationType),
-    [allVendas, selectedYear, selectedMonth, periodAggregationType]
+    () => aggregateSalesByPeriod(vendas, selectedYear, selectedMonth, periodAggregationType),
+    [vendas, selectedYear, selectedMonth, periodAggregationType]
   );
 
   const salesByCourseTypeAgg = useMemo(
@@ -183,32 +176,29 @@ const handleDeleteVenda = useCallback((id: string) => {
 
       <SummarySection title="Total de Lucro" totalAcumulado={totalAcumuladoLucro} />
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          {/* Filtros de Ano/Mês */}
-          <FilterControls
-            selectedYear={selectedYear}
-            setSelectedYear={(y) => {
-              setSelectedYear(y);
-              setSelectedMonth("");
-              setCurrentPage(1);
-            }}
-            uniqueYears={uniqueYears}
-            selectedMonth={selectedMonth}
-            setSelectedMonth={(m) => {
-              setSelectedMonth(m);
-              setCurrentPage(1);
-            }}
-            uniqueMonths={uniqueMonths}
-            setCurrentPage={setCurrentPage}
-          />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <FilterControls
+          selectedYear={selectedYear}
+          setSelectedYear={(y) => {
+            setSelectedYear(y);
+            setSelectedMonth("");
+            setCurrentPage(1);
+          }}
+          uniqueYears={uniqueYears}
+          selectedMonth={selectedMonth}
+          setSelectedMonth={(m) => {
+            setSelectedMonth(m);
+            setCurrentPage(1);
+          }}
+          uniqueMonths={uniqueMonths}
+          setCurrentPage={setCurrentPage}
+        />
 
-          {/* Botões de ação */}
-          <HeaderActionButtons
-            onAdicionarVenda={handleAdicionarVenda}
-            onLimparDadosVendas={handleLimparDadosVendas}
-          />
-        </div>
-
+        <HeaderActionButtons
+          onAdicionarVenda={handleAdicionarVenda}
+          onLimparDadosVendas={handleLimparDadosVendas}
+        />
+      </div>
 
       <VendasTable vendas={paginatedVendas} onDelete={handleDeleteVenda} />
 
