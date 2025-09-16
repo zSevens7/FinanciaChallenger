@@ -1,6 +1,6 @@
 // src/App.tsx
 import React from "react";
-import { HashRouter, Routes, Route, Outlet, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, Outlet, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
 import { HeaderProvider } from "./contexts/HeaderContext";
 import { VendasProvider } from "./contexts/VendasContext";
@@ -32,8 +32,8 @@ function App() {
               <SidebarProvider defaultOpen={true}>
                 <Routes>
                   {/* Rotas públicas */}
-                  <Route path="/" element={<Login />} />
-                  <Route path="/login" element={<Login />} /> {/* Adicione esta linha */}
+                  <Route path="/" element={<Navigate to="/login" />} />
+                  <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />

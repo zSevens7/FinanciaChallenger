@@ -1,7 +1,7 @@
 // services/api.ts
 import axios from "axios";
 
-const API_BASE_URL = "https://api.sevensreview.com.br";
+const API_BASE_URL = "https://www.sevenscash.sevensreview.com.br/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
