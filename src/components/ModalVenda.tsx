@@ -1,30 +1,36 @@
 import { useState } from "react";
-import { useVendas, VendaInput, TipoVenda } from "../contexts/VendasContext";
+import { useVendas } from "../contexts/VendasContext";
+import { VendaInput } from "../types/index";
 
 interface ModalVendaProps {
   onClose?: () => void;
+  onSave?: (vendaData: VendaInput) => Promise<void>; // opcional, para usar se quiser sobrescrever addVenda
 }
 
-function ModalVenda({ onClose }: ModalVendaProps) {
+function ModalVenda({ onClose, onSave }: ModalVendaProps) {
   const { addVenda } = useVendas();
 
-  const [inputVenda, setInputVenda] = useState<VendaInput>({
+  const [inputVenda, setInputVenda] = useState<Omit<VendaInput, "valor">>({
     data: new Date().toISOString().split("T")[0],
     descricao: "",
-    preco: 0,         // agora 'preco' é obrigatório
-    tipoVenda: "produto", // valor padrão compatível com types.ts
+    preco: 0,
+    tipoVenda: "produto",
   });
+
   const [error, setError] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setInputVenda(prev => ({
+
+    setInputVenda((prev) => ({
       ...prev,
-      [name]: name === "preco" ? parseFloat(value) : value,
+      [name]: name === "preco" ? parseFloat(value) || 0 : value,
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (
       !inputVenda.data ||
       !inputVenda.descricao.trim() ||
@@ -33,20 +39,39 @@ function ModalVenda({ onClose }: ModalVendaProps) {
       inputVenda.preco <= 0 ||
       !inputVenda.tipoVenda
     ) {
-      setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
+      setError(
+        "Por favor, preencha todos os campos corretamente e com valores válidos."
+      );
       return;
     }
 
-    addVenda(inputVenda);
+    try {
+      // Payload para enviar ao backend
+      const payload: VendaInput = {
+        ...inputVenda,
+        valor: inputVenda.preco, // valor obrigatório para backend
+      };
 
-    setInputVenda({
-      data: new Date().toISOString().split("T")[0],
-      descricao: "",
-      preco: 0,
-      tipoVenda: "produto",
-    });
+      if (onSave) {
+        await onSave(payload); // se onSave foi passado pelo parent
+      } else {
+        await addVenda(payload); // fallback: usa contexto
+      }
 
-    if (onClose) onClose();
+      // reset form
+      setInputVenda({
+        data: new Date().toISOString().split("T")[0],
+        descricao: "",
+        preco: 0,
+        tipoVenda: "produto",
+      });
+
+      setError("");
+      if (onClose) onClose();
+    } catch (err) {
+      setError("Erro ao adicionar venda. Tente novamente.");
+      console.error("Erro ao salvar venda:", err);
+    }
   };
 
   return (
@@ -67,14 +92,19 @@ function ModalVenda({ onClose }: ModalVendaProps) {
         </h2>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            role="alert"
+          >
             <span className="block sm:inline">{error}</span>
           </div>
         )}
 
         {/* Data */}
         <div className="mb-4">
-          <label htmlFor="dataVenda" className="block text-green-600 mb-1">Data</label>
+          <label htmlFor="dataVenda" className="block text-green-600 mb-1">
+            Data
+          </label>
           <input
             type="date"
             id="dataVenda"
@@ -87,7 +117,9 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Descrição */}
         <div className="mb-4">
-          <label htmlFor="descricao" className="block text-green-600 mb-1">Descrição</label>
+          <label htmlFor="descricao" className="block text-green-600 mb-1">
+            Descrição
+          </label>
           <input
             type="text"
             id="descricao"
@@ -101,7 +133,9 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Valor */}
         <div className="mb-6">
-          <label htmlFor="preco" className="block text-green-600 mb-1">Valor (R$)</label>
+          <label htmlFor="preco" className="block text-green-600 mb-1">
+            Valor (R$)
+          </label>
           <input
             type="number"
             id="preco"
@@ -115,7 +149,9 @@ function ModalVenda({ onClose }: ModalVendaProps) {
 
         {/* Tipo de Venda */}
         <div className="mb-4">
-          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">Tipo de Venda</label>
+          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">
+            Tipo de Venda
+          </label>
           <select
             id="tipoVenda"
             name="tipoVenda"

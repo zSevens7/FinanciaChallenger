@@ -1,6 +1,5 @@
-// src/contexts/VendasContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import api from "../services/api"; // axios configurado com baseURL e JWT
+import api from "../services/api";
 import { VendaInput, Venda } from "../types/index";
 
 interface VendasContextType {
@@ -8,6 +7,7 @@ interface VendasContextType {
   addVenda: (vendaInput: VendaInput) => Promise<void>;
   updateVenda: (id: string, vendaInput: VendaInput) => Promise<void>;
   deleteVenda: (id: string) => Promise<void>;
+  refreshVendas: () => Promise<void>;
 }
 
 const VendasContext = createContext<VendasContextType | undefined>(undefined);
@@ -15,34 +15,64 @@ const VendasContext = createContext<VendasContextType | undefined>(undefined);
 export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const [vendas, setVendas] = useState<Venda[]>([]);
 
-  // Carregar vendas do backend ao iniciar
+  const loadVendas = async () => {
+    try {
+      console.log("🟡 Buscando vendas do backend...");
+      const res = await api.get<{ vendas: Venda[] }>("/vendas");
+
+      // TRANSFORMAÇÃO CORRETA PARA FRONTEND
+      const vendasTransformadas = res.data.vendas.map(v => ({
+        ...v,
+        preco: Number(v.valor) || 0,
+        tipoVenda: v.tipo_venda as "salario" | "produto" | "servico",
+        data: v.data.split("T")[0], // pega só YYYY-MM-DD
+      }));
+
+      console.log("🟢 Vendas transformadas:", vendasTransformadas);
+      setVendas(vendasTransformadas);
+    } catch (err) {
+      console.error("🔴 Erro ao carregar vendas do backend:", err);
+    }
+  };
+
   useEffect(() => {
-    const loadVendas = async () => {
-      try {
-        const res = await api.get<{ vendas: Venda[] }>("/vendas");
-        setVendas(res.data.vendas);
-      } catch (err) {
-        console.error("Erro ao carregar vendas do backend:", err);
-      }
-    };
     loadVendas();
   }, []);
 
   const addVenda = async (vendaInput: VendaInput) => {
     try {
+      console.log("🟡 Adicionando venda:", vendaInput);
       const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
-      setVendas(prev => [...prev, res.data.venda]);
+      console.log("🟢 Venda adicionada com sucesso:", res.data.venda);
+
+      const novaVenda: Venda = {
+        ...res.data.venda,
+        preco: Number(res.data.venda.valor) || 0,
+        tipoVenda: res.data.venda.tipo_venda as "salario" | "produto" | "servico",
+        data: res.data.venda.data.split("T")[0],
+      };
+
+      setVendas(prev => [...prev, novaVenda]);
     } catch (err) {
-      console.error("Erro ao adicionar venda:", err);
+      console.error("🔴 Erro ao adicionar venda:", err);
+      throw err;
     }
   };
 
   const updateVenda = async (id: string, vendaInput: VendaInput) => {
     try {
       const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, vendaInput);
-      setVendas(prev => prev.map(v => (v.id === id ? res.data.venda : v)));
+      const vendaAtualizada: Venda = {
+        ...res.data.venda,
+        preco: Number(res.data.venda.valor) || 0,
+        tipoVenda: res.data.venda.tipo_venda as "salario" | "produto" | "servico",
+        data: res.data.venda.data.split("T")[0],
+      };
+
+      setVendas(prev => prev.map(v => (v.id === id ? vendaAtualizada : v)));
     } catch (err) {
       console.error("Erro ao atualizar venda:", err);
+      throw err;
     }
   };
 
@@ -52,11 +82,18 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
       setVendas(prev => prev.filter(v => v.id !== id));
     } catch (err) {
       console.error("Erro ao deletar venda:", err);
+      throw err;
     }
   };
 
   return (
-    <VendasContext.Provider value={{ vendas, addVenda, updateVenda, deleteVenda }}>
+    <VendasContext.Provider value={{ 
+      vendas, 
+      addVenda, 
+      updateVenda, 
+      deleteVenda,
+      refreshVendas: loadVendas 
+    }}>
       {children}
     </VendasContext.Provider>
   );

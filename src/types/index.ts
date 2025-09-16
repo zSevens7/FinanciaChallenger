@@ -1,10 +1,10 @@
 // src/types/index.ts
-
 // Tipo base para transações com valor monetário
 export interface TransacaoMonetaria {
   data: string;        // formato "YYYY-MM-DD"
   descricao: string;
-  preco: number;
+  preco: number;       // usado no frontend
+  valor?: number;      // usado pra compatibilidade com backend (opcional)
 }
 
 // ----------------- VENDAS -----------------
@@ -13,11 +13,16 @@ export interface TransacaoMonetaria {
 export interface Venda extends TransacaoMonetaria {
   id: string; // padronizado como string (uuid)
   tipoVenda: "salario" | "produto" | "servico";
+  valor: number;         // <-- ADICIONAR
+  categoria?: string;
+  tipo?: string | null;
+  nome?: string | null;
+  tipo_venda?: string | null;
 }
+
 
 // Tipo usado para criar/editar vendas (sem id)
 export type VendaInput = Omit<Venda, "id">;
-
 
 // ----------------- GASTOS -----------------
 

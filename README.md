@@ -117,6 +117,21 @@ Esta é a minha visão para o futuro do **FinanciaChallenger**. As funcionalidad
 - ❌ Arrumar o envio do link do email quando o usuário esquece a senha.
 - ❌ Os dados de vendas/gastos ainda não estão interligando ao banco de dados ou backend; é necessário investigar a causa.
 
+ **🗓 Data:** 15/09/2025
+
+
+## 🔧 Backend
+- 🔐 Atualizado `auth.js` para atender os requisitos de **resetPassword** e **forgetPassword**, agora funcionando corretamente.
+
+## 🌐 Frontend
+- 📝 Criada a página de **resetPassword** e confirmada sua funcionalidade.
+- 🛤️ Mudei o **BrowseRouter para HashRouter**, logo agora o F5 esta corrigido.
+
+## ✅ Status Atual
+- ✅ Sistema de recuperação de senha implementado (esqueci a senha → email → redefinir senha).
+- ⚠️ É necessário realizar um **teste com um email diferente do principal** para validar completamente o fluxo de recuperação.
+ 
+
 
 ---
 ---

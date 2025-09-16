@@ -10,7 +10,7 @@ import ChangePasswordModal from '../features/profile/ChangePasswordModal';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth(); // <- pega usuário e logout do contexto
+  const { user, logout, updateProfile } = useAuth();
 
   // Estados para controlar os modais
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -86,8 +86,11 @@ const ProfilePage: React.FC = () => {
       <EditProfileModal
         isOpen={isEditModalOpen}
         onClose={handleCloseEditModal}
-        onSave={(updatedUser) => console.log("Salvar perfil...", updatedUser)}
-        user={mappedUser} // <- passa o user mapeado
+        onSave={async (updatedUser) => {
+          const success = await updateProfile(updatedUser.name, updatedUser.email);
+          if (success) handleCloseEditModal();
+        }}
+        user={mappedUser}
       />
 
       <ChangePasswordModal
