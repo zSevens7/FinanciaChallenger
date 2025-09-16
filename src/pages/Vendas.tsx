@@ -23,7 +23,7 @@ import {
   Legend,
   LineElement,
   TimeScale,
-} from 'chart.js';
+} from "chart.js";
 
 import { getUniqueYears, getUniqueMonthsForYear } from "../utils";
 import {
@@ -48,7 +48,8 @@ ChartJS.register(
 const Vendas = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { vendas, addVenda, deleteVenda, refreshVendas } = useVendas();
+  // note: removi addVenda daqui porque seu ModalVenda já chama addVenda pelo contexto
+  const { vendas, deleteVenda, refreshVendas } = useVendas();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,12 +66,9 @@ const Vendas = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    reloadVendas();
   };
 
   const clearData = async () => {
-    // Esta função precisa ser implementada no backend
-    // Por enquanto, vamos apenas mostrar um aviso
     alert("Funcionalidade de limpar todos os dados não está implementada no backend");
     setShowConfirm(false);
   };
@@ -103,17 +101,17 @@ const Vendas = () => {
     return getUniqueMonthsForYear(vendas, selectedYear);
   }, [vendas, selectedYear]);
 
-  const periodAggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
-    if (selectedYear && selectedMonth) return 'daily';
-    if (selectedYear) return 'monthly';
-    return 'yearly';
+  const periodAggregationType: "daily" | "monthly" | "yearly" = useMemo(() => {
+    if (selectedYear && selectedMonth) return "daily";
+    if (selectedYear) return "monthly";
+    return "yearly";
   }, [selectedYear, selectedMonth]);
 
   const filteredVendas = useMemo(() => {
-    return vendas.filter(venda => {
+    return vendas.filter((venda) => {
       const dateObj = new Date(venda.data);
       const year = dateObj.getFullYear().toString();
-      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
 
       const matchesYear = selectedYear ? year === selectedYear : true;
       const matchesMonth = selectedMonth ? month === selectedMonth : true;
@@ -132,11 +130,17 @@ const Vendas = () => {
   }, [filteredVendas, currentPage, itemsPerPage]);
 
   const totalAcumuladoLucro = useMemo(() => {
-    return filteredVendas.reduce((sum, venda) => sum + venda.preco, 0);
+    return filteredVendas.reduce((sum, venda) => sum + (venda.preco ?? 0), 0);
   }, [filteredVendas]);
 
   const salesByPeriodAgg = useMemo(
-    () => aggregateSalesByPeriod(vendas, selectedYear, selectedMonth, periodAggregationType),
+    () =>
+      aggregateSalesByPeriod(
+        vendas,
+        selectedYear,
+        selectedMonth,
+        periodAggregationType
+      ),
     [vendas, selectedYear, selectedMonth, periodAggregationType]
   );
 
@@ -148,19 +152,35 @@ const Vendas = () => {
   const chartDataPeriodSales = useMemo(() => {
     return prepareChartData(
       salesByPeriodAgg,
-      selectedYear && !selectedMonth ? `Vendas Mensais em ${selectedYear} (R$)` : 'Evolução de Vendas (R$)',
+      selectedYear && !selectedMonth
+        ? `Vendas Mensais em ${selectedYear} (R$)`
+        : "Evolução de Vendas (R$)",
       selectedYear && !selectedMonth ? "bar" : "line",
       periodAggregationType
     );
   }, [salesByPeriodAgg, selectedYear, selectedMonth, periodAggregationType]);
 
-  const chartDataCourseType = useMemo(() =>
-    prepareChartData(salesByCourseTypeAgg, "Vendas por Tipo de Venda (R$)", "bar", 'category')
-  , [salesByCourseTypeAgg]);
+  const chartDataCourseType = useMemo(
+    () =>
+      prepareChartData(
+        salesByCourseTypeAgg,
+        "Vendas por Tipo de Venda (R$)",
+        "bar",
+        "category"
+      ),
+    [salesByCourseTypeAgg]
+  );
 
-  const chartDataCourseTypePie = useMemo(() =>
-    prepareChartData(salesByCourseTypeAgg, "Distribuição por Tipo de Venda (%)", "pie", 'category')
-  , [salesByCourseTypeAgg]);
+  const chartDataCourseTypePie = useMemo(
+    () =>
+      prepareChartData(
+        salesByCourseTypeAgg,
+        "Distribuição por Tipo de Venda (%)",
+        "pie",
+        "category"
+      ),
+    [salesByCourseTypeAgg]
+  );
 
   return (
     <PageContainer>

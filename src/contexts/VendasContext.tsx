@@ -31,6 +31,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const addVenda = async (vendaInput: VendaInput) => {
     try {
       const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
+      // Atualiza a lista local com a nova venda
       setVendas(prev => [...prev, res.data.venda]);
     } catch (err) {
       console.error("Erro ao adicionar venda:", err);
