@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import mysql from "mysql2/promise";
 import createAuthRoutes from "./routes/auth.js";
+import createGastosRoutes from "./routes/gastos.js";
+import createVendasRoutes from "./routes/vendas.js";
 import { authenticateToken } from "./middleware/authMiddleware.js";
 
 dotenv.config();
@@ -34,7 +36,13 @@ const db = mysql
 // 3. Mount the auth routes, passing `db`
 app.use("/auth", createAuthRoutes(db));
 
-// 4. Your other middleware/routes here...
+// 4. Mount the gastos routes, passing `db`
+app.use("/gastos", createGastosRoutes(db));
+
+// 5. Mount the vendas routes, passing `db`
+app.use("/vendas", createVendasRoutes(db));
+
+// 6. Your other middleware/routes here...
 app.get("/", (req, res) => res.send("🚀 API is running"));
 
 const PORT = process.env.PORT || 4000;
