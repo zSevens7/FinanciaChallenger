@@ -11,9 +11,9 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, senha: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  register: (name: string, email: string, senha: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
   updateProfile: (username: string, email: string) => Promise<boolean>;
 }
 
@@ -23,9 +23,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
 
   // Login via email
-  const login = async (email: string, senha: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await api.post<{ token: string }>("/auth/login", { email, senha });
+      const response = await api.post<{ token: string }>("/auth/login", { email, password });
       const token = response.data.token;
       localStorage.setItem("token", token);
 
@@ -47,23 +47,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Registro
-  const register = async (name: string, email: string, senha: string): Promise<boolean> => {
-    try {
-      const res = await api.post<{ token: string, user: User }>("/auth/register", {
-        username: name,
-        email,
-        senha
-      });
+ const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  try {
+    await api.post("/auth/register", { username: name, email, password });
 
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
+    // Depois de registrar, faz login automático
+    return await login(email, password);
+  } catch (error: any) {
+    console.error("Erro ao registrar usuário:", error.response?.data?.error || error.message);
+    return false;
+  }
+};
 
-      return true;
-    } catch (error: any) {
-      console.error("Erro ao registrar usuário:", error.response?.data?.error || error.message);
-      return false;
-    }
-  };
 
   // Manter usuário logado após reload
   useEffect(() => {

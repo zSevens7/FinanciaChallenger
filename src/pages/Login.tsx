@@ -1,34 +1,39 @@
+// src/pages/Login.tsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // Importa o hook useAuth
+import { useAuth } from "../contexts/AuthContext"; // hook do contexto de autenticação
 
-const LoginPage: React.FC = () => {
+const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { login, user } = useAuth(); // Obtém a função login e o estado user do contexto
+  const { login, user } = useAuth(); // pega login e user do AuthContext
 
-  // 1. Redireciona o usuário se ele já estiver logado
+  // redireciona se já estiver logado
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
     }
   }, [user, navigate]);
 
-  // 2. Função para lidar com o envio do formulário (agora assíncrona)
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setError(""); // Limpa qualquer erro anterior
+    setError("");
 
-    // 3. Usa a função login do contexto em vez da lógica hardcoded
-    const success = await login(email, password);
+    try {
+      // chama a função login do contexto, que usa api.ts
+      const success = await login(email, password);
 
-    if (success) {
-      console.log("Login bem-sucedido!");
-      // O useEffect acima irá lidar com o redirecionamento
-    } else {
-      setError("Usuário ou senha inválidos. Por favor, tente novamente.");
+      if (success) {
+        console.log("Login bem-sucedido!");
+        // redirecionamento tratado pelo useEffect
+      } else {
+        setError("Usuário ou senha inválidos. Por favor, tente novamente.");
+      }
+    } catch (err) {
+      console.error("Erro ao tentar logar:", err);
+      setError("Ocorreu um erro. Tente novamente mais tarde.");
     }
   };
 
@@ -106,4 +111,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
