@@ -11,9 +11,9 @@ export interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, senha: string) => Promise<boolean>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, senha: string) => Promise<boolean>;
   updateProfile: (username: string, email: string) => Promise<boolean>;
 }
 
@@ -23,9 +23,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
 
   // Login via email
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, senha: string): Promise<boolean> => {
     try {
-      const response = await api.post<{ token: string }>("/auth/login", { email, password });
+      const response = await api.post<{ token: string }>("/auth/login", { email, senha });
       const token = response.data.token;
       localStorage.setItem("token", token);
 
@@ -47,16 +47,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Registro
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  const register = async (name: string, email: string, senha: string): Promise<boolean> => {
     try {
-      // Aqui enviamos `username` para o backend
       const res = await api.post<{ token: string, user: User }>("/auth/register", {
         username: name,
         email,
-        password
+        senha
       });
 
-      // Salvar token e usuário no frontend
       localStorage.setItem("token", res.data.token);
       setUser(res.data.user);
 
@@ -84,12 +82,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadUser();
   }, []);
 
-  // AuthContext.tsx
+  // Atualizar perfil
   const updateProfile = async (username: string, email: string): Promise<boolean> => {
     if (!user) return false;
     try {
       const res = await api.put<{ user: User }>("/auth/profile", { username, email });
-      setUser(res.data.user); // atualiza o contexto
+      setUser(res.data.user);
       return true;
     } catch (err) {
       console.error("Erro ao atualizar perfil:", err);
