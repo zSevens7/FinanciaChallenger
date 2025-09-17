@@ -1,6 +1,6 @@
 // src/App.tsx
 import React from "react";
-import { HashRouter, Routes, Route, Outlet, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from './contexts/AuthContext';
 import { HeaderProvider } from "./contexts/HeaderContext";
 import { VendasProvider } from "./contexts/VendasContext";
@@ -21,13 +21,12 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
-
 function App() {
   return (
     <AuthProvider>
       <VendasProvider>
         <GastosProvider>
-          <HashRouter>
+          <BrowserRouter>
             <HeaderProvider>
               <SidebarProvider defaultOpen={true}>
                 <Routes>
@@ -48,7 +47,7 @@ function App() {
                 </Routes>
               </SidebarProvider>
             </HeaderProvider>
-          </HashRouter>
+          </BrowserRouter>
         </GastosProvider>
       </VendasProvider>
     </AuthProvider>
