@@ -1,3 +1,4 @@
+// src/contexts/VendasContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import api from "../services/api";
 import { VendaInput, Venda } from "../types/index";
@@ -18,14 +19,13 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const loadVendas = async () => {
     try {
       console.log("🟡 Buscando vendas do backend...");
-      const res = await api.get<{ vendas: Venda[] }>("/vendas");
+      const res = await api.get<{ vendas: Venda[] }>("/api/vendas");
 
-      // TRANSFORMAÇÃO CORRETA PARA FRONTEND
       const vendasTransformadas = res.data.vendas.map(v => ({
         ...v,
         preco: Number(v.valor) || 0,
         tipoVenda: v.tipo_venda as "salario" | "produto" | "servico",
-        data: v.data.split("T")[0], // pega só YYYY-MM-DD
+        data: v.data.split("T")[0],
       }));
 
       console.log("🟢 Vendas transformadas:", vendasTransformadas);
@@ -42,7 +42,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const addVenda = async (vendaInput: VendaInput) => {
     try {
       console.log("🟡 Adicionando venda:", vendaInput);
-      const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
+      const res = await api.post<{ venda: Venda }>("/api/vendas", vendaInput);
       console.log("🟢 Venda adicionada com sucesso:", res.data.venda);
 
       const novaVenda: Venda = {
@@ -61,7 +61,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   const updateVenda = async (id: string, vendaInput: VendaInput) => {
     try {
-      const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, vendaInput);
+      const res = await api.put<{ venda: Venda }>(`/api/vendas/${id}`, vendaInput);
       const vendaAtualizada: Venda = {
         ...res.data.venda,
         preco: Number(res.data.venda.valor) || 0,
@@ -78,7 +78,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteVenda = async (id: string) => {
     try {
-      await api.delete(`/vendas/${id}`);
+      await api.delete(`/api/vendas/${id}`);
       setVendas(prev => prev.filter(v => v.id !== id));
     } catch (err) {
       console.error("Erro ao deletar venda:", err);
@@ -87,12 +87,12 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <VendasContext.Provider value={{ 
-      vendas, 
-      addVenda, 
-      updateVenda, 
+    <VendasContext.Provider value={{
+      vendas,
+      addVenda,
+      updateVenda,
       deleteVenda,
-      refreshVendas: loadVendas 
+      refreshVendas: loadVendas
     }}>
       {children}
     </VendasContext.Provider>
