@@ -20,7 +20,7 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadGastos = async () => {
       try {
-        const response = await api.get<Gasto[]>("/api/gastos");
+        const response = await api.get<Gasto[]>("/gastos");
         setGastos(response.data);
       } catch (err) {
         console.error("Erro ao carregar gastos do backend:", err);
@@ -32,7 +32,7 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
 
   const addGasto = async (g: Omit<Gasto, "id">) => {
     try {
-      const response = await api.post<Gasto>("/api/gastos", g);
+      const response = await api.post<Gasto>("/gastos", g);
       setGastos(prev => [...prev, response.data]);
     } catch (err) {
       console.error("Erro ao adicionar gasto:", err);
@@ -52,7 +52,7 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteGasto = async (id: string) => {
     try {
-      await api.delete(`/api/gastos/${id}`);
+      await api.delete(`/gastos/${id}`);
       setGastos(prev => prev.filter(gasto => gasto.id !== id));
     } catch (err) {
       console.error("Erro ao deletar gasto:", err);

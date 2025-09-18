@@ -23,11 +23,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await api.post<{ token: string }>("/api/auth/login", { email, password });
+      const response = await api.post<{ token: string }>("/auth/login", { email, password });
       const token = response.data.token;
       localStorage.setItem("token", token);
 
-      const userResponse = await api.get<{ user: User }>("/api/auth/profile");
+      const userResponse = await api.get<{ user: User }>("/auth/profile");
       setUser(userResponse.data.user);
 
       return true;
@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const register = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      await api.post("/api/auth/register", { username: name, email, password });
+      await api.post("/register", { username: name, email, password });
       return await login(email, password);
     } catch (error: any) {
       console.error("Erro ao registrar usuário:", error.response?.data?.error || error.message);
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const userResponse = await api.get<{ user: User }>("/api/auth/profile");
+          const userResponse = await api.get<{ user: User }>("/auth/profile");
           setUser(userResponse.data.user);
         } catch (err) {
           console.error("Erro ao carregar usuário:", err);
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateProfile = async (username: string, email: string): Promise<boolean> => {
     if (!user) return false;
     try {
-      const res = await api.put<{ user: User }>("/api/auth/profile", { username, email });
+      const res = await api.put<{ user: User }>("/auth/profile", { username, email });
       setUser(res.data.user);
       return true;
     } catch (err) {

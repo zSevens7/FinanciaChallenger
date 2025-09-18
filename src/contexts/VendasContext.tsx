@@ -19,7 +19,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const loadVendas = async () => {
     try {
       console.log("🟡 Buscando vendas do backend...");
-      const res = await api.get<{ vendas: Venda[] }>("/api/vendas");
+      const res = await api.get<{ vendas: Venda[] }>("/vendas");
 
       const vendasTransformadas = res.data.vendas.map(v => ({
         ...v,
@@ -42,7 +42,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const addVenda = async (vendaInput: VendaInput) => {
     try {
       console.log("🟡 Adicionando venda:", vendaInput);
-      const res = await api.post<{ venda: Venda }>("/api/vendas", vendaInput);
+      const res = await api.post<{ venda: Venda }>("/vendas", vendaInput);
       console.log("🟢 Venda adicionada com sucesso:", res.data.venda);
 
       const novaVenda: Venda = {
@@ -61,7 +61,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   const updateVenda = async (id: string, vendaInput: VendaInput) => {
     try {
-      const res = await api.put<{ venda: Venda }>(`/api/vendas/${id}`, vendaInput);
+      const res = await api.put<{ venda: Venda }>(`/vendas/${id}`, vendaInput);
       const vendaAtualizada: Venda = {
         ...res.data.venda,
         preco: Number(res.data.venda.valor) || 0,
@@ -78,7 +78,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteVenda = async (id: string) => {
     try {
-      await api.delete(`/api/vendas/${id}`);
+      await api.delete(`/vendas/${id}`);
       setVendas(prev => prev.filter(v => v.id !== id));
     } catch (err) {
       console.error("Erro ao deletar venda:", err);
