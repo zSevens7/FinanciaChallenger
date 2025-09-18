@@ -1,23 +1,30 @@
+// src/services/api.ts
 import axios from "axios";
 
 const API_BASE_URL = "https://sevenscash.sevensreview.com.br/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 10 segundos
-  headers: { "Content-Type": "application/json" } // <--- aqui
+  timeout: 10000,
+  headers: { 
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+  }
 });
 
 // Interceptor de request para debug
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
+    
+    // Garantir que config.headers existe
+    config.headers = config.headers || {};
+    
     if (token) {
-      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log(`🟡 Fazendo requisição para: ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`🟡 Fazendo requisição para: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
     console.log('🟡 Headers:', config.headers);
 
     return config;
