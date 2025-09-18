@@ -21,6 +21,21 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
+// Adicione uma rota de fallback para páginas não encontradas
+const NotFound = () => {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">404 - Página Não Encontrada</h1>
+        <p className="text-lg mb-4">A página que você está procurando não existe.</p>
+        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
+          Voltar para a página inicial
+        </a>
+      </div>
+    </div>
+  );
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -44,6 +59,9 @@ function App() {
                     <Route path="/vendas" element={<Vendas />} />
                     <Route path="/profile" element={<ProfilePage />} />
                   </Route>
+
+                  {/* Rota de fallback para páginas não encontradas */}
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </SidebarProvider>
             </HeaderProvider>
@@ -56,8 +74,7 @@ function App() {
 
 export default App;
 
-// -------------------------
-// Layout com Sidebar
+// Layout com Sidebar (mantido igual)
 function LayoutWithSidebar() {
   const { open, isMobile } = useSidebar();
   const location = useLocation();
