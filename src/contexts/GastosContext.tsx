@@ -1,3 +1,4 @@
+// src/contexts/GastosContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Gasto } from "../types";
 import api from "../services/api";
@@ -14,21 +15,6 @@ interface GastosContextType {
 
 const GastosContext = createContext<GastosContextType | undefined>(undefined);
 
-// Função para validar se um gasto é válido
-const isGastoValido = (g: Gasto): boolean => {
-  return !!(
-    g.id &&
-    g.data &&
-    g.descricao &&
-    g.descricao.trim() !== "" &&
-    g.preco > 0 &&
-    g.categoria &&
-    g.categoria.trim() !== "" &&
-    g.tipo &&
-    g.tipo.trim() !== ""
-  );
-};
-
 // 🔑 Normalizador para alinhar dados do backend com o frontend
 const transformarGasto = (g: any): Gasto | null => {
   if (!g) return null;
@@ -40,21 +26,21 @@ const transformarGasto = (g: any): Gasto | null => {
     data: typeof g.data === "string" ? g.data.split("T")[0] : "",
     categoria: g.categoria ?? "Outros",
     tipo: g.tipo ?? "outro",
-    tipoDespesa: g.tipo_despesa ?? g.tipoDespesa ?? "outro", // valor padrão
+    nome: g.nome ?? g.descricao ?? "",
+    tipoDespesa: g.tipo_despesa ?? g.tipoDespesa ?? "outro",
   };
 
-  return gasto; // <--- sempre retorna objeto, não chama refreshGastos
+  if (!gasto.id || !gasto.data || !gasto.descricao || gasto.preco <= 0) return null;
+
+  return gasto;
 };
-
-
 
 export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
   const loadGastos = async () => {
     try {
-      const response = await api.get<any[]>("/gastos");
-
+      const response = await api.get<any[]>("/gastos/");
       const gastosValidos = response.data
         .map(transformarGasto)
         .filter((g): g is Gasto => g !== null);
@@ -75,13 +61,19 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addGasto = async (g: Omit<Gasto, "id">) => {
-    if (!g.data || !g.descricao || g.preco <= 0 || !g.categoria || !g.tipo) {
+    if (!g.data || !g.descricao || g.preco <= 0 || !g.categoria) {
       console.warn("Tentativa de adicionar gasto inválido:", g);
       throw new Error("Dados do gasto inválidos. Preencha todos os campos obrigatórios.");
     }
 
     try {
-      const response = await api.post("/gastos", g);
+      const payload = {
+        ...g,
+        valor: g.preco,
+        tipo_despesa: g.tipoDespesa,
+      };
+
+      const response = await api.post("/gastos/", payload);
       const gastoTransformado = transformarGasto(response.data);
 
       if (gastoTransformado) {
@@ -97,25 +89,23 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateGasto = async (id: string, updatedGasto: Omit<Gasto, "id">) => {
-    if (
-      !updatedGasto.data ||
-      !updatedGasto.descricao ||
-      updatedGasto.preco <= 0 ||
-      !updatedGasto.categoria ||
-      !updatedGasto.tipo
-    ) {
-      console.warn("Tentativa de atualizar gasto com dados inválidos:", updatedGasto);
+    if (!updatedGasto.data || !updatedGasto.descricao || updatedGasto.preco <= 0 || !updatedGasto.categoria) {
+      console.warn("Tentativa de atualizar gasto inválido:", updatedGasto);
       throw new Error("Dados do gasto inválidos. Preencha todos os campos obrigatórios.");
     }
 
     try {
-      const response = await api.put(`/gastos/${id}`, updatedGasto);
+      const payload = {
+        ...updatedGasto,
+        valor: updatedGasto.preco,
+        tipo_despesa: updatedGasto.tipoDespesa,
+      };
+
+      const response = await api.put(`/gastos/${id}`, payload);
       const gastoAtualizado = transformarGasto(response.data);
 
       if (gastoAtualizado) {
-        setGastos((prev) =>
-          prev.map((gasto) => (gasto.id === id ? gastoAtualizado : gasto))
-        );
+        setGastos((prev) => prev.map((g) => (g.id === id ? gastoAtualizado : g)));
       } else {
         console.warn("Gasto inválido após atualização:", response.data);
         await refreshGastos();
@@ -129,7 +119,7 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const deleteGasto = async (id: string) => {
     try {
       await api.delete(`/gastos/${id}`);
-      setGastos((prev) => prev.filter((gasto) => gasto.id !== id));
+      setGastos((prev) => prev.filter((g) => g.id !== id));
     } catch (err) {
       console.error("Erro ao deletar gasto:", err);
       throw err;
@@ -137,7 +127,7 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeGasto = (id: string) => {
-    setGastos((prev) => prev.filter((gasto) => gasto.id !== id));
+    setGastos((prev) => prev.filter((g) => g.id !== id));
   };
 
   const removeAllGastos = () => {
@@ -165,14 +155,4 @@ export const useGastos = () => {
   const ctx = useContext(GastosContext);
   if (!ctx) throw new Error("useGastos deve ser usado dentro de GastosProvider");
   return ctx;
-};
-
-export const useGastosValidos = () => {
-  const { gastos, ...actions } = useGastos();
-
-  const gastosValidos = React.useMemo(() => {
-    return gastos.filter(isGastoValido);
-  }, [gastos]);
-
-  return { gastos: gastosValidos, ...actions };
 };

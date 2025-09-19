@@ -1,3 +1,4 @@
+// src/components/ModalVenda.tsx
 import { useState } from "react";
 import { useVendas } from "../contexts/VendasContext";
 import { VendaInput } from "../types/index";
@@ -10,11 +11,13 @@ interface ModalVendaProps {
 function ModalVenda({ onClose, onSave }: ModalVendaProps) {
   const { addVenda } = useVendas();
 
-  const [inputVenda, setInputVenda] = useState({
+  const [inputVenda, setInputVenda] = useState<VendaInput>({
     data: new Date().toISOString().split("T")[0],
     descricao: "",
     preco: 0,
-    tipoVenda: "produto" as "salario" | "produto" | "servico",
+    tipoVenda: "produto",
+    valor: 0, // compatível com backend
+    comentario: "",
   });
 
   const [error, setError] = useState("");
@@ -23,6 +26,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
     setInputVenda((prev) => ({
       ...prev,
       [name]: name === "preco" ? parseFloat(value) || 0 : value,
@@ -45,9 +49,10 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     }
 
     try {
+      // Atualiza valor para enviar ao backend
       const payload: VendaInput = {
         ...inputVenda,
-        valor: inputVenda.preco, // compatível com backend
+        valor: inputVenda.preco,
       };
 
       if (onSave) {
@@ -56,19 +61,21 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
         await addVenda(payload);
       }
 
-      // reset form
+      // Reset do formulário
       setInputVenda({
         data: new Date().toISOString().split("T")[0],
         descricao: "",
         preco: 0,
         tipoVenda: "produto",
+        valor: 0,
+        comentario: "",
       });
 
       setError("");
       if (onClose) onClose();
     } catch (err) {
-      setError("Erro ao adicionar venda. Tente novamente.");
       console.error("Erro ao salvar venda:", err);
+      setError("Erro ao adicionar venda. Tente novamente.");
     }
   };
 

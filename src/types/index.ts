@@ -15,11 +15,14 @@ export interface TransacaoMonetaria {
 export interface Venda extends TransacaoMonetaria {
   id: string;
   tipoVenda: "salario" | "produto" | "servico";
-  
+  comentario?: string; // opcional
 }
 
 // Tipo usado para criar/editar vendas (sem id)
-export type VendaInput = Omit<Venda, "id">;
+export type VendaInput = Omit<Venda, "id"> & {
+  preco: number;       // garante que o frontend continue usando 'preco'
+  comentario?: string; // opcional
+};
 
 // ----------------- GASTOS -----------------
 
@@ -66,7 +69,6 @@ export interface FilterControlsProps {
   uniqueYears: string[];
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
-  uniqueMonths: string[];
   setCurrentPage: (page: number) => void;
 }
 
