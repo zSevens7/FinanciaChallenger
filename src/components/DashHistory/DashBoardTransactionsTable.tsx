@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { formatDate } from '../../utils'; // ajuste se necessário
-import type { Transaction } from '../../types/Transaction'; // caminho ajustável
+import { formatDate } from '../../utils';
+import type { Transaction } from '../../types/Transaction';
 
 interface DashboardTransactionsTableProps {
   transactions: Transaction[];
@@ -21,14 +21,14 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
 
   return (
     <div className="mt-6 font-inter w-full">
-      <h2 className="text-2xl font-bold text-purple-600 mb-4 text-center">Transações Recentes</h2>
+      <h2 className="text-2xl font-bold text-blue-800 mb-4 text-center">Transações Recentes</h2>
 
       {/* Botões de Filtro */}
       <div className="flex justify-center gap-4 mb-4">
         <button
           onClick={() => setFilterType('all')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out
-            ${filterType === 'all' ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+            ${filterType === 'all' ? 'bg-blue-800 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
         >
           Todos
         </button>
@@ -48,10 +48,10 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
         </button>
       </div>
 
-      <div className="shadow-lg shadow-grey-500/20 rounded-xl overflow-hidden border border-purple-200">
+      <div className="shadow-lg shadow-gray-500/20 rounded-xl overflow-hidden border border-blue-300">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-purple-600 text-white">
+            <thead className="bg-blue-800 text-white">
               <tr>
                 <th scope="col" className="p-3 text-left font-semibold tracking-wider whitespace-nowrap">Data</th>
                 <th scope="col" className="p-3 text-left font-semibold tracking-wider whitespace-nowrap">Descrição</th>
@@ -59,10 +59,10 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
                 <th scope="col" className="p-3 text-center font-semibold tracking-wider whitespace-nowrap hidden sm:table-cell">Tipo</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-purple-100">
+            <tbody className="bg-white divide-y divide-blue-100">
               {filteredAndLimitedTransactions.length > 0 ? (
                 filteredAndLimitedTransactions.map(t => (
-                  <tr key={t.id} className="hover:bg-purple-50 transition-colors duration-150 ease-in-out">
+                  <tr key={t.id} className="hover:bg-blue-50 transition-colors duration-150 ease-in-out">
                     <td className="p-3 whitespace-nowrap text-gray-700">
                       {t.data ? formatDate(t.data) : 'Data inválida'}
                     </td>
@@ -81,7 +81,7 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="p-6 text-center text-purple-600 font-medium">
+                  <td colSpan={4} className="p-6 text-center text-blue-700 font-medium">
                     Nenhuma transação encontrada para os filtros selecionados.
                   </td>
                 </tr>

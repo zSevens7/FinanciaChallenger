@@ -14,24 +14,55 @@ interface GastosContextType {
 
 const GastosContext = createContext<GastosContextType | undefined>(undefined);
 
+// Função para validar se um gasto é válido
+const isGastoValido = (g: Gasto): boolean => {
+  return !!(
+    g.id &&
+    g.data &&
+    g.descricao &&
+    g.descricao.trim() !== '' &&
+    g.preco > 0 &&
+    g.categoria &&
+    g.categoria.trim() !== '' &&
+    g.tipo &&
+    g.tipo.trim() !== ''
+  );
+};
+
 export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
-  const transformarGasto = (g: any): Gasto => ({
-    id: g.id,
-    descricao: g.descricao || "",
-    preco: Number(g.valor) || 0,
-    categoria: g.categoria || "",
-    data: typeof g.data === "string" ? g.data.split("T")[0] : "",
-    tipo: g.tipo || "",
-    nome: g.nome || g.descricao || "",
-    tipoDespesa: g.tipo_despesa || "",
-  });
+  const transformarGasto = (g: any): Gasto | null => {
+    try {
+      const gastoTransformado: Gasto = {
+        id: g.id || '',
+        descricao: g.descricao || '',
+        preco: Number(g.valor) || 0,
+        categoria: g.categoria || '',
+        data: typeof g.data === "string" ? g.data.split("T")[0] : '',
+        tipo: g.tipo || '',
+        nome: g.nome || g.descricao || '',
+        tipoDespesa: g.tipo_despesa || '',
+      };
+
+      // Retorna null se o gasto não for válido
+      return isGastoValido(gastoTransformado) ? gastoTransformado : null;
+    } catch (error) {
+      console.error("Erro ao transformar gasto:", error, g);
+      return null;
+    }
+  };
 
   const loadGastos = async () => {
     try {
       const response = await api.get<Gasto[]>("/gastos");
-      setGastos(response.data.map(transformarGasto));
+      
+      // Filtrar gastos válidos
+      const gastosValidos = response.data
+        .map(transformarGasto)
+        .filter((g): g is Gasto => g !== null);
+      
+      setGastos(gastosValidos);
     } catch (err) {
       console.error("Erro ao carregar gastos do backend:", err);
       setGastos([]);
@@ -47,24 +78,54 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addGasto = async (g: Omit<Gasto, "id">) => {
+    // Validar antes de enviar para o backend
+    if (!g.data || !g.descricao || g.preco <= 0 || !g.categoria || !g.tipo) {
+      console.warn("Tentativa de adicionar gasto inválido:", g);
+      throw new Error("Dados do gasto inválidos. Preencha todos os campos obrigatórios.");
+    }
+
     try {
       const response = await api.post<Gasto>("/gastos", g);
-      setGastos(prev => [...prev, transformarGasto(response.data)]);
+      const gastoTransformado = transformarGasto(response.data);
+      
+      if (gastoTransformado) {
+        setGastos(prev => [...prev, gastoTransformado]);
+      } else {
+        console.warn("Gasto inválido retornado do backend:", response.data);
+        await refreshGastos(); // Recarregar a lista para garantir consistência
+      }
     } catch (err) {
       console.error("Erro ao adicionar gasto:", err);
+      throw err;
     }
   };
 
   const updateGasto = async (id: string, updatedGasto: Omit<Gasto, "id">) => {
+    // Validar antes de enviar para o backend
+    if (!updatedGasto.data || !updatedGasto.descricao || updatedGasto.preco <= 0 || 
+        !updatedGasto.categoria || !updatedGasto.tipo) {
+      console.warn("Tentativa de atualizar gasto com dados inválidos:", updatedGasto);
+      throw new Error("Dados do gasto inválidos. Preencha todos os campos obrigatórios.");
+    }
+
     try {
       await api.put(`/gastos/${id}`, updatedGasto);
-      setGastos(prev =>
-        prev.map(gasto =>
-          gasto.id === id ? transformarGasto({ ...gasto, ...updatedGasto }) : gasto
-        )
-      );
+      
+      // Atualizar apenas se os dados forem válidos
+      const gastoAtualizado = transformarGasto({ id, ...updatedGasto });
+      if (gastoAtualizado) {
+        setGastos(prev =>
+          prev.map(gasto =>
+            gasto.id === id ? gastoAtualizado : gasto
+          )
+        );
+      } else {
+        console.warn("Gasto inválido após atualização:", { id, ...updatedGasto });
+        await refreshGastos(); // Recarregar a lista para garantir consistência
+      }
     } catch (err) {
       console.error("Erro ao atualizar gasto:", err);
+      throw err;
     }
   };
 
@@ -74,6 +135,7 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
       setGastos(prev => prev.filter(gasto => gasto.id !== id));
     } catch (err) {
       console.error("Erro ao deletar gasto:", err);
+      throw err;
     }
   };
 
@@ -106,4 +168,16 @@ export const useGastos = () => {
   const ctx = useContext(GastosContext);
   if (!ctx) throw new Error("useGastos deve ser usado dentro de GastosProvider");
   return ctx;
+};
+
+// Hook personalizado para usar apenas gastos válidos
+export const useGastosValidos = () => {
+  const { gastos, ...actions } = useGastos();
+  
+  // Filtrar gastos válidos
+  const gastosValidos = React.useMemo(() => {
+    return gastos.filter(isGastoValido);
+  }, [gastos]);
+  
+  return { gastos: gastosValidos, ...actions };
 };

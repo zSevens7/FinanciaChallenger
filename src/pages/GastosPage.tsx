@@ -7,7 +7,7 @@ import { Pagination } from "../features/gastos/components/Pagination";
 import { SummarySection } from "../features/gastos/components/SummarysSection";
 import { GastosTable } from "../features/gastos/components/GastosTable";
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay";
-import { useGastos } from "../contexts/GastosContext";
+import { useGastosValidos } from "../contexts/GastosContext"; // Alterado para useGastosValidos
 import { usePageHeader } from "../contexts/HeaderContext";
 import ModalGasto from "../components/ModalGasto";
 import type { Gasto } from "../types";
@@ -46,7 +46,8 @@ const GastosPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const { gastos, addGasto, deleteGasto, removeAllGastos, refreshGastos } = useGastos();
+  // Alterado para usar useGastosValidos em vez de useGastos
+  const { gastos, addGasto, deleteGasto, removeAllGastos, refreshGastos } = useGastosValidos();
 
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -76,15 +77,20 @@ const GastosPage = () => {
 
   const handleSaveGasto = useCallback(
     async (newGasto: Omit<Gasto, "id">) => {
-      await addGasto(newGasto);
-      setShowModal(false);
+      try {
+        await addGasto(newGasto);
+        setShowModal(false);
+      } catch (err) {
+        console.error("Erro ao adicionar gasto:", err);
+        // Você pode adicionar uma notificação para o usuário aqui
+      }
     },
     [addGasto]
   );
 
   useEffect(() => {
     refreshGastos();
-  }, []);
+  }, [refreshGastos]); // Adicionado refreshGastos como dependência
 
   useEffect(() => {
     setPageHeader(
@@ -111,19 +117,37 @@ const GastosPage = () => {
 
   const filteredGastos = useMemo(() => {
     return gastos.filter((gasto) => {
-      const dateObj = new Date(gasto.data);
-      const year = dateObj.getFullYear().toString();
-      const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+      // Verificação adicional para garantir que a data é válida
+      if (!gasto.data) return false;
+      
+      try {
+        const dateObj = new Date(gasto.data);
+        if (isNaN(dateObj.getTime())) return false;
+        
+        const year = dateObj.getFullYear().toString();
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
 
-      const matchesYear = selectedYear ? year === selectedYear : true;
-      const matchesMonth = selectedMonth ? month === selectedMonth : true;
+        const matchesYear = selectedYear ? year === selectedYear : true;
+        const matchesMonth = selectedMonth ? month === selectedMonth : true;
 
-      return matchesYear && matchesMonth;
+        return matchesYear && matchesMonth;
+      } catch {
+        return false;
+      }
     });
   }, [gastos, selectedYear, selectedMonth]);
 
   const totalFilteredGastos = filteredGastos.length;
   const totalPages = Math.ceil(totalFilteredGastos / itemsPerPage);
+
+  // Ajustar página atual se necessário (caso a filtragem reduza o número de páginas)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (totalPages === 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
 
   const paginatedGastos = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -132,7 +156,7 @@ const GastosPage = () => {
   }, [filteredGastos, currentPage, itemsPerPage]);
 
   const totalAcumuladoGasto = useMemo(() => {
-    return filteredGastos.reduce((sum, gasto) => sum + gasto.preco, 0);
+    return filteredGastos.reduce((sum, gasto) => sum + (gasto.preco || 0), 0);
   }, [filteredGastos]);
 
   const expensesByPeriodAgg = useMemo(
@@ -165,7 +189,12 @@ const GastosPage = () => {
 
   return (
     <PageContainer>
-      {showModal && <ModalGasto onClose={() => setShowModal(false)} onSave={handleSaveGasto} />}
+      {showModal && (
+        <ModalGasto 
+          onClose={() => setShowModal(false)} 
+          onSave={handleSaveGasto} 
+        />
+      )}
 
       <ConfirmModal
         isOpen={showConfirm}
@@ -194,12 +223,21 @@ const GastosPage = () => {
           uniqueMonths={uniqueMonths}
           setCurrentPage={setCurrentPage}
         />
-        <ActionButtons onAdicionarGasto={handleAdicionarGasto} onLimparDados={handleLimparDados} />
+        <ActionButtons 
+          onAdicionarGasto={handleAdicionarGasto} 
+          onLimparDados={handleLimparDados} 
+        />
       </div>
 
       <GastosTable gastos={paginatedGastos} onDelete={handleDeleteGasto} />
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      {totalPages > 1 && (
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          onPageChange={setCurrentPage} 
+        />
+      )}
 
       {filteredGastos.length > 0 && (
         <>

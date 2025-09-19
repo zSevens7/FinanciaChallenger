@@ -111,7 +111,7 @@ const Dashboard = () => {
               setSelectedYear(e.target.value);
               setSelectedMonth("");
             }}
-            className="p-2 border border-purple-300 rounded-md bg-white"
+            className="p-2 border border-blue-700 rounded-md bg-white text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Todos os Anos</option>
             {uniqueYears.map(y => (
@@ -125,7 +125,7 @@ const Dashboard = () => {
             <select
               value={selectedMonth}
               onChange={e => setSelectedMonth(e.target.value)}
-              className="p-2 border border-purple-300 rounded-md bg-white"
+              className="p-2 border border-blue-700 rounded-md bg-white text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Todos os Meses</option>
               {uniqueMonths.map(m => (
@@ -147,6 +147,9 @@ const Dashboard = () => {
                 ? `${monthNames[selectedMonth]}/${selectedYear}`
                 : selectedYear || "Geral"
             }
+            valueColorClass={
+              saldoLiquido < 0 ? "text-red-600" : "text-green-600"
+            }
           />
           <DashboardKPI
             title="Total Despesas"
@@ -156,6 +159,7 @@ const Dashboard = () => {
                 ? `${monthNames[selectedMonth]}/${selectedYear}`
                 : selectedYear || "Geral"
             }
+            valueColorClass="text-blue-700"
           />
           <DashboardKPI
             title="Total de Vendas"
@@ -165,6 +169,7 @@ const Dashboard = () => {
                 ? `${monthNames[selectedMonth]}/${selectedYear}`
                 : selectedYear || "Geral"
             }
+            valueColorClass="text-blue-700"
           />
 
           {/* 👇 KPIs adicionais */}
@@ -180,11 +185,13 @@ const Dashboard = () => {
             title="Payback"
             value={paybackPeriod.toString()}
             period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+            valueColorClass="text-blue-700"
           />
           <DashboardKPI
             title="TIR"
             value={tir.toString()}
             period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+            valueColorClass="text-blue-700"
           />
         </div>
 
@@ -193,13 +200,13 @@ const Dashboard = () => {
 
         {/* Gráficos */}
         {selectedYear && (
-          <div className="flex flex-col gap-8 w-full mt-8 p-4 bg-gray-50 rounded-lg shadow">
-            <h2 className="text-2xl font-bold text-purple-600 mb-4 text-center">
+          <div className="flex flex-col gap-8 w-full mt-8 p-4 bg-blue-50 rounded-lg shadow">
+            <h2 className="text-2xl font-bold text-blue-800 mb-4 text-center">
               Gráficos Anuais/Mensais
             </h2>
 
             <section className="w-full">
-              <h3 className="text-xl font-semibold text-[#964bca] mb-3 text-center">
+              <h3 className="text-xl font-semibold text-blue-700 mb-3 text-center">
                 Total Vendas vs. Total Despesas
               </h3>
               {salesExpensesData.length > 0 ? (
@@ -212,7 +219,7 @@ const Dashboard = () => {
             </section>
 
             <section className="w-full">
-              <h3 className="text-xl font-semibold text-[#964bca] mb-3 text-center">
+              <h3 className="text-xl font-semibold text-blue-700 mb-3 text-center">
                 Saldo Líquido Acumulado (VPL Visual)
               </h3>
               {cumulativeCashFlowData.length > 0 ? (
