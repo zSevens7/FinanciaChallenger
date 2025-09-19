@@ -29,7 +29,7 @@ import {
   aggregateSalesByPeriod,
   prepareChartData,
 } from "../services/agreggation";
-import { VendaInput } from "../types/index";
+import { Venda } from "../types/index";
 
 ChartJS.register(
   CategoryScale,
@@ -76,7 +76,7 @@ const Vendas = () => {
     setShowConfirm(false);
   };
 
-  const handleSaveVenda = async (vendaData: VendaInput) => {
+  const handleSaveVenda = async (vendaData: any) => {
     try {
       await addVenda(vendaData);
       setShowModal(false);
@@ -94,11 +94,16 @@ const Vendas = () => {
     }
   };
 
-  const uniqueYears = useMemo(() => getUniqueYears(vendas), [vendas]);
+  // Removida a tentativa de mapear 'valor' já que não existe no tipo Venda
+  const vendasFormatadas = useMemo(() => {
+    return vendas;
+  }, [vendas]);
+
+  const uniqueYears = useMemo(() => getUniqueYears(vendasFormatadas), [vendasFormatadas]);
   const uniqueMonths = useMemo(() => {
     if (!selectedYear) return [];
-    return getUniqueMonthsForYear(vendas, selectedYear);
-  }, [vendas, selectedYear]);
+    return getUniqueMonthsForYear(vendasFormatadas, selectedYear);
+  }, [vendasFormatadas, selectedYear]);
 
   const periodAggregationType: "daily" | "monthly" | "yearly" = useMemo(() => {
     if (selectedYear && selectedMonth) return "daily";
@@ -107,7 +112,7 @@ const Vendas = () => {
   }, [selectedYear, selectedMonth]);
 
   const filteredVendas = useMemo(() => {
-    return vendas.filter((venda) => {
+    return vendasFormatadas.filter((venda) => {
       const dateObj = new Date(venda.data);
       const year = dateObj.getFullYear().toString();
       const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
@@ -117,7 +122,7 @@ const Vendas = () => {
 
       return matchesYear && matchesMonth;
     });
-  }, [vendas, selectedYear, selectedMonth]);
+  }, [vendasFormatadas, selectedYear, selectedMonth]);
 
   const totalFilteredVendas = filteredVendas.length;
   const totalPages = Math.ceil(totalFilteredVendas / itemsPerPage);
@@ -244,8 +249,7 @@ const Vendas = () => {
             className="mt-8"
           />
 
-          
-        /<ChartsDisplay
+          <ChartsDisplay
             sectionTitle="Análise por Tipo de Venda"
             charts={[
               {
