@@ -63,15 +63,19 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
               {filteredAndLimitedTransactions.length > 0 ? (
                 filteredAndLimitedTransactions.map(t => (
                   <tr key={t.id} className="hover:bg-purple-50 transition-colors duration-150 ease-in-out">
-                    <td className="p-3 whitespace-nowrap text-gray-700">{formatDate(t.data)}</td>
+                    <td className="p-3 whitespace-nowrap text-gray-700">
+                      {t.data ? formatDate(t.data) : 'Data inválida'}
+                    </td>
                     <td className="p-3 whitespace-nowrap text-gray-800 font-medium">
-                      {t.type === 'expense' ? t.descricao : `${t.tipoCurso} (${t.nomeCliente})`}
+                      {t.type === 'expense'
+                        ? t.descricao ?? 'Sem descrição'
+                        : `${t.tipoCurso ?? 'Curso'} (${t.nomeCliente ?? 'Cliente'})`}
                     </td>
                     <td className={`p-3 text-right whitespace-nowrap font-bold ${t.type === 'expense' ? 'text-red-600' : 'text-green-600'}`}>
                       {t.type === 'expense' ? '- ' : '+ '}R$ {(t.amount ?? 0).toFixed(2).replace('.', ',')}
                     </td>
                     <td className="p-3 text-center whitespace-nowrap text-gray-700 hidden sm:table-cell">
-                      {t.tipo || '-'}
+                      {t.tipo ?? '-'}
                     </td>
                   </tr>
                 ))
