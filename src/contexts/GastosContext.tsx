@@ -18,9 +18,14 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
 
   const transformarGasto = (g: any): Gasto => ({
-    ...g,
+    id: g.id,
+    descricao: g.descricao || "",
     preco: Number(g.valor) || 0,
+    categoria: g.categoria || "",
     data: typeof g.data === "string" ? g.data.split("T")[0] : "",
+    tipo: g.tipo || "",
+    nome: g.nome || g.descricao || "",
+    tipoDespesa: g.tipo_despesa || "",
   });
 
   const loadGastos = async () => {

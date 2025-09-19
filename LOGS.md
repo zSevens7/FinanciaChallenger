@@ -63,6 +63,15 @@
 - ✅ Site funcional e utilizável.  
 - 🛠️ Futuramente serão adicionadas novas funcionalidades e realizados testes para verificar outros erros.
 
+
+**🗓 Data:** 19/09/2025
+### Backend
+- 🧾 Agora estar funcionando 100% a conexão de backend/ngix e frontend.
+
+### Frontend
+- ⚙️ Precisa arrumar uns bugs agora do frontend, para deixar o Site no plano 1.0, alguns ja foi arrumados, mas aos poucos vou arrumando.
+
+
 ---
 
 ## 🗂 Estrutura do Projeto

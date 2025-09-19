@@ -1,9 +1,6 @@
-// src/pages/GastosPage.tsx
-
 import { useState, useEffect, useCallback, useMemo } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 import PageContainer from "../features/gastos/components/PageContainer";
-// ✅ CORREÇÃO: Caminhos de importação corrigidos
 import { ActionButtons } from "../features/gastos/components/ActionButtons";
 import { FilterControls } from "../features/gastos/components/FilterControls";
 import { Pagination } from "../features/gastos/components/Pagination";
@@ -23,11 +20,10 @@ import {
   Legend,
   LineElement,
   TimeScale,
-} from 'chart.js';
+} from "chart.js";
 
 import { getUniqueYears, getUniqueMonthsForYear } from "../utils";
 import {
-  // ✅ CORREÇÃO: Nomes de funções corrigidos para corresponder ao arquivo agreggation.ts
   aggregateByCategory,
   aggregateByPeriod,
   prepareChartData,
@@ -36,8 +32,6 @@ import { useGastos } from "../contexts/GastosContext";
 import { usePageHeader } from "../contexts/HeaderContext";
 import ModalGasto from "../components/ModalGasto";
 import type { Gasto } from "../types";
-
-
 
 ChartJS.register(
   CategoryScale,
@@ -55,7 +49,14 @@ ChartJS.register(
 const GastosPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { gastos, addGasto, removeAllGastos, removeGasto } = useGastos();
+  const {
+    gastos,
+    addGasto,
+    removeAllGastos,
+    removeGasto,
+    refreshGastos,
+  } = useGastos();
+
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
@@ -68,21 +69,24 @@ const GastosPage = () => {
   const handleLimparDados = useCallback(() => setShowConfirm(true), []);
 
   const clearData = () => {
-    // ✅ CORREÇÃO: Agora o contexto de gastos deve ter essa função
     removeAllGastos();
     setShowConfirm(false);
   };
 
-  const handleDeleteGasto = useCallback((id: string) => {
-    // ✅ CORREÇÃO: Agora o contexto de gastos deve ter essa função
-    removeGasto(id);
-  }, [removeGasto]);
+  const handleDeleteGasto = useCallback(
+    (id: string) => {
+      removeGasto(id);
+    },
+    [removeGasto]
+  );
 
-  const handleSaveGasto = useCallback((newGasto: Omit<Gasto, "id">) => {
-    addGasto(newGasto as Gasto);
-    setShowModal(false);
-  }, [addGasto]);
-
+  const handleSaveGasto = useCallback(
+    (newGasto: Omit<Gasto, "id">) => {
+      addGasto(newGasto);
+      setShowModal(false);
+    },
+    [addGasto]
+  );
 
   useEffect(() => {
     setPageHeader(
@@ -92,8 +96,12 @@ const GastosPage = () => {
         onLimparDados={handleLimparDados}
       />
     );
+
+    // ✅ Chamada para garantir que os dados sejam carregados ao abrir a página
+    refreshGastos();
+
     return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarGasto, handleLimparDados]);
+  }, [setPageHeader, handleAdicionarGasto, handleLimparDados, refreshGastos]);
 
   const uniqueYears = useMemo(() => getUniqueYears(gastos), [gastos]);
   const uniqueMonths = useMemo(() => {
@@ -101,17 +109,17 @@ const GastosPage = () => {
     return getUniqueMonthsForYear(gastos, selectedYear);
   }, [gastos, selectedYear]);
 
-  const periodAggregationType: 'daily' | 'monthly' | 'yearly' = useMemo(() => {
-    if (selectedYear && selectedMonth) return 'daily';
-    if (selectedYear) return 'monthly';
-    return 'yearly';
+  const periodAggregationType: "daily" | "monthly" | "yearly" = useMemo(() => {
+    if (selectedYear && selectedMonth) return "daily";
+    if (selectedYear) return "monthly";
+    return "yearly";
   }, [selectedYear, selectedMonth]);
 
   const filteredGastos = useMemo(() => {
-    return gastos.filter(gasto => {
+    return gastos.filter((gasto) => {
       const dateObj = new Date(gasto.data);
       const year = dateObj.getFullYear().toString();
-      const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
 
       const matchesYear = selectedYear ? year === selectedYear : true;
       const matchesMonth = selectedMonth ? month === selectedMonth : true;
@@ -134,13 +142,17 @@ const GastosPage = () => {
   }, [filteredGastos]);
 
   const expensesByPeriodAgg = useMemo(
-    // ✅ CORREÇÃO: Nome da função corrigido para aggregateByPeriod
-    () => aggregateByPeriod(gastos, selectedYear, selectedMonth, periodAggregationType),
+    () =>
+      aggregateByPeriod(
+        gastos,
+        selectedYear,
+        selectedMonth,
+        periodAggregationType
+      ),
     [gastos, selectedYear, selectedMonth, periodAggregationType]
   );
 
   const expensesByCategoryAgg = useMemo(
-    // ✅ CORREÇÃO: Nome da função corrigido para aggregateByCategory
     () => aggregateByCategory(filteredGastos),
     [filteredGastos]
   );
@@ -148,23 +160,44 @@ const GastosPage = () => {
   const chartDataPeriodExpenses = useMemo(() => {
     return prepareChartData(
       expensesByPeriodAgg,
-      selectedYear && !selectedMonth ? `Gastos Mensais em ${selectedYear} (R$)` : 'Evolução dos Gastos (R$)',
+      selectedYear && !selectedMonth
+        ? `Gastos Mensais em ${selectedYear} (R$)`
+        : "Evolução dos Gastos (R$)",
       selectedYear && !selectedMonth ? "bar" : "line",
       periodAggregationType
     );
   }, [expensesByPeriodAgg, selectedYear, selectedMonth, periodAggregationType]);
 
-  const chartDataCategoryExpenses = useMemo(() =>
-    prepareChartData(expensesByCategoryAgg, "Gastos por Categoria (R$)", "bar", 'category')
-    , [expensesByCategoryAgg]);
+  const chartDataCategoryExpenses = useMemo(
+    () =>
+      prepareChartData(
+        expensesByCategoryAgg,
+        "Gastos por Categoria (R$)",
+        "bar",
+        "category"
+      ),
+    [expensesByCategoryAgg]
+  );
 
-  const chartDataCategoryExpensesPie = useMemo(() =>
-    prepareChartData(expensesByCategoryAgg, "Distribuição por Categoria (%)", "pie", 'category')
-    , [expensesByCategoryAgg]);
+  const chartDataCategoryExpensesPie = useMemo(
+    () =>
+      prepareChartData(
+        expensesByCategoryAgg,
+        "Distribuição por Categoria (%)",
+        "pie",
+        "category"
+      ),
+    [expensesByCategoryAgg]
+  );
 
   return (
     <PageContainer>
-      {showModal && <ModalGasto onClose={() => setShowModal(false)} onSave={handleSaveGasto} />}
+      {showModal && (
+        <ModalGasto
+          onClose={() => setShowModal(false)}
+          onSave={handleSaveGasto}
+        />
+      )}
 
       <ConfirmModal
         isOpen={showConfirm}
@@ -215,7 +248,8 @@ const GastosPage = () => {
               {
                 id: "evolucao-gastos",
                 title: "Total de Gastos por Período (R$)",
-                chartType: selectedYear && !selectedMonth ? "bar" : "line",
+                chartType:
+                  selectedYear && !selectedMonth ? "bar" : "line",
                 data: chartDataPeriodExpenses.data,
                 options: chartDataPeriodExpenses.options,
               },
