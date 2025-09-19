@@ -4,7 +4,7 @@ import { VendaInput } from "../types/index";
 
 interface ModalVendaProps {
   onClose?: () => void;
-  onSave?: (vendaData: VendaInput) => Promise<void>; // opcional, para usar se quiser sobrescrever addVenda
+  onSave?: (vendaData: VendaInput) => Promise<void>;
 }
 
 function ModalVenda({ onClose, onSave }: ModalVendaProps) {
@@ -23,7 +23,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-
     setInputVenda((prev) => ({
       ...prev,
       [name]: name === "preco" ? parseFloat(value) || 0 : value,
@@ -39,26 +38,22 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
       inputVenda.preco <= 0 ||
       !inputVenda.tipoVenda
     ) {
-      setError(
-        "Por favor, preencha todos os campos corretamente e com valores válidos."
-      );
+      setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
       return;
     }
 
     try {
-      // Payload para enviar ao backend
       const payload: VendaInput = {
         ...inputVenda,
-        valor: inputVenda.preco, // valor obrigatório para backend
+        valor: inputVenda.preco,
       };
 
       if (onSave) {
-        await onSave(payload); // se onSave foi passado pelo parent
+        await onSave(payload);
       } else {
-        await addVenda(payload); // fallback: usa contexto
+        await addVenda(payload);
       }
 
-      // reset form
       setInputVenda({
         data: new Date().toISOString().split("T")[0],
         descricao: "",
@@ -75,7 +70,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-auto z-50">
       <div className="bg-white p-6 rounded-md w-full max-w-md shadow-lg max-h-[90vh] overflow-y-auto relative">
         {onClose && (
           <button
@@ -100,7 +95,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
           </div>
         )}
 
-        {/* Data */}
         <div className="mb-4">
           <label htmlFor="dataVenda" className="block text-green-600 mb-1">
             Data
@@ -115,7 +109,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
           />
         </div>
 
-        {/* Descrição */}
         <div className="mb-4">
           <label htmlFor="descricao" className="block text-green-600 mb-1">
             Descrição
@@ -131,7 +124,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
           />
         </div>
 
-        {/* Valor */}
         <div className="mb-6">
           <label htmlFor="preco" className="block text-green-600 mb-1">
             Valor (R$)
@@ -147,7 +139,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
           />
         </div>
 
-        {/* Tipo de Venda */}
         <div className="mb-4">
           <label htmlFor="tipoVenda" className="block text-green-600 mb-1">
             Tipo de Venda
@@ -165,7 +156,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
           </select>
         </div>
 
-        {/* Botão Salvar */}
         <div className="flex justify-end">
           <button
             onClick={handleSave}

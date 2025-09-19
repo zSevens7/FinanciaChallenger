@@ -1,38 +1,35 @@
 import { useState } from "react";
-// ✅ CORREÇÃO: Importe Gasto e GastoInput do seu arquivo de tipos, se existir, para maior consistência
-// Se não, mantenha a importação do GastosContext
 import { Gasto } from "../types/index";
 
 interface ModalGastoProps {
   onClose?: () => void;
-  onSave: (newGasto: Omit<Gasto, 'id'>) => void; // ✅ ADICIONADO: Prop onSave para passar o novo gasto
+  onSave: (newGasto: Omit<Gasto, "id">) => void;
 }
 
-// Omitindo 'id' para a entrada, já que o contexto o gerará
 type GastoInput = Omit<Gasto, "id">;
 
-function ModalGasto({ onClose, onSave }: ModalGastoProps) { // ✅ ADICIONADO: Prop onSave
+function ModalGasto({ onClose, onSave }: ModalGastoProps) {
   const [inputGasto, setInputGasto] = useState<GastoInput>({
-    descricao: "", 
-    preco: 0, // ✅ CORREÇÃO: Mudado de 'valor' para 'preco' para consistência
+    descricao: "",
+    preco: 0,
     data: new Date().toISOString().split("T")[0],
     categoria: "",
-    tipo: "", 
-    nome: "", // ✅ ADICIONADO: Propriedade 'nome'
-    tipoDespesa: "", // ✅ ADICIONADO: Propriedade 'tipoDespesa'
+    tipo: "",
+    nome: "",
+    tipoDespesa: "",
   });
+
   const [error, setError] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInputGasto((prev) => ({
       ...prev,
-      [name]: name === 'preco' ? parseFloat(value) : value, // ✅ CORREÇÃO: Mudado de 'valor' para 'preco'
+      [name]: name === "preco" ? parseFloat(value) : value,
     }));
   };
 
   const handleSave = () => {
-    // ✅ CORREÇÃO: Validação alterada para usar 'preco'
     if (
       !inputGasto.data ||
       !inputGasto.descricao.trim() ||
@@ -45,18 +42,16 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) { // ✅ ADICIONADO: P
       setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
       return;
     }
-    
-    // ✅ CORREÇÃO: Gasto enviado com a propriedade 'preco'
-    const newGasto: Omit<Gasto, 'id'> = {
-        ...inputGasto,
-        nome: inputGasto.descricao, // Adicionando 'nome'
-        tipoDespesa: inputGasto.tipo, // Adicionando 'tipoDespesa'
-        preco: inputGasto.preco > 0 ? inputGasto.preco : 0, // Garantindo que o preco não seja negativo
+
+    const newGasto: Omit<Gasto, "id"> = {
+      ...inputGasto,
+      nome: inputGasto.descricao,
+      tipoDespesa: inputGasto.tipo,
+      preco: inputGasto.preco > 0 ? inputGasto.preco : 0,
     };
 
-    onSave(newGasto); // ✅ CORREÇÃO: Chama a função onSave recebida por props
-    
-    // Limpe os campos do formulário
+    onSave(newGasto);
+
     setInputGasto({
       descricao: "",
       preco: 0,
@@ -66,8 +61,7 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) { // ✅ ADICIONADO: P
       nome: "",
       tipoDespesa: "",
     });
-    
-    // Feche o modal
+
     if (onClose) onClose();
   };
 
@@ -83,9 +77,8 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) { // ✅ ADICIONADO: P
             ×
           </button>
         )}
-        <h2 className="text-red-500 text-2xl font-bold mb-6 text-center">
-          Adicionar Gasto
-        </h2>
+
+        <h2 className="text-red-500 text-2xl font-bold mb-6 text-center">Adicionar Gasto</h2>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">

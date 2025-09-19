@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import ModalVenda from "../components/ModalVenda";
 import ConfirmModal from "../components/ConfirmModal";
 import PageContainer from "../features/vendas/PageContainer";
@@ -10,7 +10,6 @@ import { VendasTable } from "../features/vendas/VendasTable";
 import { ChartsDisplay } from "../features/vendas/ChartDisplay";
 import { useVendas } from "../contexts/VendasContext";
 import { usePageHeader } from "../contexts/HeaderContext";
-
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,7 +23,6 @@ import {
   LineElement,
   TimeScale,
 } from "chart.js";
-
 import { getUniqueYears, getUniqueMonthsForYear } from "../utils";
 import {
   aggregateSalesByCourseType,
@@ -56,13 +54,20 @@ const Vendas = () => {
   const itemsPerPage = 10;
   const { setPageHeader } = usePageHeader();
 
-  const reloadVendas = useCallback(() => {
+  useEffect(() => {
     refreshVendas();
-  }, [refreshVendas]);
+  }, []);
 
   useEffect(() => {
-    reloadVendas();
-  }, [reloadVendas]);
+    setPageHeader(
+      "Vendas",
+      <HeaderActionButtons
+        onAdicionarVenda={() => setShowModal(true)}
+        onLimparDadosVendas={() => setShowConfirm(true)}
+      />
+    );
+    return () => setPageHeader(null, null);
+  }, [setPageHeader]);
 
   const closeModal = () => setShowModal(false);
 
@@ -71,21 +76,15 @@ const Vendas = () => {
     setShowConfirm(false);
   };
 
-  const handleAdicionarVenda = useCallback(() => setShowModal(true), []);
-  const handleLimparDadosVendas = useCallback(() => setShowConfirm(true), []);
-
-  const handleSaveVenda = useCallback(
-    async (vendaData: VendaInput) => {
-      try {
-        await addVenda(vendaData);
-        setShowModal(false);
-        setCurrentPage(1);
-      } catch (err) {
-        console.error("Erro ao adicionar venda:", err);
-      }
-    },
-    [addVenda]
-  );
+  const handleSaveVenda = async (vendaData: VendaInput) => {
+    try {
+      await addVenda(vendaData);
+      setShowModal(false);
+      setCurrentPage(1);
+    } catch (err) {
+      console.error("Erro ao adicionar venda:", err);
+    }
+  };
 
   const handleDeleteVenda = async (id: string) => {
     try {
@@ -94,17 +93,6 @@ const Vendas = () => {
       console.error("Erro ao deletar venda:", err);
     }
   };
-
-  useEffect(() => {
-    setPageHeader(
-      "Vendas",
-      <HeaderActionButtons
-        onAdicionarVenda={handleAdicionarVenda}
-        onLimparDadosVendas={handleLimparDadosVendas}
-      />
-    );
-    return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarVenda, handleLimparDadosVendas]);
 
   const uniqueYears = useMemo(() => getUniqueYears(vendas), [vendas]);
   const uniqueMonths = useMemo(() => {
@@ -226,8 +214,8 @@ const Vendas = () => {
         />
 
         <HeaderActionButtons
-          onAdicionarVenda={handleAdicionarVenda}
-          onLimparDadosVendas={handleLimparDadosVendas}
+          onAdicionarVenda={() => setShowModal(true)}
+          onLimparDadosVendas={() => setShowConfirm(true)}
         />
       </div>
 
@@ -256,7 +244,8 @@ const Vendas = () => {
             className="mt-8"
           />
 
-          <ChartsDisplay
+          
+        /<ChartsDisplay
             sectionTitle="Análise por Tipo de Venda"
             charts={[
               {
