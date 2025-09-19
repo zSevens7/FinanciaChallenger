@@ -15,9 +15,7 @@ export interface TransacaoMonetaria {
 export interface Venda extends TransacaoMonetaria {
   id: string;
   tipoVenda: "salario" | "produto" | "servico";
-  nomeCliente?: string;
-  tipoCurso?: string;
-  comentario?: string;
+  
 }
 
 // Tipo usado para criar/editar vendas (sem id)

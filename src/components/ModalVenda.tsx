@@ -10,11 +10,11 @@ interface ModalVendaProps {
 function ModalVenda({ onClose, onSave }: ModalVendaProps) {
   const { addVenda } = useVendas();
 
-  const [inputVenda, setInputVenda] = useState<Omit<VendaInput, "valor">>({
+  const [inputVenda, setInputVenda] = useState({
     data: new Date().toISOString().split("T")[0],
     descricao: "",
     preco: 0,
-    tipoVenda: "produto",
+    tipoVenda: "produto" as "salario" | "produto" | "servico",
   });
 
   const [error, setError] = useState("");
@@ -38,14 +38,16 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
       inputVenda.preco <= 0 ||
       !inputVenda.tipoVenda
     ) {
-      setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
+      setError(
+        "Por favor, preencha todos os campos corretamente e com valores válidos."
+      );
       return;
     }
 
     try {
       const payload: VendaInput = {
         ...inputVenda,
-        valor: inputVenda.preco,
+        valor: inputVenda.preco, // compatível com backend
       };
 
       if (onSave) {
@@ -54,6 +56,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
         await addVenda(payload);
       }
 
+      // reset form
       setInputVenda({
         data: new Date().toISOString().split("T")[0],
         descricao: "",
@@ -119,7 +122,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
             name="descricao"
             value={inputVenda.descricao}
             onChange={handleChange}
-            placeholder="Ex: Venda de curso online"
+            placeholder="Ex: Venda de serviço"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
           />
         </div>
@@ -132,7 +135,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
             type="number"
             id="preco"
             name="preco"
-            value={inputVenda.preco === 0 ? "" : inputVenda.preco}
+            value={inputVenda.preco}
             onChange={handleChange}
             placeholder="Digite o valor"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
