@@ -7,7 +7,7 @@ import { Pagination } from "../features/gastos/components/Pagination";
 import { SummarySection } from "../features/gastos/components/SummarysSection";
 import { GastosTable } from "../features/gastos/components/GastosTable";
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay";
-import { useGastosValidos } from "../contexts/GastosContext"; // Alterado para useGastosValidos
+import { useGastos } from "../contexts/GastosContext"; // <- CORRIGIDO
 import { usePageHeader } from "../contexts/HeaderContext";
 import ModalGasto from "../components/ModalGasto";
 import type { Gasto } from "../types";
@@ -46,8 +46,8 @@ const GastosPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Alterado para usar useGastosValidos em vez de useGastos
-  const { gastos, addGasto, deleteGasto, removeAllGastos, refreshGastos } = useGastosValidos();
+  // Usando o hook correto
+  const { gastos, addGasto, deleteGasto, removeAllGastos, refreshGastos } = useGastos();
 
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -82,7 +82,6 @@ const GastosPage = () => {
         setShowModal(false);
       } catch (err) {
         console.error("Erro ao adicionar gasto:", err);
-        // Você pode adicionar uma notificação para o usuário aqui
       }
     },
     [addGasto]
@@ -90,7 +89,7 @@ const GastosPage = () => {
 
   useEffect(() => {
     refreshGastos();
-  }, [refreshGastos]); // Adicionado refreshGastos como dependência
+  }, [refreshGastos]);
 
   useEffect(() => {
     setPageHeader(
@@ -117,13 +116,11 @@ const GastosPage = () => {
 
   const filteredGastos = useMemo(() => {
     return gastos.filter((gasto) => {
-      // Verificação adicional para garantir que a data é válida
       if (!gasto.data) return false;
-      
       try {
         const dateObj = new Date(gasto.data);
         if (isNaN(dateObj.getTime())) return false;
-        
+
         const year = dateObj.getFullYear().toString();
         const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
 
@@ -140,7 +137,6 @@ const GastosPage = () => {
   const totalFilteredGastos = filteredGastos.length;
   const totalPages = Math.ceil(totalFilteredGastos / itemsPerPage);
 
-  // Ajustar página atual se necessário (caso a filtragem reduza o número de páginas)
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(totalPages);
@@ -151,8 +147,7 @@ const GastosPage = () => {
 
   const paginatedGastos = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredGastos.slice(startIndex, endIndex);
+    return filteredGastos.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredGastos, currentPage, itemsPerPage]);
 
   const totalAcumuladoGasto = useMemo(() => {
@@ -190,10 +185,7 @@ const GastosPage = () => {
   return (
     <PageContainer>
       {showModal && (
-        <ModalGasto 
-          onClose={() => setShowModal(false)} 
-          onSave={handleSaveGasto} 
-        />
+        <ModalGasto onClose={() => setShowModal(false)} onSave={handleSaveGasto} />
       )}
 
       <ConfirmModal
@@ -223,21 +215,12 @@ const GastosPage = () => {
           uniqueMonths={uniqueMonths}
           setCurrentPage={setCurrentPage}
         />
-        <ActionButtons 
-          onAdicionarGasto={handleAdicionarGasto} 
-          onLimparDados={handleLimparDados} 
-        />
+        <ActionButtons onAdicionarGasto={handleAdicionarGasto} onLimparDados={handleLimparDados} />
       </div>
 
       <GastosTable gastos={paginatedGastos} onDelete={handleDeleteGasto} />
 
-      {totalPages > 1 && (
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={totalPages} 
-          onPageChange={setCurrentPage} 
-        />
-      )}
+      {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
 
       {filteredGastos.length > 0 && (
         <>
