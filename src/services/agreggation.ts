@@ -5,8 +5,6 @@ import { monthNames } from "../utils/index";
 import type { Gasto } from "../types/index";
 import type { Venda } from "../types/index";
 
-// === ATUALIZAÇÃO CRÍTICA ===
-// Esta linha estava faltando ou foi removida. Ela DEFINE e EXPORTA o tipo para uso em outros arquivos.
 export type AggregationType = 'daily' | 'monthly' | 'yearly' | 'category' | 'type';
 
 // --- Funções de Agregação para GASTOS ---
@@ -16,6 +14,11 @@ export function aggregateByPeriod(
   selectedMonth: string,
   aggregationType: 'daily' | 'monthly' | 'yearly'
 ): Record<string, number> {
+  // ✅ CORREÇÃO: Verificação de segurança para items
+  if (!items || !Array.isArray(items)) {
+    return {};
+  }
+
   const agg: Record<string, number> = {};
 
   if (aggregationType === 'monthly') {
@@ -32,6 +35,9 @@ export function aggregateByPeriod(
   }
 
   items.forEach(({ data, preco = 0 }) => {
+    // ✅ CORREÇÃO: Verificação de segurança para data
+    if (!data) return;
+    
     const [year, month, day] = data.split("-");
     let key: string;
 
@@ -46,33 +52,56 @@ export function aggregateByPeriod(
       key = year;
     }
 
-    agg[key] = (agg[key] || 0) + (preco ?? 0);
+    // ✅ CORREÇÃO: Verificação de segurança para key
+    if (key) {
+      agg[key] = (agg[key] || 0) + (preco ?? 0);
+    }
   });
   return agg;
 }
 
 export function aggregateByCategory(items: Gasto[]): Record<string, number> {
+  // ✅ CORREÇÃO: Verificação de segurança para items
+  if (!items || !Array.isArray(items)) {
+    return {};
+  }
+
   const agg: Record<string, number> = {};
   items.forEach(({ categoria, preco = 0 }) => {
-    agg[categoria] = (agg[categoria] || 0) + (preco ?? 0);
+    // ✅ CORREÇÃO: Verificação de segurança para categoria
+    if (categoria) {
+      agg[categoria] = (agg[categoria] || 0) + (preco ?? 0);
+    }
   });
   return agg;
 }
 
 export function aggregateByTipoDespesa(items: Gasto[]): Record<string, number> {
+  // ✅ CORREÇÃO: Verificação de segurança para items
+  if (!items || !Array.isArray(items)) {
+    return {};
+  }
+
   const agg: Record<string, number> = {};
   items.forEach(({ tipoDespesa, preco = 0 }) => {
-    agg[tipoDespesa] = (agg[tipoDespesa] || 0) + (preco ?? 0);
+    // ✅ CORREÇÃO: Verificação de segurança para tipoDespesa
+    if (tipoDespesa) {
+      agg[tipoDespesa] = (agg[tipoDespesa] || 0) + (preco ?? 0);
+    }
   });
   return agg;
 }
 
 // --- Funções de Agregação para VENDAS ---
 export function aggregateSalesByCourseType(vendas: Venda[]): Record<string, number> {
+  // ✅ CORREÇÃO: Verificação de segurança para vendas
+  if (!vendas || !Array.isArray(vendas)) {
+    return {};
+  }
+
   const agg: Record<string, number> = {};
   vendas.forEach(venda => {
     const type = venda.tipoVenda || "Outros";
-    // ALTERADO: Usando venda.preco em vez de venda.valorFinal
     agg[type] = (agg[type] || 0) + (venda.preco ?? 0);
   });
   return agg;
@@ -84,6 +113,11 @@ export function aggregateSalesByPeriod(
   selectedMonth: string,
   aggregationType: 'daily' | 'monthly' | 'yearly'
 ): Record<string, number> {
+  // ✅ CORREÇÃO: Verificação de segurança para vendas
+  if (!vendas || !Array.isArray(vendas)) {
+    return {};
+  }
+
   const agg: Record<string, number> = {};
 
   if (aggregationType === 'monthly') {
@@ -100,6 +134,9 @@ export function aggregateSalesByPeriod(
   }
 
   vendas.forEach(venda => {
+    // ✅ CORREÇÃO: Verificação de segurança para data
+    if (!venda.data) return;
+    
     const [year, month, day] = venda.data.split("-");
     let key: string;
 
@@ -114,23 +151,34 @@ export function aggregateSalesByPeriod(
       key = year;
     }
 
-    // ALTERADO: Usando venda.preco em vez de venda.valorFinal
-    agg[key] = (agg[key] || 0) + (venda.preco ?? 0);
+    // ✅ CORREÇÃO: Verificação de segurança para key
+    if (key) {
+      agg[key] = (agg[key] || 0) + (venda.preco ?? 0);
+    }
   });
 
   return agg;
 }
 
-// --- Função Genérica para Preparar Dados e Opções do Gráfico (AGORA USA O TIPO AggregationType COMPLETO) ---
+// --- Função Genérica para Preparar Dados e Opções do Gráfico ---
 export function prepareChartData(
   agg: Record<string, number>,
   label: string,
   chartType: "bar" | "pie" | "line",
-  aggregationType: AggregationType // <-- AGORA ESTÁ CORRETO AQUI!
+  aggregationType: AggregationType
 ): {
   data: ChartData<"bar" | "pie" | "line">;
   options: ChartOptions<"bar" | "pie" | "line">;
 } {
+  // ✅ CORREÇÃO: Verificação de segurança para agg
+  if (!agg || typeof agg !== 'object') {
+    // Retorna estrutura vazia se agg for inválido
+    return {
+      data: { labels: [], datasets: [] },
+      options: {}
+    };
+  }
+
   const keys = Object.keys(agg).sort((a, b) => {
     const na = parseInt(a, 10);
     const nb = parseInt(b, 10);
@@ -149,21 +197,21 @@ export function prepareChartData(
     } else if (aggregationType === 'yearly') {
         return k;
     }
-    // Para 'category' ou 'type', 'k' já é o label correto
     return k;
   });
+  
   const values = keys.map(k => agg[k]);
 
-const palette = [
-  "#00b894", // verde
-  "#0984e3", // azul
-  "#fdcb6e", // amarelo
-  "#d63031", // vermelho
-  "#6c5ce7", // roxo
-  "#e17055", // laranja
-  "#2d3436", // cinza escuro
-  "#fab1a0", // rosa claro
-];
+  const palette = [
+    "#00b894", // verde
+    "#0984e3", // azul
+    "#fdcb6e", // amarelo
+    "#d63031", // vermelho
+    "#6c5ce7", // roxo
+    "#e17055", // laranja
+    "#2d3436", // cinza escuro
+    "#fab1a0", // rosa claro
+  ];
 
   const backgroundColors = values.map((_, i) => palette[i % palette.length]);
   const borderColors = backgroundColors.map(c => c);
