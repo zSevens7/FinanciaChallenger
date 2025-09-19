@@ -21,12 +21,14 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
       console.log("🟡 Buscando vendas do backend...");
       const res = await api.get<{ vendas: Venda[] }>("/vendas");
 
-      const vendasTransformadas = res.data.vendas.map(v => ({
-        ...v,
-        preco: Number(v.valor) || 0,
-        tipoVenda: v.tipo_venda as "salario" | "produto" | "servico",
-        data: v.data.split("T")[0],
-      }));
+      const vendasTransformadas = Array.isArray(res.data.vendas)
+        ? res.data.vendas.map(v => ({
+            ...v,
+            preco: Number(v.valor) || 0,
+            tipoVenda: v.tipo_venda as "salario" | "produto" | "servico",
+            data: typeof v.data === "string" ? v.data.split("T")[0] : "",
+          }))
+        : [];
 
       console.log("🟢 Vendas transformadas:", vendasTransformadas);
       setVendas(vendasTransformadas);
@@ -49,7 +51,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
         ...res.data.venda,
         preco: Number(res.data.venda.valor) || 0,
         tipoVenda: res.data.venda.tipo_venda as "salario" | "produto" | "servico",
-        data: res.data.venda.data.split("T")[0],
+        data: typeof res.data.venda.data === "string" ? res.data.venda.data.split("T")[0] : "",
       };
 
       setVendas(prev => [...prev, novaVenda]);
@@ -66,7 +68,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
         ...res.data.venda,
         preco: Number(res.data.venda.valor) || 0,
         tipoVenda: res.data.venda.tipo_venda as "salario" | "produto" | "servico",
-        data: res.data.venda.data.split("T")[0],
+        data: typeof res.data.venda.data === "string" ? res.data.venda.data.split("T")[0] : "",
       };
 
       setVendas(prev => prev.map(v => (v.id === id ? vendaAtualizada : v)));
@@ -87,13 +89,15 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <VendasContext.Provider value={{
-      vendas,
-      addVenda,
-      updateVenda,
-      deleteVenda,
-      refreshVendas: loadVendas
-    }}>
+    <VendasContext.Provider
+      value={{
+        vendas,
+        addVenda,
+        updateVenda,
+        deleteVenda,
+        refreshVendas: loadVendas,
+      }}
+    >
       {children}
     </VendasContext.Provider>
   );
