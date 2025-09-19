@@ -7,6 +7,10 @@ import { Pagination } from "../features/gastos/components/Pagination";
 import { SummarySection } from "../features/gastos/components/SummarysSection";
 import { GastosTable } from "../features/gastos/components/GastosTable";
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay";
+import { useGastos } from "../contexts/GastosContext";
+import { usePageHeader } from "../contexts/HeaderContext";
+import ModalGasto from "../components/ModalGasto";
+import type { Gasto } from "../types";
 
 import {
   Chart as ChartJS,
@@ -23,15 +27,7 @@ import {
 } from "chart.js";
 
 import { getUniqueYears, getUniqueMonthsForYear } from "../utils";
-import {
-  aggregateByCategory,
-  aggregateByPeriod,
-  prepareChartData,
-} from "../services/agreggation";
-import { useGastos } from "../contexts/GastosContext";
-import { usePageHeader } from "../contexts/HeaderContext";
-import ModalGasto from "../components/ModalGasto";
-import type { Gasto } from "../types";
+import { aggregateByCategory, aggregateByPeriod, prepareChartData } from "../services/agreggation";
 
 ChartJS.register(
   CategoryScale,
@@ -49,17 +45,11 @@ ChartJS.register(
 const GastosPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const {
-    gastos,
-    addGasto,
-    removeAllGastos,
-    removeGasto,
-    refreshGastos,
-  } = useGastos();
+
+  const { gastos, addGasto, deleteGasto, removeAllGastos, refreshGastos } = useGastos();
 
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
-
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -68,32 +58,34 @@ const GastosPage = () => {
   const handleAdicionarGasto = useCallback(() => setShowModal(true), []);
   const handleLimparDados = useCallback(() => setShowConfirm(true), []);
 
-  const clearData = () => {
+  const clearData = async () => {
     removeAllGastos();
     setShowConfirm(false);
   };
 
   const handleDeleteGasto = useCallback(
-    (id: string) => {
-      removeGasto(id);
+    async (id: string) => {
+      try {
+        await deleteGasto(id);
+      } catch (err) {
+        console.error("Erro ao deletar gasto:", err);
+      }
     },
-    [removeGasto]
+    [deleteGasto]
   );
 
   const handleSaveGasto = useCallback(
-    (newGasto: Omit<Gasto, "id">) => {
-      addGasto(newGasto);
+    async (newGasto: Omit<Gasto, "id">) => {
+      await addGasto(newGasto);
       setShowModal(false);
     },
     [addGasto]
   );
 
-  // ✅ Evita looping: carrega gastos uma única vez
   useEffect(() => {
     refreshGastos();
   }, []);
 
-  // ✅ Mantém o header fixo sem re-renderizar desnecessariamente
   useEffect(() => {
     setPageHeader(
       "Gastos",
@@ -103,7 +95,7 @@ const GastosPage = () => {
       />
     );
     return () => setPageHeader(null, null);
-  }, [setPageHeader]);
+  }, [setPageHeader, handleAdicionarGasto, handleLimparDados]);
 
   const uniqueYears = useMemo(() => getUniqueYears(gastos), [gastos]);
   const uniqueMonths = useMemo(() => {
@@ -144,20 +136,11 @@ const GastosPage = () => {
   }, [filteredGastos]);
 
   const expensesByPeriodAgg = useMemo(
-    () =>
-      aggregateByPeriod(
-        gastos,
-        selectedYear,
-        selectedMonth,
-        periodAggregationType
-      ),
+    () => aggregateByPeriod(gastos, selectedYear, selectedMonth, periodAggregationType),
     [gastos, selectedYear, selectedMonth, periodAggregationType]
   );
 
-  const expensesByCategoryAgg = useMemo(
-    () => aggregateByCategory(filteredGastos),
-    [filteredGastos]
-  );
+  const expensesByCategoryAgg = useMemo(() => aggregateByCategory(filteredGastos), [filteredGastos]);
 
   const chartDataPeriodExpenses = useMemo(() => {
     return prepareChartData(
@@ -171,35 +154,18 @@ const GastosPage = () => {
   }, [expensesByPeriodAgg, selectedYear, selectedMonth, periodAggregationType]);
 
   const chartDataCategoryExpenses = useMemo(
-    () =>
-      prepareChartData(
-        expensesByCategoryAgg,
-        "Gastos por Categoria (R$)",
-        "bar",
-        "category"
-      ),
+    () => prepareChartData(expensesByCategoryAgg, "Gastos por Categoria (R$)", "bar", "category"),
     [expensesByCategoryAgg]
   );
 
   const chartDataCategoryExpensesPie = useMemo(
-    () =>
-      prepareChartData(
-        expensesByCategoryAgg,
-        "Distribuição por Categoria (%)",
-        "pie",
-        "category"
-      ),
+    () => prepareChartData(expensesByCategoryAgg, "Distribuição por Categoria (%)", "pie", "category"),
     [expensesByCategoryAgg]
   );
 
   return (
     <PageContainer>
-      {showModal && (
-        <ModalGasto
-          onClose={() => setShowModal(false)}
-          onSave={handleSaveGasto}
-        />
-      )}
+      {showModal && <ModalGasto onClose={() => setShowModal(false)} onSave={handleSaveGasto} />}
 
       <ConfirmModal
         isOpen={showConfirm}
@@ -228,19 +194,12 @@ const GastosPage = () => {
           uniqueMonths={uniqueMonths}
           setCurrentPage={setCurrentPage}
         />
-        <ActionButtons
-          onAdicionarGasto={handleAdicionarGasto}
-          onLimparDados={handleLimparDados}
-        />
+        <ActionButtons onAdicionarGasto={handleAdicionarGasto} onLimparDados={handleLimparDados} />
       </div>
 
       <GastosTable gastos={paginatedGastos} onDelete={handleDeleteGasto} />
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-      />
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       {filteredGastos.length > 0 && (
         <>
@@ -250,8 +209,7 @@ const GastosPage = () => {
               {
                 id: "evolucao-gastos",
                 title: "Total de Gastos por Período (R$)",
-                chartType:
-                  selectedYear && !selectedMonth ? "bar" : "line",
+                chartType: selectedYear && !selectedMonth ? "bar" : "line",
                 data: chartDataPeriodExpenses.data,
                 options: chartDataPeriodExpenses.options,
               },
