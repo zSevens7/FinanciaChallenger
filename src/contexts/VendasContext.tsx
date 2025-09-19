@@ -31,30 +31,24 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const [vendas, setVendas] = useState<Venda[]>([]);
 
   const transformarVenda = (v: any): Venda | null => {
-    try {
-      if (!v) return null;
+    if (!v) return null;
 
-      const preco = Number(v.preco) || Number(v.valor) || 0;
-      const tipoVendaValido =
-        ["salario", "produto", "servico"].includes(v.tipoVenda || v.tipo)
-          ? (v.tipoVenda || v.tipo)
-          : "servico"; // default
+    const preco = Number(v.preco ?? v.valor) || 0;
+    const tipoVendaValido = ["salario", "produto", "servico"].includes(v.tipoVenda || v.categoria)
+      ? (v.tipoVenda || v.categoria)
+      : "servico";
 
-      const vendaTransformada: Venda = {
-        id: String(v.id || ""),
-        descricao: v.descricao || "",
-        preco,
-        data: typeof v.data === "string" ? v.data.split("T")[0] : "",
-        tipoVenda: tipoVendaValido,
-        
-      };
+    const venda: Venda = {
+      id: String(v.id ?? ""),
+      descricao: v.descricao ?? "",
+      preco,
+      data: typeof v.data === "string" ? v.data.split("T")[0] : "",
+      tipoVenda: tipoVendaValido as "salario" | "produto" | "servico",
+    };
 
-      return isVendaValida(vendaTransformada) ? vendaTransformada : null;
-    } catch (error) {
-      console.error("Erro ao transformar venda:", error, v);
-      return null;
-    }
+    return isVendaValida(venda) ? venda : null;
   };
+
 
   const loadVendas = async () => {
     try {

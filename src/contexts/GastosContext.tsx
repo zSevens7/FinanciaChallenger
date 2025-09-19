@@ -31,26 +31,24 @@ const isGastoValido = (g: Gasto): boolean => {
 
 // 🔑 Normalizador para alinhar dados do backend com o frontend
 const transformarGasto = (g: any): Gasto | null => {
-  try {
-    if (!g) return null;
+  if (!g) return null;
 
-    const gastoTransformado: Gasto = {
-      id: String(g.id || ""),
-      descricao: g.descricao || "",
-      preco: Number(g.valor) || 0, // valor string → number
-      categoria: g.categoria || "",
-      data: g.data ? String(g.data).split("T")[0] : "", // pega só YYYY-MM-DD
-      tipo: g.tipo || "",
-      nome: g.nome || g.descricao || "",
-      tipoDespesa: g.tipoDespesa || g.tipo_despesa || "", // camelCase + snake_case
-    };
+  const preco = Number(g.valor ?? g.preco) || 0;
 
-    return isGastoValido(gastoTransformado) ? gastoTransformado : null;
-  } catch (error) {
-    console.error("Erro ao transformar gasto:", error, g);
-    return null;
-  }
+  const gasto: Gasto = {
+    id: String(g.id ?? ""),
+    descricao: g.descricao ?? "",
+    preco, // <--- aqui
+    data: typeof g.data === "string" ? g.data.split("T")[0] : "",
+    categoria: g.categoria ?? "Outros",
+    tipo: g.tipo ?? "outro", // se seu Gasto tiver o campo tipo
+    tipoDespesa: g.tipo_despesa ?? g.tipoDespesa ?? "", // aqui garantimos que exista
+  };
+
+  return isGastoValido(gasto) ? gasto : null;
 };
+
+
 
 export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
