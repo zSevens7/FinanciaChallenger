@@ -88,6 +88,12 @@ const GastosPage = () => {
     [addGasto]
   );
 
+  // ✅ Evita looping: carrega gastos uma única vez
+  useEffect(() => {
+    refreshGastos();
+  }, []);
+
+  // ✅ Mantém o header fixo sem re-renderizar desnecessariamente
   useEffect(() => {
     setPageHeader(
       "Gastos",
@@ -96,12 +102,8 @@ const GastosPage = () => {
         onLimparDados={handleLimparDados}
       />
     );
-
-    // ✅ Chamada para garantir que os dados sejam carregados ao abrir a página
-    refreshGastos();
-
     return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarGasto, handleLimparDados, refreshGastos]);
+  }, [setPageHeader]);
 
   const uniqueYears = useMemo(() => getUniqueYears(gastos), [gastos]);
   const uniqueMonths = useMemo(() => {
