@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Gasto, Venda } from '../../../types'; // Importa os tipos do arquivo types.ts
+import type { Gasto, Venda } from '../../../types';
 
 const monthNames: { [key: string]: string } = {
   '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
@@ -24,14 +24,13 @@ interface DashboardChartData {
   cumulativeCashFlowData: CumulativeCashFlowDataPoint[];
 }
 
-// Type guard para identificar se o item é Venda
-const isVenda = (item: Gasto | Venda): item is Venda => {
-  return 'valor' in item && 'categoria' in item;
+// Type guards com proteção extra
+const isVenda = (item: unknown): item is Venda => {
+  return !!item && typeof item === 'object' && 'valor' in item && 'categoria' in item;
 };
 
-// Type guard para identificar se o item é Gasto
-const isGasto = (item: Gasto | Venda): item is Gasto => {
-  return 'preco' in item && 'tipo' in item;
+const isGasto = (item: unknown): item is Gasto => {
+  return !!item && typeof item === 'object' && 'preco' in item && 'tipo' in item;
 };
 
 export const useDashboardChartsData = (
@@ -45,11 +44,10 @@ export const useDashboardChartsData = (
   const data = useMemo(() => {
     const salesExpensesMap = new Map<string, { totalSales: number; totalExpenses: number; netCashFlow: number }>();
 
-    const allTransactions: Array<Gasto | Venda> = [...filteredGastos, ...filteredVendas].sort(
-      (a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()
-    );
+    const allTransactions: Array<Gasto | Venda> = [...(filteredGastos || []), ...(filteredVendas || [])]
+      .filter(item => item && typeof item === 'object' && 'data' in item)
+      .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
 
-    // Inicializa períodos no map
     if (aggregationType === 'monthly') {
       for (let i = 1; i <= 12; i++) {
         const monthKey = `${selectedYear}-${i.toString().padStart(2, '0')}`;
@@ -63,8 +61,9 @@ export const useDashboardChartsData = (
       }
     }
 
-    // Processa transações
     allTransactions.forEach(item => {
+      if (!item || typeof item !== 'object') return;
+
       const date = new Date(item.data);
       let periodKey = '';
 
@@ -75,7 +74,7 @@ export const useDashboardChartsData = (
       } else if (aggregationType === 'monthly') {
         if (date.getFullYear().toString() !== selectedYear) return;
         periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-      } else { // yearly
+      } else {
         periodKey = date.getFullYear().toString();
       }
 
@@ -97,7 +96,6 @@ export const useDashboardChartsData = (
     const salesExpensesData: SalesExpensesDataPoint[] = [];
     const cumulativeCashFlowData: CumulativeCashFlowDataPoint[] = [];
 
-    // Adiciona ponto inicial do investimento
     if (initialInvestment !== 0) {
       let initialPeriodLabel = aggregationType === 'monthly' ? `Mês Anterior ${selectedYear}` : (parseInt(selectedYear) - 1).toString();
       cumulativeCashFlowData.push({
@@ -107,7 +105,9 @@ export const useDashboardChartsData = (
       });
     }
 
-    let currentCumulative = cumulativeCashFlowData.length > 0 ? cumulativeCashFlowData[cumulativeCashFlowData.length - 1].cumulativeCashFlow : 0;
+    let currentCumulative = cumulativeCashFlowData.length > 0
+      ? cumulativeCashFlowData[cumulativeCashFlowData.length - 1].cumulativeCashFlow
+      : 0;
 
     sortedPeriodKeys.forEach(periodKey => {
       const values = salesExpensesMap.get(periodKey)!;

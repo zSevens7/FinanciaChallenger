@@ -28,7 +28,7 @@ export default defineConfig({
   // Configuração para build
   build: {
     outDir: 'dist',
-    sourcemap: false
+    sourcemap: true
   },
   // Configuração para preview
   preview: {
