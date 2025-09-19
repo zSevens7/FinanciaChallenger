@@ -15,18 +15,24 @@ export interface TransacaoMonetaria {
 export interface Venda extends TransacaoMonetaria {
   id: string;
   tipoVenda: "salario" | "produto" | "servico";
-  comentario?: string; // opcional
+  comentario?: string;   // opcional
+  categoria?: string;    // opcional, compatível com backend
+  nomeCliente?: string;  // opcional
+  origem?: string;       // opcional
 }
 
 // Tipo usado para criar/editar vendas (sem id)
 export type VendaInput = Omit<Venda, "id"> & {
-  preco: number;       // garante que o frontend continue usando 'preco'
-  comentario?: string; // opcional
+  preco: number;                 // garante que o frontend continue usando 'preco'
+  tipoVenda?: "salario" | "produto" | "servico"; // opcional para criação
+  comentario?: string;           // opcional
+  categoria: string;             // obrigatório para backend
+  nomeCliente?: string;          // opcional
+  origem?: string;               // opcional
 };
 
 // ----------------- GASTOS -----------------
 
-// Gastos (despesas)
 export interface Gasto extends TransacaoMonetaria {
   id: string;
   categoria: string;       // Ex: moradia, transporte
@@ -37,18 +43,15 @@ export interface Gasto extends TransacaoMonetaria {
 
 // ----------------- PROPS DE COMPONENTES -----------------
 
-// Props para os botões de ação
 export interface ActionButtonsProps {
   onAdicionarGasto: () => void;
   onLimparDados: () => void;
 }
 
-// Props para o modal de novo gasto
 export interface ModalGastoProps {
   onClose: () => void;
 }
 
-// Props para modal de confirmação
 export interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
@@ -57,12 +60,10 @@ export interface ConfirmModalProps {
   onConfirm: () => void;
 }
 
-// Props para detalhes de despesas
 export interface ExpenseDetailsProps {
   expenses: Gasto[];
 }
 
-// Props para controles de filtro de data
 export interface FilterControlsProps {
   selectedYear: string;
   setSelectedYear: (year: string) => void;
@@ -72,19 +73,16 @@ export interface FilterControlsProps {
   setCurrentPage: (page: number) => void;
 }
 
-// Props para tabela de gastos
 export interface GastosTableProps {
   gastos: Gasto[];
 }
 
-// Props para paginação
 export interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
-// Props para cards de gráfico
 export interface ChartCardProps {
   title: string;
   chartType: "bar" | "pie";
@@ -92,12 +90,10 @@ export interface ChartCardProps {
   options: any;
 }
 
-// Props para seção de resumo (total acumulado)
 export interface SummarySectionProps {
   totalAcumulado: number;
 }
 
-// Props para componente que exibe múltiplos gráficos
 export interface ChartsDisplayProps {
   sectionTitle: string;
   charts: {

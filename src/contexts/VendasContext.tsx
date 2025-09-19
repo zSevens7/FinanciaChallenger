@@ -1,7 +1,7 @@
 // src/contexts/VendasContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import api from "../services/api";
-import { Venda, VendaInput } from "../types/index"; // Certifique-se de que VendaInput está exportado em types/index.ts
+import { Venda, VendaInput } from "../types/index";
 
 interface VendasContextType {
   vendas: Venda[];
@@ -23,8 +23,8 @@ const transformarVenda = (v: any): Venda | null => {
     descricao: v.descricao ?? "",
     preco,
     data: typeof v.data === "string" ? v.data.split("T")[0] : "",
-    tipoVenda: (v.tipo_venda ?? "produto") as Venda["tipoVenda"],
-    comentario: v.comentario ?? "", // opcional
+    tipoVenda: (v.tipo ?? "produto") as Venda["tipoVenda"],
+    comentario: v.origem ?? "", // usando 'origem' como comentário
   };
 
   if (!venda.id || !venda.data || !venda.descricao || preco <= 0) return null;
@@ -41,7 +41,6 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
       const vendasValidas = response.data
         .map(transformarVenda)
         .filter((v): v is Venda => v !== null);
-
       setVendas(vendasValidas);
     } catch (err) {
       console.error("Erro ao carregar vendas do backend:", err);
@@ -58,27 +57,25 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addVenda = async (v: Omit<VendaInput, "valor">) => {
-    if (!v.data || !v.descricao || v.preco <= 0 || !v.tipoVenda) {
-      console.warn("Tentativa de adicionar venda inválida:", v);
+    if (!v.descricao || !v.categoria || v.preco <= 0) {
       throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
     }
 
-    try {
-      const payload = {
-        ...v,
-        valor: v.preco,
-        tipo_venda: v.tipoVenda,
-      };
+    const payload = {
+      descricao: v.descricao,
+      valor: v.preco,
+      categoria: v.categoria,
+      data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      tipo: v.tipoVenda || "produto",
+      nome: v.nomeCliente || v.descricao,
+      origem: v.origem || null,
+    };
 
+    try {
       const response = await api.post("/vendas/", payload);
       const vendaTransformada = transformarVenda(response.data);
-
-      if (vendaTransformada) {
-        setVendas((prev) => [...prev, vendaTransformada]);
-      } else {
-        console.warn("Venda inválida retornada do backend:", response.data);
-        await refreshVendas();
-      }
+      if (vendaTransformada) setVendas((prev) => [...prev, vendaTransformada]);
+      else await refreshVendas();
     } catch (err) {
       console.error("Erro ao adicionar venda:", err);
       throw err;
@@ -86,27 +83,25 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateVenda = async (id: string, updatedVenda: Omit<VendaInput, "valor">) => {
-    if (!updatedVenda.data || !updatedVenda.descricao || updatedVenda.preco <= 0 || !updatedVenda.tipoVenda) {
-      console.warn("Tentativa de atualizar venda inválida:", updatedVenda);
+    if (!updatedVenda.descricao || !updatedVenda.categoria || updatedVenda.preco <= 0) {
       throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
     }
 
-    try {
-      const payload = {
-        ...updatedVenda,
-        valor: updatedVenda.preco,
-        tipo_venda: updatedVenda.tipoVenda,
-      };
+    const payload = {
+      descricao: updatedVenda.descricao,
+      valor: updatedVenda.preco,
+      categoria: updatedVenda.categoria,
+      data: updatedVenda.data ? new Date(updatedVenda.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      tipo: updatedVenda.tipoVenda || "produto",
+      nome: updatedVenda.nomeCliente || updatedVenda.descricao,
+      origem: updatedVenda.origem || null,
+    };
 
+    try {
       const response = await api.put(`/vendas/${id}`, payload);
       const vendaAtualizada = transformarVenda(response.data);
-
-      if (vendaAtualizada) {
-        setVendas((prev) => prev.map((v) => (v.id === id ? vendaAtualizada : v)));
-      } else {
-        console.warn("Venda inválida após atualização:", response.data);
-        await refreshVendas();
-      }
+      if (vendaAtualizada) setVendas((prev) => prev.map((v) => (v.id === id ? vendaAtualizada : v)));
+      else await refreshVendas();
     } catch (err) {
       console.error("Erro ao atualizar venda:", err);
       throw err;
