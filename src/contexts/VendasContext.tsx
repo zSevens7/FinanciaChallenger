@@ -30,24 +30,22 @@ const isVendaValida = (v: Venda): boolean => {
 export const VendasProvider = ({ children }: { children: ReactNode }) => {
   const [vendas, setVendas] = useState<Venda[]>([]);
 
-  const transformarVenda = (v: any): Venda | null => {
-    if (!v) return null;
+const transformarVenda = (v: any): Venda | null => {
+  if (!v) return null;
 
-    const preco = Number(v.preco ?? v.valor) || 0;
-    const tipoVendaValido = ["salario", "produto", "servico"].includes(v.tipoVenda || v.categoria)
-      ? (v.tipoVenda || v.categoria)
-      : "servico";
-
-    const venda: Venda = {
-      id: String(v.id ?? ""),
-      descricao: v.descricao ?? "",
-      preco,
-      data: typeof v.data === "string" ? v.data.split("T")[0] : "",
-      tipoVenda: tipoVendaValido as "salario" | "produto" | "servico",
-    };
-
-    return isVendaValida(venda) ? venda : null;
+  // Normalizar campos
+  const venda: Venda = {
+    id: String(v.id ?? ""),
+    descricao: v.descricao ?? "",
+    preco: Number(v.valor ?? v.preco) || 0,  // valor do backend pode vir como string
+    data: typeof v.data === "string" ? v.data.split("T")[0] : "",
+    tipoVenda: (v.tipoVenda ?? v.tipo_venda ?? "servico") as "salario" | "produto" | "servico",
+    // nomeCliente: v.nomeCliente ?? v.nome_cliente ?? undefined,
   };
+
+  // Retorna sempre o objeto, mesmo que parcial
+  return venda;
+};
 
 
   const loadVendas = async () => {

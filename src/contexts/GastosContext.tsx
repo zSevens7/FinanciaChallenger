@@ -33,19 +33,17 @@ const isGastoValido = (g: Gasto): boolean => {
 const transformarGasto = (g: any): Gasto | null => {
   if (!g) return null;
 
-  const preco = Number(g.valor ?? g.preco) || 0;
-
   const gasto: Gasto = {
     id: String(g.id ?? ""),
     descricao: g.descricao ?? "",
-    preco, // <--- aqui
+    preco: Number(g.valor ?? g.preco) || 0,
     data: typeof g.data === "string" ? g.data.split("T")[0] : "",
     categoria: g.categoria ?? "Outros",
-    tipo: g.tipo ?? "outro", // se seu Gasto tiver o campo tipo
-    tipoDespesa: g.tipo_despesa ?? g.tipoDespesa ?? "", // aqui garantimos que exista
+    tipo: g.tipo ?? "outro",
+    tipoDespesa: g.tipo_despesa ?? g.tipoDespesa ?? "outro", // valor padrão
   };
 
-  return isGastoValido(gasto) ? gasto : null;
+  return gasto; // <--- sempre retorna objeto, não chama refreshGastos
 };
 
 
