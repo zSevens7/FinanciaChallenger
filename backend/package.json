@@ -1,14 +1,25 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend para aplicação Financia",
+  "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prod": "NODE_ENV=production node src/server.js",
+    "pm2:start": "pm2 start src/server.js --name financachallenger",
+    "pm2:stop": "pm2 stop financachallenger",
+    "pm2:restart": "pm2 restart financachallenger",
+    "pm2:logs": "pm2 logs financachallenger",
+    "pm2:monit": "pm2 monit",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "finance",
+    "backend",
+    "api"
+  ],
+  "author": "Seu Nome",
   "license": "ISC",
   "type": "module",
   "dependencies": {
@@ -16,11 +27,16 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.5",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
