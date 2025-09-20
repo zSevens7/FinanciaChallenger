@@ -1,4 +1,3 @@
-// src/components/ModalVenda.tsx
 import { useState } from "react";
 import { useVendas } from "../contexts/VendasContext";
 import { VendaInput } from "../types/index";
@@ -16,11 +15,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     descricao: "",
     preco: 0,
     tipoVenda: "produto",
-    valor: 0, // compatível com backend
     comentario: "",
-    categoria: "", // ✅ agora obrigatório
-    nomeCliente: "",
-    origem: "",
   });
 
   const [error, setError] = useState("");
@@ -43,8 +38,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
       !inputVenda.preco ||
       isNaN(inputVenda.preco) ||
       inputVenda.preco <= 0 ||
-      !inputVenda.tipoVenda ||
-      !inputVenda.categoria.trim() // ✅ validar categoria
+      !inputVenda.tipoVenda
     ) {
       setError(
         "Por favor, preencha todos os campos corretamente e com valores válidos."
@@ -53,10 +47,9 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     }
 
     try {
-      // Atualiza valor para enviar ao backend
       const payload: VendaInput = {
         ...inputVenda,
-        valor: inputVenda.preco,
+        valor: inputVenda.preco, // compatibilidade backend
       };
 
       if (onSave) {
@@ -71,11 +64,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
         descricao: "",
         preco: 0,
         tipoVenda: "produto",
-        valor: 0,
         comentario: "",
-        categoria: "", // ✅ resetar categoria
-        nomeCliente: "",
-        origem: "",
       });
 
       setError("");
@@ -137,21 +126,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
             value={inputVenda.descricao}
             onChange={handleChange}
             placeholder="Ex: Venda de serviço"
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="categoria" className="block text-green-600 mb-1">
-            Categoria
-          </label>
-          <input
-            type="text"
-            id="categoria"
-            name="categoria"
-            value={inputVenda.categoria}
-            onChange={handleChange}
-            placeholder="Ex: Produto, Serviço"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
           />
         </div>

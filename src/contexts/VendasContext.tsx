@@ -13,22 +13,21 @@ interface VendasContextType {
 
 const VendasContext = createContext<VendasContextType | undefined>(undefined);
 
-// 🔑 Normalizador para alinhar dados do backend com o frontend
+// 🔑 Transformar dados do backend para frontend
 const transformarVenda = (v: any): Venda | null => {
   if (!v) return null;
 
-  const preco = Number(v.valor) || 0;
+  const valor = Number(v.valor) || 0;
   const venda: Venda = {
     id: String(v.id ?? ""),
     descricao: v.descricao ?? "",
-    preco,
+    preco: valor,
     data: typeof v.data === "string" ? v.data.split("T")[0] : "",
     tipoVenda: (v.tipo ?? "produto") as Venda["tipoVenda"],
-    comentario: v.origem ?? "", // usando 'origem' como comentário
+    comentario: v.comentario ?? "",
   };
 
-  if (!venda.id || !venda.data || !venda.descricao || preco <= 0) return null;
-
+  if (!venda.id || !venda.data || !venda.descricao || valor <= 0) return null;
   return venda;
 };
 
@@ -57,18 +56,16 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addVenda = async (v: Omit<VendaInput, "valor">) => {
-    if (!v.descricao || !v.categoria || v.preco <= 0) {
+    if (!v.descricao || !v.preco || v.preco <= 0 || !v.tipoVenda) {
       throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
     }
 
     const payload = {
       descricao: v.descricao,
       valor: v.preco,
-      categoria: v.categoria,
+      tipo: v.tipoVenda,
+      comentario: v.comentario || "",
       data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-      tipo: v.tipoVenda || "produto",
-      nome: v.nomeCliente || v.descricao,
-      origem: v.origem || null,
     };
 
     try {
@@ -82,19 +79,17 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateVenda = async (id: string, updatedVenda: Omit<VendaInput, "valor">) => {
-    if (!updatedVenda.descricao || !updatedVenda.categoria || updatedVenda.preco <= 0) {
+  const updateVenda = async (id: string, v: Omit<VendaInput, "valor">) => {
+    if (!v.descricao || !v.preco || v.preco <= 0 || !v.tipoVenda) {
       throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
     }
 
     const payload = {
-      descricao: updatedVenda.descricao,
-      valor: updatedVenda.preco,
-      categoria: updatedVenda.categoria,
-      data: updatedVenda.data ? new Date(updatedVenda.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-      tipo: updatedVenda.tipoVenda || "produto",
-      nome: updatedVenda.nomeCliente || updatedVenda.descricao,
-      origem: updatedVenda.origem || null,
+      descricao: v.descricao,
+      valor: v.preco,
+      tipo: v.tipoVenda,
+      comentario: v.comentario || "",
+      data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
     };
 
     try {
@@ -120,13 +115,7 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <VendasContext.Provider
-      value={{
-        vendas,
-        addVenda,
-        updateVenda,
-        deleteVenda,
-        refreshVendas,
-      }}
+      value={{ vendas, addVenda, updateVenda, deleteVenda, refreshVendas }}
     >
       {children}
     </VendasContext.Provider>

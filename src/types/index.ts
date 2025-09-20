@@ -1,5 +1,3 @@
-// src/types/index.ts
-
 // ----------------- BASE -----------------
 // Tipo base para transações com valor monetário
 export interface TransacaoMonetaria {
@@ -16,9 +14,6 @@ export interface Venda extends TransacaoMonetaria {
   id: string;
   tipoVenda: "salario" | "produto" | "servico";
   comentario?: string;   // opcional
-  categoria?: string;    // opcional, compatível com backend
-  nomeCliente?: string;  // opcional
-  origem?: string;       // opcional
 }
 
 // Tipo usado para criar/editar vendas (sem id)
@@ -26,9 +21,6 @@ export type VendaInput = Omit<Venda, "id"> & {
   preco: number;                 // garante que o frontend continue usando 'preco'
   tipoVenda?: "salario" | "produto" | "servico"; // opcional para criação
   comentario?: string;           // opcional
-  categoria: string;             // obrigatório para backend
-  nomeCliente?: string;          // opcional
-  origem?: string;               // opcional
 };
 
 // ----------------- GASTOS -----------------
