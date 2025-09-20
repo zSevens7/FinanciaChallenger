@@ -1,4 +1,3 @@
-// src/contexts/VendasContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import api from "../services/api";
 import { Venda, VendaInput } from "../types/index";
@@ -23,8 +22,7 @@ const transformarVenda = (v: any): Venda | null => {
     descricao: v.descricao ?? "",
     preco,
     data: typeof v.data === "string" ? v.data.split("T")[0] : "",
-    tipoVenda: (v.tipo ?? "produto") as Venda["tipoVenda"],
-    categoria: v.categoria ?? "produto", // <- campo obrigatório para o backend
+    categoria: v.categoria ?? "produto",
     comentario: "", // não existe mais, pode deixar vazio
   };
 
@@ -57,30 +55,28 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
     await loadVendas();
   };
 
-const addVenda = async (v: Omit<VendaInput, "valor">) => {
-  if (!v.descricao || v.preco <= 0) {
-    throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
-  }
+  const addVenda = async (v: Omit<VendaInput, "valor">) => {
+    if (!v.descricao || v.preco <= 0) {
+      throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
+    }
 
-  const payload = {
-    descricao: v.descricao,
-    valor: v.preco,
-    tipo: v.tipoVenda || "produto",
-    data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-    categoria: v.categoria || "produto" // <- aqui está o campo que o backend exige
+    const payload = {
+      descricao: v.descricao,
+      valor: v.preco,
+      data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      categoria: v.categoria || "produto"
+    };
+
+    try {
+      const response = await api.post("/vendas/", payload);
+      const vendaTransformada = transformarVenda(response.data);
+      if (vendaTransformada) setVendas((prev) => [...prev, vendaTransformada]);
+      else await refreshVendas();
+    } catch (err) {
+      console.error("Erro ao adicionar venda:", err);
+      throw err;
+    }
   };
-
-  try {
-    const response = await api.post("/vendas/", payload);
-    const vendaTransformada = transformarVenda(response.data);
-    if (vendaTransformada) setVendas((prev) => [...prev, vendaTransformada]);
-    else await refreshVendas();
-  } catch (err) {
-    console.error("Erro ao adicionar venda:", err);
-    throw err;
-  }
-};
-
 
   const updateVenda = async (id: string, updatedVenda: Omit<VendaInput, "valor">) => {
     if (!updatedVenda.descricao || updatedVenda.preco <= 0) {
@@ -90,8 +86,8 @@ const addVenda = async (v: Omit<VendaInput, "valor">) => {
     const payload = {
       descricao: updatedVenda.descricao,
       valor: updatedVenda.preco,
-      tipo: updatedVenda.tipoVenda || "produto",
       data: updatedVenda.data ? new Date(updatedVenda.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      categoria: updatedVenda.categoria || "produto"
     };
 
     try {

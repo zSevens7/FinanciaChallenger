@@ -1,5 +1,3 @@
-// routes/vendas.js – VERSÃO COM VALIDAÇÃO JOI
-
 import express from "express";
 import Joi from "joi";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -11,11 +9,9 @@ export default function createVendasRoutes(db) {
   const vendaSchema = Joi.object({
     descricao: Joi.string().min(1).required(),
     valor: Joi.number().positive().required(),
-    categoria: Joi.string().valid("produto", "servico", "salario").required(), 
+    categoria: Joi.string().valid("produto", "servico", "salario").required(),
     data: Joi.date().iso().optional(),
-    tipo: Joi.string().optional(),
-    nome: Joi.string().optional(),
-    origem: Joi.string().optional(), // campo extra opcional
+    nome: Joi.string().optional()
   });
 
   // Listar todas as vendas do usuário logado
@@ -45,20 +41,18 @@ export default function createVendasRoutes(db) {
       });
     }
 
-    const { descricao, valor, categoria, data, tipo, nome, origem } = value;
+    const { descricao, valor, categoria, data, nome } = value;
 
     try {
       const [result] = await db.execute(
-        "INSERT INTO vendas (user_id, descricao, valor, categoria, data, tipo, nome, origem) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO vendas (user_id, descricao, valor, categoria, data, nome) VALUES (?, ?, ?, ?, ?, ?)",
         [
           req.user.id,
           descricao,
           valor,
           categoria,
           data || new Date(),
-          tipo || null,
-          nome || descricao,
-          origem || null,
+          nome || descricao
         ]
       );
 
@@ -69,9 +63,7 @@ export default function createVendasRoutes(db) {
         valor,
         categoria,
         data: data || new Date(),
-        tipo,
-        nome: nome || descricao,
-        origem: origem || null,
+        nome: nome || descricao
       });
     } catch (err) {
       console.error("Erro ao criar venda:", err);
@@ -91,14 +83,29 @@ export default function createVendasRoutes(db) {
       });
     }
 
-    const { descricao, valor, categoria, data } = value;
+    const { descricao, valor, categoria, data, nome } = value;
 
     try {
       await db.execute(
-        "UPDATE vendas SET descricao = ?, valor = ?, categoria = ?, data = ? WHERE id = ? AND user_id = ?",
-        [descricao, valor, categoria, data || new Date(), id, req.user.id]
+        "UPDATE vendas SET descricao = ?, valor = ?, categoria = ?, data = ?, nome = ? WHERE id = ? AND user_id = ?",
+        [
+          descricao,
+          valor,
+          categoria,
+          data || new Date(),
+          nome || descricao,
+          id,
+          req.user.id
+        ]
       );
-      res.json({ id, descricao, valor, categoria, data: data || new Date() });
+      res.json({
+        id,
+        descricao,
+        valor,
+        categoria,
+        data: data || new Date(),
+        nome: nome || descricao
+      });
     } catch (err) {
       console.error("Erro ao atualizar venda:", err);
       res.status(500).json({ error: "Erro ao atualizar venda", details: err.message });

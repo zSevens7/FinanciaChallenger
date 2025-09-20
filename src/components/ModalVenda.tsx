@@ -14,7 +14,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     data: new Date().toISOString().split("T")[0],
     descricao: "",
     preco: 0,
-    tipoVenda: "produto",
     categoria: "produto",
     comentario: "",
   });
@@ -39,7 +38,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
       !inputVenda.preco ||
       isNaN(inputVenda.preco) ||
       inputVenda.preco <= 0 ||
-      !inputVenda.tipoVenda ||
       !inputVenda.categoria
     ) {
       setError(
@@ -65,7 +63,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
         data: new Date().toISOString().split("T")[0],
         descricao: "",
         preco: 0,
-        tipoVenda: "produto",
         categoria: "produto",
         comentario: "",
       });
@@ -146,23 +143,6 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
             placeholder="Digite o valor"
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
           />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="tipoVenda" className="block text-green-600 mb-1">
-            Tipo de Venda
-          </label>
-          <select
-            id="tipoVenda"
-            name="tipoVenda"
-            value={inputVenda.tipoVenda}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
-          >
-            <option value="salario">Salário</option>
-            <option value="produto">Produto</option>
-            <option value="servico">Serviço</option>
-          </select>
         </div>
 
         <div className="mb-4">
