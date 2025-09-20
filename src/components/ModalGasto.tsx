@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Gasto } from "../types/index";
+import { Gasto } from "../types";
+import { useGastos } from "../contexts/GastosContext";
 
 interface ModalGastoProps {
   onClose?: () => void;
-  onSave: (newGasto: Omit<Gasto, "id">) => void;
 }
 
 type GastoInput = Omit<Gasto, "id">;
 
-function ModalGasto({ onClose, onSave }: ModalGastoProps) {
+function ModalGasto({ onClose }: ModalGastoProps) {
+  const { addGasto } = useGastos();
+
   const [inputGasto, setInputGasto] = useState<GastoInput>({
     descricao: "",
     preco: 0,
@@ -29,7 +31,7 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (
       !inputGasto.data ||
       !inputGasto.descricao.trim() ||
@@ -37,32 +39,33 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
       isNaN(inputGasto.preco) ||
       inputGasto.preco <= 0 ||
       !inputGasto.categoria ||
-      !inputGasto.tipo
+      !inputGasto.tipoDespesa
     ) {
       setError("Por favor, preencha todos os campos corretamente e com valores válidos.");
       return;
     }
 
-    const newGasto: Omit<Gasto, "id"> = {
-      ...inputGasto,
-      nome: inputGasto.descricao,
-      tipoDespesa: inputGasto.tipo,
-      preco: inputGasto.preco > 0 ? inputGasto.preco : 0,
-    };
+    try {
+      await addGasto({
+        ...inputGasto,
+        nome: inputGasto.descricao,
+      });
 
-    onSave(newGasto);
+      setInputGasto({
+        descricao: "",
+        preco: 0,
+        data: new Date().toISOString().split("T")[0],
+        categoria: "",
+        tipo: "",
+        nome: "",
+        tipoDespesa: "",
+      });
 
-    setInputGasto({
-      descricao: "",
-      preco: 0,
-      data: new Date().toISOString().split("T")[0],
-      categoria: "",
-      tipo: "",
-      nome: "",
-      tipoDespesa: "",
-    });
-
-    if (onClose) onClose();
+      if (onClose) onClose();
+    } catch (err) {
+      console.error("Erro ao salvar gasto:", err);
+      setError("Erro ao salvar gasto. Tente novamente.");
+    }
   };
 
   return (
@@ -81,14 +84,19 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
         <h2 className="text-red-500 text-2xl font-bold mb-6 text-center">Adicionar Gasto</h2>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <div
+            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            role="alert"
+          >
             <span className="block sm:inline">{error}</span>
           </div>
         )}
 
         {/* Campo Data */}
         <div className="mb-4">
-          <label htmlFor="data" className="block text-red-500 mb-1 font-medium">Data</label>
+          <label htmlFor="data" className="block text-red-500 mb-1 font-medium">
+            Data
+          </label>
           <input
             type="date"
             id="data"
@@ -101,7 +109,9 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
 
         {/* Campo Nome do Gasto */}
         <div className="mb-4">
-          <label htmlFor="descricao" className="block text-red-500 mb-1 font-medium">Nome do Gasto</label>
+          <label htmlFor="descricao" className="block text-red-500 mb-1 font-medium">
+            Nome do Gasto
+          </label>
           <input
             type="text"
             id="descricao"
@@ -115,7 +125,9 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
 
         {/* Campo Preço */}
         <div className="mb-4">
-          <label htmlFor="preco" className="block text-red-500 mb-1 font-medium">Preço (R$)</label>
+          <label htmlFor="preco" className="block text-red-500 mb-1 font-medium">
+            Preço (R$)
+          </label>
           <input
             type="number"
             id="preco"
@@ -129,7 +141,9 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
 
         {/* Campo Categoria */}
         <div className="mb-4">
-          <label htmlFor="categoria" className="block text-red-500 mb-1 font-medium">Categoria</label>
+          <label htmlFor="categoria" className="block text-red-500 mb-1 font-medium">
+            Categoria
+          </label>
           <select
             id="categoria"
             name="categoria"
@@ -153,11 +167,13 @@ function ModalGasto({ onClose, onSave }: ModalGastoProps) {
 
         {/* Campo Tipo de Despesa */}
         <div className="mb-6">
-          <label htmlFor="tipo" className="block text-red-500 mb-1 font-medium">Tipo de Despesa</label>
+          <label htmlFor="tipoDespesa" className="block text-red-500 mb-1 font-medium">
+            Tipo de Despesa
+          </label>
           <select
-            id="tipo"
-            name="tipo"
-            value={inputGasto.tipo}
+            id="tipoDespesa"
+            name="tipoDespesa"
+            value={inputGasto.tipoDespesa}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-red-500 bg-white"
           >

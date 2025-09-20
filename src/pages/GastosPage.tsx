@@ -194,7 +194,7 @@ const GastosPage = () => {
   return (
     <PageContainer>
       {showModal && (
-        <ModalGasto onClose={() => setShowModal(false)} onSave={handleSaveGasto} />
+        <ModalGasto onClose={() => setShowModal(false)} />
       )}
 
       <ConfirmModal
