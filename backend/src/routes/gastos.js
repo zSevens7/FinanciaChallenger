@@ -1,5 +1,3 @@
-// routes/gastos.js - VERSÃO COM VALIDAÇÃO JOI
-
 import express from "express";
 import Joi from "joi";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -13,9 +11,8 @@ export default function createGastosRoutes(db) {
     valor: Joi.number().positive().required(),
     categoria: Joi.string().min(1).required(),
     data: Joi.date().iso().optional(),
-    tipo: Joi.string().optional(),
     nome: Joi.string().optional(),
-    tipoDespesa: Joi.string().optional(),
+    tipo_despesa: Joi.string().optional(), // padronizado com o banco
   });
 
   // Listar todos os gastos
@@ -45,20 +42,19 @@ export default function createGastosRoutes(db) {
       });
     }
 
-    const { descricao, valor, categoria, data, tipo, nome, tipoDespesa } = value;
+    const { descricao, valor, categoria, data, nome, tipo_despesa } = value;
 
     try {
       const [result] = await db.execute(
-        "INSERT INTO gastos (user_id, descricao, valor, categoria, data, tipo, nome, tipo_despesa) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO gastos (user_id, descricao, valor, categoria, data, nome, tipo_despesa) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [
           req.user.id,
           descricao,
           valor,
           categoria,
           data || new Date(),
-          tipo || null,
           nome || descricao,
-          tipoDespesa || null,
+          tipo_despesa || null,
         ]
       );
 
@@ -69,9 +65,8 @@ export default function createGastosRoutes(db) {
         valor,
         categoria,
         data: data || new Date(),
-        tipo,
         nome: nome || descricao,
-        tipo_despesa: tipoDespesa || null,
+        tipo_despesa: tipo_despesa || null,
       });
     } catch (err) {
       console.error("Erro ao criar gasto:", err);
@@ -91,14 +86,14 @@ export default function createGastosRoutes(db) {
       });
     }
 
-    const { descricao, valor, categoria, data } = value;
+    const { descricao, valor, categoria, data, nome, tipo_despesa } = value;
 
     try {
       await db.execute(
-        "UPDATE gastos SET descricao = ?, valor = ?, categoria = ?, data = ? WHERE id = ? AND user_id = ?",
-        [descricao, valor, categoria, data || new Date(), id, req.user.id]
+        "UPDATE gastos SET descricao = ?, valor = ?, categoria = ?, data = ?, nome = ?, tipo_despesa = ? WHERE id = ? AND user_id = ?",
+        [descricao, valor, categoria, data || new Date(), nome || descricao, tipo_despesa || null, id, req.user.id]
       );
-      res.json({ id, descricao, valor, categoria, data: data || new Date() });
+      res.json({ id, descricao, valor, categoria, data: data || new Date(), nome, tipo_despesa });
     } catch (err) {
       console.error("Erro ao atualizar gasto:", err);
       res.status(500).json({ error: "Erro ao atualizar gasto", details: err.message });

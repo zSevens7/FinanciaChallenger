@@ -7,7 +7,7 @@ import { Pagination } from "../features/gastos/components/Pagination";
 import { SummarySection } from "../features/gastos/components/SummarysSection";
 import { GastosTable } from "../features/gastos/components/GastosTable";
 import { ChartsDisplay } from "../features/gastos/components/ChartsDisplay";
-import { useGastos } from "../contexts/GastosContext"; // <- CORRIGIDO
+import { useGastos } from "../contexts/GastosContext";
 import { usePageHeader } from "../contexts/HeaderContext";
 import ModalGasto from "../components/ModalGasto";
 import type { Gasto } from "../types";
@@ -46,8 +46,7 @@ const GastosPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Usando o hook correto
-  const { gastos, addGasto, deleteGasto, removeAllGastos, refreshGastos } = useGastos();
+  const { gastos, addGasto, deleteGasto, removeAllGastos } = useGastos();
 
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
@@ -87,20 +86,21 @@ const GastosPage = () => {
     [addGasto]
   );
 
-  useEffect(() => {
-    refreshGastos();
-  }, [refreshGastos]);
-
-  useEffect(() => {
-    setPageHeader(
-      "Gastos",
+  // Botões do header memoizados para evitar recriação a cada render
+  const headerButtons = useMemo(
+    () => (
       <ActionButtons
         onAdicionarGasto={handleAdicionarGasto}
         onLimparDados={handleLimparDados}
       />
-    );
+    ),
+    [handleAdicionarGasto, handleLimparDados]
+  );
+
+  useEffect(() => {
+    setPageHeader("Gastos", headerButtons);
     return () => setPageHeader(null, null);
-  }, [setPageHeader, handleAdicionarGasto, handleLimparDados]);
+  }, [setPageHeader, headerButtons]);
 
   const uniqueYears = useMemo(() => getUniqueYears(gastos), [gastos]);
   const uniqueMonths = useMemo(() => {
@@ -138,9 +138,9 @@ const GastosPage = () => {
   const totalPages = Math.ceil(totalFilteredGastos / itemsPerPage);
 
   useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages);
-    } else if (totalPages === 0) {
+    } else if (totalPages === 0 && currentPage !== 1) {
       setCurrentPage(1);
     }
   }, [totalPages, currentPage]);
@@ -159,7 +159,10 @@ const GastosPage = () => {
     [gastos, selectedYear, selectedMonth, periodAggregationType]
   );
 
-  const expensesByCategoryAgg = useMemo(() => aggregateByCategory(filteredGastos), [filteredGastos]);
+  const expensesByCategoryAgg = useMemo(
+    () => aggregateByCategory(filteredGastos),
+    [filteredGastos]
+  );
 
   const chartDataPeriodExpenses = useMemo(() => {
     return prepareChartData(
@@ -178,7 +181,13 @@ const GastosPage = () => {
   );
 
   const chartDataCategoryExpensesPie = useMemo(
-    () => prepareChartData(expensesByCategoryAgg, "Distribuição por Categoria (%)", "pie", "category"),
+    () =>
+      prepareChartData(
+        expensesByCategoryAgg,
+        "Distribuição por Categoria (%)",
+        "pie",
+        "category"
+      ),
     [expensesByCategoryAgg]
   );
 
@@ -215,12 +224,21 @@ const GastosPage = () => {
           uniqueMonths={uniqueMonths}
           setCurrentPage={setCurrentPage}
         />
-        <ActionButtons onAdicionarGasto={handleAdicionarGasto} onLimparDados={handleLimparDados} />
+        <ActionButtons
+          onAdicionarGasto={handleAdicionarGasto}
+          onLimparDados={handleLimparDados}
+        />
       </div>
 
       <GastosTable gastos={paginatedGastos} onDelete={handleDeleteGasto} />
 
-      {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       {filteredGastos.length > 0 && (
         <>
