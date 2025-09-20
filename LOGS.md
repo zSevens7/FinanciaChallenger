@@ -66,12 +66,12 @@
 
 **🗓 Data:** 19/09/2025
 
-## 🔧 Backend
+ 🔧 Backend
 - ✅ Conexão entre **backend**, **NGINX** e **frontend** está 100% funcional.
 - 🔐 Middleware de autenticação com JWT revisado e operando corretamente.
 - 🧾 Inserção de dados na tabela `vendas` funcionando sem erros de coluna ou validação.
 
-## 💻 Frontend
+ 💻 Frontend
 - 🛠 Correções aplicadas:
   - ✅ Formulário de **venda** agora salva os dados corretamente.
   - 📊 Cards de **TIR**, **PAYBACK** e **Investimento** restaurados e visíveis.
@@ -79,10 +79,27 @@
   - 🧹 Remoção do campo redundante `tipoVenda` para simplificar o fluxo de dados.
   - 🐞 Correções de pequenos bugs visuais e de estado nos componentes.
 
-## 📌 Observações
+ 📌 Observações
 - 🔄 Ajustes pendentes para consolidar o **Plano 1.0** do site.
 - 🧪 Testes manuais estão sendo feitos gradualmente para garantir estabilidade.
 - 💡 Próximos passos: arrumar para colocar os dados de gastos.
+
+**🗓 Data:** 20/09/2025
+
+ 🔧 Backend
+- ✅ Corrigido o erro de criação de novas contas (registro de usuários funcionando corretamente).
+- 🧾 Registro de novos dados na página de **gastos** funcionando sem erros.
+
+ 💻 Frontend
+- 🛠 Ajustes aplicados para consolidar o funcionamento básico do site.
+- 📊 Fluxo de gastos atualizado e integrado com o backend.
+- 🎨 Pequenos ajustes visuais e de estado nos componentes para melhor experiência.
+
+ 📌 Observações
+- 🏁 O site está no **Plano 1.0**.
+- 🔄 Funcionalidade básica do site operando corretamente.
+- 💡 Próximos passos: implementação de recursos avançados e otimizações.
+
 
 
 ---
@@ -144,3 +161,4 @@
 | cors | Habilita comunicação frontend ↔ backend |
 | dotenv | Variáveis de ambiente |
 | nodemon | Reinício automático do servidor durante desenvolvimento |
+| joi | Validação de dados (schemas) para requests e inputs |
