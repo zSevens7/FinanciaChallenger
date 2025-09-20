@@ -21,12 +21,12 @@ const transformarGasto = (g: any): Gasto | null => {
   const gasto: Gasto = {
     id: String(g.id ?? ""),
     descricao: g.descricao ?? "",
-    preco: Number(g.valor ?? g.preco) || 0,
+    preco: Number(g.valor ?? 0) || 0,       // mapear valor → preco
     data: typeof g.data === "string" ? g.data.split("T")[0] : "",
     categoria: g.categoria ?? "Outros",
-    tipo: g.tipo ?? "outro",
+    tipo: "outro",                           // campo interno do frontend
     nome: g.nome ?? g.descricao ?? "",
-    tipoDespesa: g.tipo_despesa ?? g.tipoDespesa ?? "outro",
+    tipoDespesa: g.tipo_despesa ?? "outro",  // mapear tipo_despesa → tipoDespesa
   };
 
   if (!gasto.id || !gasto.data || !gasto.descricao || gasto.preco <= 0) return null;
@@ -36,7 +36,7 @@ const transformarGasto = (g: any): Gasto | null => {
 
 export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
-  const [carregando, setCarregando] = useState(false); // ✅ flag para evitar looping
+  const [carregando, setCarregando] = useState(false);
 
   const loadGastos = async () => {
     if (carregando) return;
@@ -74,8 +74,11 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const payload = {
-        ...g,
+        descricao: g.descricao,
         valor: g.preco,
+        categoria: g.categoria,
+        data: g.data,
+        nome: g.nome,
         tipo_despesa: g.tipoDespesa,
       };
 
@@ -94,24 +97,27 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const updateGasto = async (id: string, updatedGasto: Omit<Gasto, "id">) => {
-    if (!updatedGasto.data || !updatedGasto.descricao || updatedGasto.preco <= 0 || !updatedGasto.categoria) {
-      console.warn("Tentativa de atualizar gasto inválido:", updatedGasto);
+  const updateGasto = async (id: string, g: Omit<Gasto, "id">) => {
+    if (!g.data || !g.descricao || g.preco <= 0 || !g.categoria) {
+      console.warn("Tentativa de atualizar gasto inválido:", g);
       throw new Error("Dados do gasto inválidos. Preencha todos os campos obrigatórios.");
     }
 
     try {
       const payload = {
-        ...updatedGasto,
-        valor: updatedGasto.preco,
-        tipo_despesa: updatedGasto.tipoDespesa,
+        descricao: g.descricao,
+        valor: g.preco,
+        categoria: g.categoria,
+        data: g.data,
+        nome: g.nome,
+        tipo_despesa: g.tipoDespesa,
       };
 
       const response = await api.put(`/gastos/${id}`, payload);
       const gastoAtualizado = transformarGasto(response.data);
 
       if (gastoAtualizado) {
-        setGastos((prev) => prev.map((g) => (g.id === id ? gastoAtualizado : g)));
+        setGastos((prev) => prev.map((x) => (x.id === id ? gastoAtualizado : x)));
       } else {
         console.warn("Gasto inválido após atualização:", response.data);
         await refreshGastos();
