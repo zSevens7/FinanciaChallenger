@@ -12,7 +12,7 @@ export function authenticateToken(req, res, next) {
     if (err) {
       return res.status(403).json({ error: "Token inválido ou expirado" });
     }
-
+git 
     req.user = decoded;
     next();
   });

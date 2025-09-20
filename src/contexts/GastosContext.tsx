@@ -1,4 +1,3 @@
-// src/contexts/GastosContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Gasto } from "../types";
 import api from "../services/api";
@@ -37,8 +36,13 @@ const transformarGasto = (g: any): Gasto | null => {
 
 export const GastosProvider = ({ children }: { children: ReactNode }) => {
   const [gastos, setGastos] = useState<Gasto[]>([]);
+  const [carregando, setCarregando] = useState(false); // ✅ flag para evitar looping
 
   const loadGastos = async () => {
+    if (carregando) return;
+    setCarregando(true);
+    console.log("🔄 Carregando gastos...");
+
     try {
       const response = await api.get<any[]>("/gastos/");
       const gastosValidos = response.data
@@ -49,6 +53,8 @@ export const GastosProvider = ({ children }: { children: ReactNode }) => {
     } catch (err) {
       console.error("Erro ao carregar gastos do backend:", err);
       setGastos([]);
+    } finally {
+      setCarregando(false);
     }
   };
 
