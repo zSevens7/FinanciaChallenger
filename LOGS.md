@@ -65,11 +65,24 @@
 
 
 **🗓 Data:** 19/09/2025
-### Backend
-- 🧾 Agora estar funcionando 100% a conexão de backend/ngix e frontend.
 
-### Frontend
-- ⚙️ Precisa arrumar uns bugs agora do frontend, para deixar o Site no plano 1.0, alguns ja foi arrumados, mas aos poucos vou arrumando.
+## 🔧 Backend
+- ✅ Conexão entre **backend**, **NGINX** e **frontend** está 100% funcional.
+- 🔐 Middleware de autenticação com JWT revisado e operando corretamente.
+- 🧾 Inserção de dados na tabela `vendas` funcionando sem erros de coluna ou validação.
+
+## 💻 Frontend
+- 🛠 Correções aplicadas:
+  - ✅ Formulário de **venda** agora salva os dados corretamente.
+  - 📊 Cards de **TIR**, **PAYBACK** e **Investimento** restaurados e visíveis.
+  - 🎨 Ajuste de **cores** na tabela de **dashboard** e **gastos** para melhor contraste.
+  - 🧹 Remoção do campo redundante `tipoVenda` para simplificar o fluxo de dados.
+  - 🐞 Correções de pequenos bugs visuais e de estado nos componentes.
+
+## 📌 Observações
+- 🔄 Ajustes pendentes para consolidar o **Plano 1.0** do site.
+- 🧪 Testes manuais estão sendo feitos gradualmente para garantir estabilidade.
+- 💡 Próximos passos: arrumar para colocar os dados de gastos.
 
 
 ---
