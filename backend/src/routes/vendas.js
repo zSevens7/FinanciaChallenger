@@ -11,7 +11,7 @@ export default function createVendasRoutes(db) {
   const vendaSchema = Joi.object({
     descricao: Joi.string().min(1).required(),
     valor: Joi.number().positive().required(),
-    categoria: Joi.string().min(1).required(),
+    categoria: Joi.string().valid("produto", "servico", "salario").required(), 
     data: Joi.date().iso().optional(),
     tipo: Joi.string().optional(),
     nome: Joi.string().optional(),

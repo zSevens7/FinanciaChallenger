@@ -15,6 +15,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
     descricao: "",
     preco: 0,
     tipoVenda: "produto",
+    categoria: "produto",
     comentario: "",
   });
 
@@ -38,7 +39,8 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
       !inputVenda.preco ||
       isNaN(inputVenda.preco) ||
       inputVenda.preco <= 0 ||
-      !inputVenda.tipoVenda
+      !inputVenda.tipoVenda ||
+      !inputVenda.categoria
     ) {
       setError(
         "Por favor, preencha todos os campos corretamente e com valores válidos."
@@ -64,6 +66,7 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
         descricao: "",
         preco: 0,
         tipoVenda: "produto",
+        categoria: "produto",
         comentario: "",
       });
 
@@ -159,6 +162,23 @@ function ModalVenda({ onClose, onSave }: ModalVendaProps) {
             <option value="salario">Salário</option>
             <option value="produto">Produto</option>
             <option value="servico">Serviço</option>
+          </select>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="categoria" className="block text-green-600 mb-1">
+            Categoria
+          </label>
+          <select
+            id="categoria"
+            name="categoria"
+            value={inputVenda.categoria}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-600"
+          >
+            <option value="produto">Produto</option>
+            <option value="servico">Serviço</option>
+            <option value="salario">Salário</option>
           </select>
         </div>
 

@@ -24,6 +24,7 @@ const transformarVenda = (v: any): Venda | null => {
     preco,
     data: typeof v.data === "string" ? v.data.split("T")[0] : "",
     tipoVenda: (v.tipo ?? "produto") as Venda["tipoVenda"],
+    categoria: v.categoria ?? "produto", // <- campo obrigatório para o backend
     comentario: "", // não existe mais, pode deixar vazio
   };
 
@@ -56,28 +57,30 @@ export const VendasProvider = ({ children }: { children: ReactNode }) => {
     await loadVendas();
   };
 
-  const addVenda = async (v: Omit<VendaInput, "valor">) => {
-    if (!v.descricao || v.preco <= 0) {
-      throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
-    }
+const addVenda = async (v: Omit<VendaInput, "valor">) => {
+  if (!v.descricao || v.preco <= 0) {
+    throw new Error("Dados da venda inválidos. Preencha todos os campos obrigatórios.");
+  }
 
-    const payload = {
-      descricao: v.descricao,
-      valor: v.preco,
-      tipo: v.tipoVenda || "produto",
-      data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-    };
-
-    try {
-      const response = await api.post("/vendas/", payload);
-      const vendaTransformada = transformarVenda(response.data);
-      if (vendaTransformada) setVendas((prev) => [...prev, vendaTransformada]);
-      else await refreshVendas();
-    } catch (err) {
-      console.error("Erro ao adicionar venda:", err);
-      throw err;
-    }
+  const payload = {
+    descricao: v.descricao,
+    valor: v.preco,
+    tipo: v.tipoVenda || "produto",
+    data: v.data ? new Date(v.data).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+    categoria: v.categoria || "produto" // <- aqui está o campo que o backend exige
   };
+
+  try {
+    const response = await api.post("/vendas/", payload);
+    const vendaTransformada = transformarVenda(response.data);
+    if (vendaTransformada) setVendas((prev) => [...prev, vendaTransformada]);
+    else await refreshVendas();
+  } catch (err) {
+    console.error("Erro ao adicionar venda:", err);
+    throw err;
+  }
+};
+
 
   const updateVenda = async (id: string, updatedVenda: Omit<VendaInput, "valor">) => {
     if (!updatedVenda.descricao || updatedVenda.preco <= 0) {

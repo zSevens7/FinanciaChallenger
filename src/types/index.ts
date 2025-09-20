@@ -13,14 +13,15 @@ export interface TransacaoMonetaria {
 export interface Venda extends TransacaoMonetaria {
   id: string;
   tipoVenda: "salario" | "produto" | "servico";
-  comentario?: string;   // opcional
+  categoria: string; // <- campo obrigatório para o backend
+  comentario?: string; // opcional
 }
 
 // Tipo usado para criar/editar vendas (sem id)
 export type VendaInput = Omit<Venda, "id"> & {
-  preco: number;                 // garante que o frontend continue usando 'preco'
+  preco: number; // garante que o frontend continue usando 'preco'
   tipoVenda?: "salario" | "produto" | "servico"; // opcional para criação
-  comentario?: string;           // opcional
+  comentario?: string; // opcional
 };
 
 // ----------------- GASTOS -----------------
