@@ -18,13 +18,6 @@ interface FinancialMetrics {
   chartData: ChartDataItem[];
 }
 
-/**
- * Hook para calcular métricas financeiras com base em gastos e vendas.
- * @param allGastos - Array com todos os gastos.
- * @param allVendas - Array com todas as vendas.
- * @param initialInvestment - Valor do investimento inicial (default: 0)
- * @returns Um objeto com métricas financeiras completas
- */
 export const useFinancialMetrics = (
   allGastos: Gasto[],
   allVendas: Venda[],
@@ -32,10 +25,10 @@ export const useFinancialMetrics = (
 ): FinancialMetrics => {
   const metrics = useMemo(() => {
     // Total de receita (somatório das vendas)
-    const totalRevenue = allVendas.reduce((acc, venda) => acc + (venda.preco || 0), 0);
+    const totalRevenue = allVendas.reduce((acc, venda) => acc + (venda.valor || 0), 0);
 
     // Total de despesas (somatório dos gastos)
-    const totalExpenses = allGastos.reduce((acc, gasto) => acc + (gasto.preco || 0), 0);
+    const totalExpenses = allGastos.reduce((acc, gasto) => acc + (gasto.valor || 0), 0);
 
     // Lucro líquido
     const netProfit = totalRevenue - totalExpenses;
@@ -43,13 +36,13 @@ export const useFinancialMetrics = (
     // Fluxo de caixa acumulado
     const cumulativeCashFlow = initialInvestment + netProfit;
 
-    // Investimento inicial calculado (pode ser ajustado se quiser incluir gastos iniciais)
+    // Investimento inicial calculado
     const initialInvestmentCalculated = initialInvestment;
 
     // Payback: tempo aproximado para recuperar o investimento
     const paybackPeriod = netProfit > 0 ? initialInvestment / netProfit : 0;
 
-    // TIR (placeholder, pode ser implementada com fluxo de caixa real)
+    // TIR (placeholder, futuramente com fluxo de caixa real)
     const tir = 0;
 
     // Dados para gráficos

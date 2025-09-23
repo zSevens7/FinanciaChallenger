@@ -11,8 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ==== CARREGAR ENV ====
-const envPath = path.resolve(__dirname, '../.env');
-dotenv.config({ path: envPath });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -36,14 +35,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// ==== ROTAS BÁSICAS (definidas primeiro) ====
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "OK",
-    message: "Servidor está rodando corretamente",
-    timestamp: new Date().toISOString()
-  });
-});
+// ==== ROTAS BÁSICAS ====
+app.get("/", (req, res) => res.send("API is running"));
+app.get("/health", (req, res) => res.json({
+  status: "OK",
+  message: "Servidor rodando corretamente",
+  timestamp: new Date().toISOString()
+}));
 
 app.get("/test-db", async (req, res) => {
   try {
@@ -60,112 +58,56 @@ app.get("/test-db", async (req, res) => {
     
     res.json({ status: "OK", dbTime: rows[0].now });
   } catch (err) {
-    res.status(500).json({ error: "Falha na conexão com o banco" });
+    res.status(500).json({ error: "Falha na conexão com o banco", details: err.message });
   }
-});
-
-app.get("/env", (req, res) => {
-  res.json({
-    dbHost: process.env.DB_HOST || "Não configurado",
-    dbUser: process.env.DB_USER || "Não configurado",
-    dbName: process.env.DB_NAME || "Não configurado",
-    jwtSecret: process.env.JWT_SECRET ? "Configurado" : "Não configurado"
-  });
-});
-
-// Rota raiz
-app.get("/", (req, res) => {
-  res.send("API is running");
 });
 
 // ==== INICIALIZAÇÃO DO SERVIDOR ====
 async function initializeServer() {
   try {
     console.log('🔄 Inicializando servidor...');
-    
-    // ==== INICIALIZAR BANCO DE DADOS ====
-    let db;
-    try {
-      db = await mysql.createPool({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        port: process.env.DB_PORT || 3306,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0
-      });
-      console.log('✅ Conectado ao banco de dados MySQL');
-    } catch (dbError) {
-      console.error('❌ Erro ao conectar com o banco de dados:', dbError.message);
-      db = null;
-    }
+
+    // ==== POOL DE CONEXÃO COM MYSQL ====
+    const db = await mysql.createPool({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT || 3306,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
+    });
+    console.log('✅ Conectado ao banco de dados MySQL');
 
     // ==== IMPORTAR ROTAS ====
-    let createAuthRoutes, createVendasRoutes, createGastosRoutes;
-    
-    try {
-      const authModule = await import("./routes/auth.js");
-      createAuthRoutes = authModule.default;
-      console.log('✅ Rota auth importada com sucesso');
-    } catch (error) {
-      console.error('❌ Erro ao importar auth:', error.message);
-      createAuthRoutes = (db) => {
-        const router = express.Router();
-        router.get("/check", (req, res) => res.json({ message: "Auth API básica" }));
-        return router;
-      };
+    const modules = ["auth", "vendas", "gastos", "metrics"];
+    for (const mod of modules) {
+      try {
+        const routeModule = await import(`./routes/${mod}.js`);
+        const createRoute = routeModule.default;
+        app.use(`/${mod}`, createRoute(db));
+        console.log(`✅ Rota ${mod} importada com sucesso`);
+      } catch (err) {
+        console.error(`❌ Erro ao importar rota ${mod}:`, err.message);
+      }
     }
-
-    try {
-      const vendasModule = await import("./routes/vendas.js");
-      createVendasRoutes = vendasModule.default;
-      console.log('✅ Rota vendas importada com sucesso');
-    } catch (error) {
-      console.error('❌ Erro ao importar vendas:', error.message);
-      createVendasRoutes = (db) => {
-        const router = express.Router();
-        router.get("/", (req, res) => res.json({ message: "Vendas API básica" }));
-        return router;
-      };
-    }
-
-    try {
-      const gastosModule = await import("./routes/gastos.js");
-      createGastosRoutes = gastosModule.default;
-      console.log('✅ Rota gastos importada com sucesso');
-    } catch (error) {
-      console.error('❌ Erro ao importar gastos:', error.message);
-      createGastosRoutes = (db) => {
-        const router = express.Router();
-        router.get("/", (req, res) => res.json({ message: "Gastos API básica" }));
-        return router;
-      };
-    }
-
-    // ==== CONFIGURAR ROTAS PRINCIPAIS ====
-    app.use("/auth", createAuthRoutes(db));
-    app.use("/vendas", createVendasRoutes(db));
-    app.use("/gastos", createGastosRoutes(db));
 
     // ==== INICIAR SERVIDOR ====
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`🌐 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔑 JWT_SECRET: ${process.env.JWT_SECRET ? "OK" : "NÃO CARREGADO"}`);
       console.log(`🗄️ Banco: ${process.env.DB_HOST || 'N/A'}/${process.env.DB_NAME || 'N/A'}`);
+      console.log(`🔑 JWT_SECRET: ${process.env.JWT_SECRET ? "OK" : "NÃO CARREGADO"}`);
     });
 
     // ==== GRACEFUL SHUTDOWN ====
     process.on('SIGINT', () => {
-      console.log('\n🛑 Desligando servidor gracefulmente');
+      console.log('\n🛑 Desligando servidor...');
       server.close(() => {
         console.log('✅ Servidor fechado');
-        if (db) {
-          db.end();
-          console.log('✅ Conexão com o banco fechada');
-        }
+        db.end();
+        console.log('✅ Conexão com o banco fechada');
         process.exit(0);
       });
     });
@@ -176,7 +118,7 @@ async function initializeServer() {
   }
 }
 
-// Iniciar o servidor
+// Inicializar servidor
 initializeServer().catch(error => {
   console.error('❌ Erro na inicialização:', error);
 });

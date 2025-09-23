@@ -24,7 +24,7 @@ const Dashboard = () => {
     return () => setPageHeader(null, null);
   }, [setPageHeader]);
 
-  const filteredDataForDisplay = useMemo(() => {
+  const filteredData = useMemo(() => {
     let filteredGastos = [...gastos];
     let filteredVendas = [...vendas];
 
@@ -46,15 +46,13 @@ const Dashboard = () => {
       }
     }
 
-    const allItems = [...filteredGastos, ...filteredVendas];
-    return { filteredGastos, filteredVendas, allItems };
+    return { filteredGastos, filteredVendas };
   }, [gastos, vendas, selectedYear, selectedMonth]);
 
-  const { filteredGastos, filteredVendas, allItems } = filteredDataForDisplay;
+  const { filteredGastos, filteredVendas } = filteredData;
 
-  const totalDespesas = filteredGastos.reduce((sum, g) => sum + (g.preco || 0), 0);
-  const totalVendas = filteredVendas.reduce((sum, v) => sum + (v.preco || 0), 0);
-  const saldoLiquido = totalVendas - totalDespesas;
+  const { totalRevenue, totalExpenses, netProfit, initialInvestmentCalculated, paybackPeriod, tir, chartData } =
+    useFinancialMetrics(filteredGastos, filteredVendas, 0);
 
   const allTransactions = [
     ...filteredGastos.map(g => ({
@@ -75,17 +73,14 @@ const Dashboard = () => {
     })),
   ].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
-  const uniqueYears = useMemo(() => getUniqueYears(allItems), [allItems]);
+  const uniqueYears = useMemo(() => getUniqueYears([...filteredGastos, ...filteredVendas]), [filteredGastos, filteredVendas]);
   const uniqueMonths = useMemo(() => {
     if (!selectedYear) return [];
-    const items = allItems.filter(
+    const items = [...filteredGastos, ...filteredVendas].filter(
       item => new Date(item.data).getFullYear().toString() === selectedYear
     );
     return getUniqueMonthsForYear(items, selectedYear);
-  }, [allItems, selectedYear]);
-
-  const { initialInvestmentCalculated, paybackPeriod, tir, chartData } =
-    useFinancialMetrics(filteredGastos, filteredVendas, 0);
+  }, [filteredGastos, filteredVendas, selectedYear]);
 
   const { salesExpensesData, cumulativeCashFlowData } = useDashboardChartsData(
     filteredGastos,
@@ -103,18 +98,11 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-start w-full">
           <select
             value={selectedYear}
-            onChange={e => {
-              setSelectedYear(e.target.value);
-              setSelectedMonth("");
-            }}
+            onChange={e => { setSelectedYear(e.target.value); setSelectedMonth(""); }}
             className="p-2 border border-blue-700 rounded-md bg-white text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Todos os Anos</option>
-            {uniqueYears.map(y => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
+            {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
 
           {selectedYear && (
@@ -124,69 +112,25 @@ const Dashboard = () => {
               className="p-2 border border-blue-700 rounded-md bg-white text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="">Todos os Meses</option>
-              {uniqueMonths.map(m => (
-                <option key={m} value={m}>
-                  {monthNames[m] || `Mês ${m}`}
-                </option>
-              ))}
+              {uniqueMonths.map(m => <option key={m} value={m}>{monthNames[m] || `Mês ${m}`}</option>)}
             </select>
           )}
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 text-sm">
-          <DashboardKPI
-            title="Saldo Líquido"
-            value={saldoLiquido.toFixed(2)}
-            period={
-              selectedMonth && selectedYear
+          {chartData.map(kpi => (
+            <DashboardKPI
+              key={kpi.name}
+              title={kpi.name}
+              value={kpi.value.toFixed(2)}
+              period={selectedMonth && selectedYear
                 ? `${monthNames[selectedMonth]}/${selectedYear}`
                 : selectedYear || "Geral"
-            }
-            valueColorClass={saldoLiquido < 0 ? "text-red-600" : "text-green-600"}
-          />
-          <DashboardKPI
-            title="Total Despesas"
-            value={totalDespesas.toFixed(2)}
-            period={
-              selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth]}/${selectedYear}`
-                : selectedYear || "Geral"
-            }
-            valueColorClass="text-blue-700"
-          />
-          <DashboardKPI
-            title="Total de Vendas"
-            value={totalVendas.toFixed(2)}
-            period={
-              selectedMonth && selectedYear
-                ? `${monthNames[selectedMonth]}/${selectedYear}`
-                : selectedYear || "Geral"
-            }
-            valueColorClass="text-blue-700"
-          />
-
-          {/* 👇 KPIs adicionais escondidos no mobile */}
-          <div className="hidden sm:block">
-            <DashboardKPI
-              title="Investimento Inicial"
-              value={initialInvestmentCalculated.toFixed(2)}
-              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-              valueColorClass={initialInvestmentCalculated < 0 ? "text-red-600" : "text-green-600"}
+              }
+              valueColorClass={kpi.value < 0 ? "text-red-600" : "text-green-600"}
             />
-            <DashboardKPI
-              title="Payback"
-              value={paybackPeriod.toString()}
-              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-              valueColorClass="text-blue-700"
-            />
-            <DashboardKPI
-              title="TIR"
-              value={tir.toString()}
-              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-              valueColorClass="text-blue-700"
-            />
-          </div>
+          ))}
         </div>
 
         {/* Tabela de Transações */}
