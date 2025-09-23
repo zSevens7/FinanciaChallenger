@@ -9,8 +9,6 @@ import { DashboardTransactionsTable } from "../components/DashHistory/DashBoardT
 import { useVendas } from "../contexts/VendasContext";
 import { useGastos } from "../contexts/GastosContext";
 import { useDashboardChartsData } from "../features/dashboard/hooks/useDashboardChartsData";
-
-// 🔑 Hook que calcula investimento, payback e TIR
 import { useFinancialMetrics } from "../hooks/useFinancialMetrics";
 
 const Dashboard = () => {
@@ -73,7 +71,7 @@ const Dashboard = () => {
       type: "sale" as const,
       amount: v.preco,
       descricao: v.descricao,
-      tipo: v.tipoVenda,
+      tipo: v.categoria,
     })),
   ].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
@@ -86,11 +84,9 @@ const Dashboard = () => {
     return getUniqueMonthsForYear(items, selectedYear);
   }, [allItems, selectedYear]);
 
-  // ✅ Hook de métricas financeiras (usando dados filtrados e só 3 args)
   const { initialInvestmentCalculated, paybackPeriod, tir, chartData } =
     useFinancialMetrics(filteredGastos, filteredVendas, 0);
 
-  // ✅ Dados para gráficos
   const { salesExpensesData, cumulativeCashFlowData } = useDashboardChartsData(
     filteredGastos,
     filteredVendas,
@@ -147,9 +143,7 @@ const Dashboard = () => {
                 ? `${monthNames[selectedMonth]}/${selectedYear}`
                 : selectedYear || "Geral"
             }
-            valueColorClass={
-              saldoLiquido < 0 ? "text-red-600" : "text-green-600"
-            }
+            valueColorClass={saldoLiquido < 0 ? "text-red-600" : "text-green-600"}
           />
           <DashboardKPI
             title="Total Despesas"
@@ -172,30 +166,30 @@ const Dashboard = () => {
             valueColorClass="text-blue-700"
           />
 
-          {/* 👇 KPIs adicionais */}
-          <DashboardKPI
-            title="Investimento Inicial"
-            value={initialInvestmentCalculated.toFixed(2)}
-            period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-            valueColorClass={
-              initialInvestmentCalculated < 0 ? "text-red-600" : "text-green-600"
-            }
-          />
-          <DashboardKPI
-            title="Payback"
-            value={paybackPeriod.toString()}
-            period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-            valueColorClass="text-blue-700"
-          />
-          <DashboardKPI
-            title="TIR"
-            value={tir.toString()}
-            period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
-            valueColorClass="text-blue-700"
-          />
+          {/* 👇 KPIs adicionais escondidos no mobile */}
+          <div className="hidden sm:block">
+            <DashboardKPI
+              title="Investimento Inicial"
+              value={initialInvestmentCalculated.toFixed(2)}
+              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+              valueColorClass={initialInvestmentCalculated < 0 ? "text-red-600" : "text-green-600"}
+            />
+            <DashboardKPI
+              title="Payback"
+              value={paybackPeriod.toString()}
+              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+              valueColorClass="text-blue-700"
+            />
+            <DashboardKPI
+              title="TIR"
+              value={tir.toString()}
+              period={selectedYear ? `Ano ${selectedYear}` : "Selecione um Ano"}
+              valueColorClass="text-blue-700"
+            />
+          </div>
         </div>
 
-        {/* Tabela */}
+        {/* Tabela de Transações */}
         <DashboardTransactionsTable transactions={allTransactions} />
 
         {/* Gráficos */}

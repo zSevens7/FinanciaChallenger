@@ -1,96 +1,99 @@
-// src/types/index.ts
-
+// ----------------- BASE -----------------
 // Tipo base para transações com valor monetário
-interface TransacaoMonetaria {
-  data: string;
-  descricao: string;
-  preco: number;
+export interface TransacaoMonetaria {
+  data: string;        // formato "YYYY-MM-DD"
+  descricao: string;
+  preco: number;       // usado no frontend
+  valor?: number;      // usado para compatibilidade com backend (opcional)
 }
 
-// Vendas (ganhos)
+// ----------------- VENDAS -----------------
+
+// Venda principal
 export interface Venda extends TransacaoMonetaria {
-  id: string; // padronizar string, já que você usa uuid
-  tipoVenda: "salario" | "produto" | "servico";
+  id: string;
+  categoria: "salario" | "produto" | "servico"; // campo obrigatório para o backend
+  comentario?: string; // opcional
+  tipoVenda?: string; // opcional
 }
 
-// Gastos (despesas)
+// Tipo usado para criar/editar vendas (sem id)
+export type VendaInput = Omit<Venda, "id"> & {
+  preco: number; // garante que o frontend continue usando 'preco'
+  comentario?: string; // opcional
+};
+
+// ----------------- GASTOS -----------------
+
 export interface Gasto extends TransacaoMonetaria {
-  id: string;              // ✅ CORREÇÃO: id agora é do tipo string para compatibilidade com uuid.
-  categoria: string;       // Ex: moradia, transporte
-  tipoDespesa: string;     // Ex: fixo_essencial, extraordinario
-  nome?: string;           // opcional, se precisar
-  tipo?: string;           // opcional, se precisar
+  id: string;
+  categoria: string;       // Ex: moradia, transporte
+  tipoDespesa: string;     // Ex: fixo_essencial, extraordinario
+  nome?: string;           // opcional
+  tipo?: string;           // opcional
 }
 
-// Props para os botões de ação
+// ----------------- PROPS DE COMPONENTES -----------------
+
 export interface ActionButtonsProps {
-  onAdicionarGasto: () => void;
-  onLimparDados: () => void;
+  onAdicionarGasto: () => void;
+  onLimparDados: () => void;
 }
 
-// Props para o modal de novo gasto
 export interface ModalGastoProps {
-  onClose: () => void;
+  onClose: () => void;
 }
 
-// Props para modal de confirmação
 export interface ConfirmModalProps {
-  isOpen: boolean;
-  title: string;
-  message: string;
-  onClose: () => void;
-  onConfirm: () => void;
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onClose: () => void;
+  onConfirm: () => void;
 }
 
 export interface ExpenseDetailsProps {
-  expenses: Gasto[];
+  expenses: Gasto[];
 }
 
-// Props para controles de filtro de data
 export interface FilterControlsProps {
-  selectedYear: string;
-  setSelectedYear: (year: string) => void;
-  uniqueYears: string[];
-  selectedMonth: string;
-  setSelectedMonth: (month: string) => void;
-  uniqueMonths: string[];
-  setCurrentPage: (page: number) => void;
+  selectedYear: string;
+  setSelectedYear: (year: string) => void;
+  uniqueYears: string[];
+  selectedMonth: string;
+  setSelectedMonth: (month: string) => void;
+  setCurrentPage: (page: number) => void;
 }
 
-// Props para tabela de gastos
 export interface GastosTableProps {
-  gastos: Gasto[];
+  gastos: Gasto[];
 }
 
-// Props para paginação
 export interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-// Props para cards de gráfico
 export interface ChartCardProps {
-  title: string;
-  chartType: "bar" | "pie";
-  data: any;
-  options: any;
+  title: string;
+  chartType: "bar" | "pie";
+  data: any;
+  options: any;
 }
 
-// Props para seção de resumo (total acumulado)
 export interface SummarySectionProps {
-  totalAcumulado: number;
+  totalAcumulado: number;
 }
 
-// Props para componente que exibe múltiplos gráficos
 export interface ChartsDisplayProps {
-  sectionTitle: string;
-  charts: {
-    id: string;
-    title: string;
-    chartType: "bar" | "pie";
-    data: any;
-    options: any;
-  }[];
-  gridCols?: string;
+  sectionTitle: string;
+  charts: {
+    id: string;
+    title: string;
+    chartType: "bar" | "pie";
+    data: any;
+    options: any;
+  }[];
+  gridCols?: string;
 }

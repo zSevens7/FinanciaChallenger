@@ -14,6 +14,7 @@ export interface Venda extends TransacaoMonetaria {
   id: string;
   categoria: "salario" | "produto" | "servico"; // campo obrigatório para o backend
   comentario?: string; // opcional
+  tipoVenda?: string; // opcional
 }
 
 // Tipo usado para criar/editar vendas (sem id)
