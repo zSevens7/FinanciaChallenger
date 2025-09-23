@@ -4,35 +4,35 @@
 
 ## 🗓 Histórico de Atualizações
 
-**🗓 Data:** 29/07/2025
+## **🗓 Data:** 29/07/2025
 - 🖼️ Trocada a logo da Codi para uma logo de banco genérico.  
 - 🛒 Alterado o `ModalVendas` para vendas genéricas.  
 - 🎨 Cores dos modals alteradas de roxo para verde/vermelho.  
 - 📊 Ajustadas as tabelas da página de vendas.
 
-**🗓 Data:** 05/08/2025
+## **🗓 Data:** 05/08/2025
 - ➕ Botões de ação reativados na página de Gastos (`ActionButtons`) e Vendas (`HeaderActionButtons`).  
 - 🧱 Refatoração do layout das seções de filtros (ano/mês) nas páginas Gastos e Vendas.  
 - ⚙️ Adicionado ícone de perfil no header (prévia para futura página de perfil).
 
-**🗓 Data:** 25/08/2025
+## **🗓 Data:** 25/08/2025
 - ⚙️ Criada página de Login (`LoginPage.tsx`) com lógica de simulação.  
 - ✨ Mensagem de erro exibida para credenciais inválidas.
 
-**🗓 Data:** 26/08/2025
+## **🗓 Data:** 26/08/2025
 - 👤 Criada página de Perfil (`ProfilePage.tsx`).  
 - 🛠️ Modais `EditProfileModal.tsx` e `ChangePasswordModal.tsx` implementados.  
 - 🔄 Atualização de estado do usuário corrigida usando spread operator.  
 - 🧭 Navegação atualizada no Header e AppSidebar com Perfil e Logout.  
 
-**🗓 Data:** 26/08/2025 – Fase 3 (Refatoração e Centralização)
+## **🗓 Data:** 26/08/2025 – Fase 3 (Refatoração e Centralização)
 - 🔧 Contextos para Gastos e Vendas criados (substituindo localStorage).  
 - 🔒 `PrivateRoute` implementado para proteger rotas internas.  
 - ♻️ Refatoradas páginas Dashboard, Gastos e Vendas para consumir dados dos contextos.  
 - 🗄️ Estado do usuário centralizado no `AuthContext`.  
 - 🧩 Preparação para backend futuro.
 
-**🗓 Data:** 08/09/2025 – Backend Inicial
+## **🗓 Data:** 08/09/2025 – Backend Inicial
 - 📁 Criada pasta `backend`.  
 - 📄 `package.json` do backend criado.  
 - 🖥️ `server.js` implementado para rodar backend e banco de dados.  
@@ -40,31 +40,31 @@
 - 📂 Rotas `auth.js` implementadas.  
 - 🔐 `.env` criado (não enviado ao GitHub).
 
-**🗓 Data:** 14/09/2025 – Configuração do Servidor
+## **🗓 Data:** 14/09/2025 – Configuração do Servidor
 - 🐛 Corrigido erro 404 no React Router (SPA) usando `try_files`.  
 - 🔧 Nginx configurado para redirecionar `/api/` para backend na porta 4000.  
 - 🖥️ Backend escutando em `0.0.0.0:4000`.  
 - 🚀 Testes de registro via curl e navegador funcionando.
 
-**🗓 Data:** 15/09/2025
+## **🗓 Data:** 15/09/2025
 - 🔐 Backend atualizado (`auth.js`) para reset/forgetPassword.  
 - 📝 Página resetPassword criada.  
 - 🛤️ `BrowserRouter` substituído por `HashRouter` para corrigir F5.
 
-**🗓 Data:** 16/09/2025
-### Backend
+## **🗓 Data:** 16/09/2025
+ Backend
 - 🧾 Testado adicionar os dados de vendas e gastos na página do frontend.
 
-### Frontend
+ Frontend
 - ⚙️ Ajustes em arquivos nos Contexts e `ModalVenda` para arrumar a exibição de vendas e gastos.  
 - 🐞 Corrigido bug de troca de username.
 
-### Status
+ Status
 - ✅ Site funcional e utilizável.  
 - 🛠️ Futuramente serão adicionadas novas funcionalidades e realizados testes para verificar outros erros.
 
 
-**🗓 Data:** 19/09/2025
+## **🗓 Data:** 19/09/2025
 
  🔧 Backend
 - ✅ Conexão entre **backend**, **NGINX** e **frontend** está 100% funcional.
@@ -84,7 +84,7 @@
 - 🧪 Testes manuais estão sendo feitos gradualmente para garantir estabilidade.
 - 💡 Próximos passos: arrumar para colocar os dados de gastos.
 
-**🗓 Data:** 20/09/2025
+## **🗓 Data:** 20/09/2025
 
  🔧 Backend
 - ✅ Corrigido o erro de criação de novas contas (registro de usuários funcionando corretamente).
@@ -101,6 +101,16 @@
 - 💡 Próximos passos: implementação de recursos avançados e otimizações.
 
 
+## **🗓 Data:** 23/09/2025
+
+ 🔧 Backend / Frontend
+- 🐛 Corrigido bug de não atualização dos dados na página de gastos.
+- 🎨 Corrigido o visual da tabela de vendas e removido o tipo de venda (informação inútil).
+- 🆕 Criado novo arquivo `metrics.js` para funcionalidades adicionais de métricas.
+
+ 📌 Observações
+- ⚠️ Ainda precisa corrigir o DashboardKPI.
+- 💡 Próximos passos: ajustes no DashboardKPI e melhorias visuais adicionais.
 
 ---
 
