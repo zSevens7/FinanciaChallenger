@@ -1,5 +1,40 @@
-// src/hooks/useFinancialMetrics.ts - VERSÃO CORRIGIDA
+// src/hooks/useFinancialMetrics.ts - VERSÃO CORRIGIDA COM TIPOS
 import { useEffect, useState, useCallback } from "react";
+import api from "../services/api"; // Ajuste o caminho para seu api.ts
+
+// ✅ Interface para a resposta da API
+interface ApiMetricsResponse {
+  totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
+  cumulativeCashFlow: number;
+  initialInvestment: number;
+  paybackPeriod: number;
+  tir: number;
+  transactions?: Array<{
+    id: string | number;
+    date?: string;
+    data?: string;
+    description?: string;
+    descricao?: string;
+    amount: number;
+    type: string;
+  }>;
+  salesExpensesData?: Array<{
+    period: string;
+    sales: number;
+    expenses: number;
+  }>;
+  cumulativeCashFlowData?: Array<{
+    period: string;
+    cumulativeCashFlow: number;
+  }>;
+  chartData?: Array<{
+    name: string;
+    value: number;
+    period?: string;
+  }>;
+}
 
 export interface ChartDataItem {
   name: string;
@@ -40,7 +75,7 @@ const processTransactions = (transactions: any[]): Transaction[] => {
   if (!transactions || !Array.isArray(transactions)) return [];
   
   return transactions.map((tx, idx) => ({
-    id: tx.id || `tx-${idx}-${Date.now()}`,
+    id: String(tx.id || `tx-${idx}`),
     data: String(tx.date || tx.data || ''),
     descricao: String(tx.description || tx.descricao || ''),
     amount: Number(tx.amount) || 0,
@@ -58,7 +93,7 @@ const processCashFlowData = (transactions: Transaction[]): ChartDataItem[] => {
     return {
       name: tx.data,
       value: saldo,
-      period: tx.data.slice(0, 7),
+      period: tx.data?.slice(0, 7) || "2025-01",
     };
   });
 };
@@ -74,17 +109,13 @@ export const useFinancialMetrics = () => {
       setLoading(true);
       setError(null);
 
-      const token = localStorage.getItem("token");
-      const res = await fetch("/api/metrics", {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        },
-      });
+      console.log("🔄 Buscando métricas...");
 
-      if (!res.ok) throw new Error(`Falha ao buscar métricas: ${res.statusText}`);
+      // ✅ USA API AXIOS COM TIPO DEFINIDO
+      const response = await api.get<ApiMetricsResponse>("/api/metrics");
+      const data = response.data;
 
-      const data = await res.json();
+      console.log("📊 Dados recebidos da API:", data);
 
       // ✅ Processamento mais simples e estável
       const transactions = processTransactions(data.transactions || []);
@@ -93,39 +124,53 @@ export const useFinancialMetrics = () => {
         { 
           name: "Receita", 
           value: asNumberOrNull(data.totalRevenue) ?? 0, 
-          period: "2025" 
+          period: "total" 
         },
         { 
           name: "Despesas", 
           value: asNumberOrNull(data.totalExpenses) ?? 0, 
-          period: "2025" 
+          period: "total" 
         },
         { 
           name: "Lucro Líquido", 
           value: asNumberOrNull(data.netProfit) ?? 0, 
-          period: "2025" 
+          period: "total" 
         },
         { 
           name: "Investimento", 
           value: asNumberOrNull(data.initialInvestment) ?? 0, 
-          period: "2025" 
+          period: "total" 
         },
       ];
 
-      const salesExpensesData: ChartDataItem[] = [
-        { 
-          name: "Receita", 
-          value: asNumberOrNull(data.totalRevenue) ?? 0, 
-          period: "2025" 
-        },
-        { 
-          name: "Despesas", 
-          value: asNumberOrNull(data.totalExpenses) ?? 0, 
-          period: "2025" 
-        },
-      ];
+      // ✅ Sales Expenses Data - usa dados da API ou fallback
+      const salesExpensesData: ChartDataItem[] = data.salesExpensesData 
+        ? data.salesExpensesData.map((item) => ({
+            name: item.period || "Periodo",
+            value: item.sales || item.expenses || 0,
+            period: item.period
+          }))
+        : [
+            { 
+              name: "Receita", 
+              value: asNumberOrNull(data.totalRevenue) ?? 0, 
+              period: "total" 
+            },
+            { 
+              name: "Despesas", 
+              value: asNumberOrNull(data.totalExpenses) ?? 0, 
+              period: "total" 
+            },
+          ];
 
-      const cumulativeCashFlowData = processCashFlowData(transactions);
+      // ✅ Cumulative Cash Flow - usa dados da API ou fallback
+      const cumulativeCashFlowData = data.cumulativeCashFlowData 
+        ? data.cumulativeCashFlowData.map((item) => ({
+            name: item.period || "Periodo",
+            value: item.cumulativeCashFlow || 0,
+            period: item.period
+          }))
+        : processCashFlowData(transactions);
 
       // ✅ Estado mais estável
       setMetrics({
@@ -141,9 +186,18 @@ export const useFinancialMetrics = () => {
         salesExpensesData,
         cumulativeCashFlowData,
       });
+
     } catch (err: any) {
-      console.error("Erro ao carregar métricas:", err);
-      setError(err instanceof Error ? err : new Error(String(err)));
+      console.error("❌ Erro ao carregar métricas:", err);
+      
+      // ✅ Tratamento de erro mais robusto
+      if (err.response?.status === 401) {
+        setError(new Error("Token inválido ou expirado. Faça login novamente."));
+      } else if (err.response?.data?.error) {
+        setError(new Error(err.response.data.error));
+      } else {
+        setError(err instanceof Error ? err : new Error("Erro desconhecido ao carregar métricas"));
+      }
     } finally {
       setLoading(false);
     }
