@@ -1,12 +1,12 @@
 // src/hooks/useFinancialMetrics.ts
 import { useEffect, useState } from "react";
 
-interface ChartDataItem {
+export interface ChartDataItem {
   name: string;
   value: number;
 }
 
-interface FinancialMetrics {
+export interface FinancialMetrics {
   totalRevenue: number;
   totalExpenses: number;
   netProfit: number;
@@ -16,12 +16,11 @@ interface FinancialMetrics {
   tir: number;
   chartData: ChartDataItem[];
 
-  // ✅ Novas propriedades
-  transactions: any[]; // ou tipo correto
+  // Novas propriedades para compatibilidade com dashboard
+  transactions: any[];
   salesExpensesData: ChartDataItem[];
   cumulativeCashFlowData: ChartDataItem[];
 }
-
 
 export const useFinancialMetrics = () => {
   const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
@@ -35,7 +34,7 @@ export const useFinancialMetrics = () => {
         setError(null);
 
         const token = localStorage.getItem("token"); // 🔐 se usar autenticação
-        const res = await fetch("http://localhost:3001/api/metrics", {
+        const res = await fetch("/api/metrics", { // ✅ URL relativa, usa proxy Nginx
           headers: {
             "Content-Type": "application/json",
             Authorization: token ? `Bearer ${token}` : "",
@@ -48,6 +47,7 @@ export const useFinancialMetrics = () => {
 
         const data = await res.json();
 
+        // Monta chartData padrão do Dashboard
         const chartData: ChartDataItem[] = [
           { name: "Receita", value: data.totalRevenue },
           { name: "Despesas", value: data.totalExpenses },
@@ -55,9 +55,17 @@ export const useFinancialMetrics = () => {
           { name: "Investimento", value: data.initialInvestment },
         ];
 
+        // Se não vierem arrays, inicializa vazio
+        const transactions = data.transactions || [];
+        const salesExpensesData: ChartDataItem[] = data.salesExpensesData || [];
+        const cumulativeCashFlowData: ChartDataItem[] = data.cumulativeCashFlowData || [];
+
         setMetrics({
           ...data,
           chartData,
+          transactions,
+          salesExpensesData,
+          cumulativeCashFlowData,
         });
       } catch (err: any) {
         console.error("Erro ao carregar métricas:", err);
