@@ -1,11 +1,19 @@
 import { useMemo } from 'react';
-import type { Gasto, Venda } from '../../../types';
 
-const monthNames: { [key: string]: string } = {
-  '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
-  '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
-  '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
-};
+// Se ainda não tiver os tipos, define aqui
+export interface Gasto {
+  data: string;
+  preco?: number; // ou valor, dependendo do seu model
+  tipo?: string;
+  [key: string]: any;
+}
+
+export interface Venda {
+  data: string;
+  valor?: number; // ou preco, dependendo do seu model
+  categoria?: string;
+  [key: string]: any;
+}
 
 interface SalesExpensesDataPoint {
   period: string;
@@ -19,18 +27,25 @@ interface CumulativeCashFlowDataPoint {
   netCashFlow?: number;
 }
 
-interface DashboardChartData {
+export interface DashboardChartData {
   salesExpensesData: SalesExpensesDataPoint[];
   cumulativeCashFlowData: CumulativeCashFlowDataPoint[];
 }
 
-// Type guards com proteção extra
-const isVenda = (item: unknown): item is Venda => {
-  return !!item && typeof item === 'object' && 'valor' in item && 'categoria' in item;
+// Nome dos meses
+const monthNames: { [key: string]: string } = {
+  '01': 'Janeiro', '02': 'Fevereiro', '03': 'Março', '04': 'Abril',
+  '05': 'Maio', '06': 'Junho', '07': 'Julho', '08': 'Agosto',
+  '09': 'Setembro', '10': 'Outubro', '11': 'Novembro', '12': 'Dezembro'
 };
 
+// Type guards
 const isGasto = (item: unknown): item is Gasto => {
-  return !!item && typeof item === 'object' && 'preco' in item && 'tipo' in item;
+  return !!item && typeof item === 'object' && 'preco' in item;
+};
+
+const isVenda = (item: unknown): item is Venda => {
+  return !!item && typeof item === 'object' && 'valor' in item;
 };
 
 export const useDashboardChartsData = (
@@ -41,104 +56,101 @@ export const useDashboardChartsData = (
   aggregationType: 'daily' | 'monthly' | 'yearly',
   selectedMonth?: string
 ): DashboardChartData => {
-  const data = useMemo(() => {
-    const salesExpensesMap = new Map<string, { totalSales: number; totalExpenses: number; netCashFlow: number }>();
+  return useMemo(() => {
+    const periodMap = new Map<string, { totalSales: number; totalExpenses: number; netCashFlow: number }>();
 
-    const allTransactions: Array<Gasto | Venda> = [...(filteredGastos || []), ...(filteredVendas || [])]
-      .filter(item => item && typeof item === 'object' && 'data' in item)
-      .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
-
+    // Inicializa períodos
     if (aggregationType === 'monthly') {
-      for (let i = 1; i <= 12; i++) {
-        const monthKey = `${selectedYear}-${i.toString().padStart(2, '0')}`;
-        salesExpensesMap.set(monthKey, { totalSales: 0, totalExpenses: 0, netCashFlow: 0 });
+      for (let m = 1; m <= 12; m++) {
+        const monthKey = `${selectedYear}-${m.toString().padStart(2, '0')}`;
+        periodMap.set(monthKey, { totalSales: 0, totalExpenses: 0, netCashFlow: 0 });
       }
     } else if (aggregationType === 'daily' && selectedMonth) {
       const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dayKey = `${selectedYear}-${selectedMonth}-${day.toString().padStart(2, '0')}`;
-        salesExpensesMap.set(dayKey, { totalSales: 0, totalExpenses: 0, netCashFlow: 0 });
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dayKey = `${selectedYear}-${selectedMonth}-${d.toString().padStart(2, '0')}`;
+        periodMap.set(dayKey, { totalSales: 0, totalExpenses: 0, netCashFlow: 0 });
       }
     }
 
-    allTransactions.forEach(item => {
-      if (!item || typeof item !== 'object') return;
+    const allTransactions: Array<Gasto | Venda> = [...filteredGastos, ...filteredVendas]
+      .filter(item => item && typeof item === 'object' && 'data' in item)
+      .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
 
+    allTransactions.forEach(item => {
+      if (!item) return;
       const date = new Date(item.data);
-      let periodKey = '';
+      let key = '';
 
       if (aggregationType === 'daily' && selectedMonth) {
         if (date.getFullYear().toString() !== selectedYear ||
           (date.getMonth() + 1).toString().padStart(2, '0') !== selectedMonth) return;
-        periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
       } else if (aggregationType === 'monthly') {
         if (date.getFullYear().toString() !== selectedYear) return;
-        periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        key = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
       } else {
-        periodKey = date.getFullYear().toString();
+        key = date.getFullYear().toString();
       }
 
-      const current = salesExpensesMap.get(periodKey) || { totalSales: 0, totalExpenses: 0, netCashFlow: 0 };
+      const current = periodMap.get(key) || { totalSales: 0, totalExpenses: 0, netCashFlow: 0 };
 
       if (isGasto(item)) {
-        current.totalExpenses += Math.abs(item.preco);
-        current.netCashFlow -= Math.abs(item.preco);
+        const valor = item.preco ?? 0;
+        current.totalExpenses += Math.abs(valor);
+        current.netCashFlow -= Math.abs(valor);
       } else if (isVenda(item)) {
-        current.totalSales += item.preco;
-        current.netCashFlow += item.preco;
+        const valor = item.valor ?? 0;
+        current.totalSales += valor;
+        current.netCashFlow += valor;
       }
 
-      salesExpensesMap.set(periodKey, current);
+      periodMap.set(key, current);
     });
 
-    const sortedPeriodKeys = Array.from(salesExpensesMap.keys()).sort((a, b) => a.localeCompare(b));
+    const sortedKeys = Array.from(periodMap.keys()).sort((a, b) => a.localeCompare(b));
 
     const salesExpensesData: SalesExpensesDataPoint[] = [];
     const cumulativeCashFlowData: CumulativeCashFlowDataPoint[] = [];
 
+    let cumulative = initialInvestment;
     if (initialInvestment !== 0) {
-      let initialPeriodLabel = aggregationType === 'monthly' ? `Mês Anterior ${selectedYear}` : (parseInt(selectedYear) - 1).toString();
+      const initialLabel = aggregationType === 'monthly' ? `Mês Anterior ${selectedYear}` : (parseInt(selectedYear) - 1).toString();
       cumulativeCashFlowData.push({
-        period: initialPeriodLabel,
+        period: initialLabel,
         cumulativeCashFlow: initialInvestment,
         netCashFlow: initialInvestment
       });
     }
 
-    let currentCumulative = cumulativeCashFlowData.length > 0
-      ? cumulativeCashFlowData[cumulativeCashFlowData.length - 1].cumulativeCashFlow
-      : 0;
+    sortedKeys.forEach(key => {
+      const values = periodMap.get(key)!;
+      let displayPeriod = '';
 
-    sortedPeriodKeys.forEach(periodKey => {
-      const values = salesExpensesMap.get(periodKey)!;
-
-      let displayPeriod: string;
       if (aggregationType === 'daily') {
-        const [, monthStr, dayStr] = periodKey.split('-');
+        const [, monthStr, dayStr] = key.split('-');
         displayPeriod = `${parseInt(dayStr, 10).toString().padStart(2, '0')}/${monthNames[monthStr] || monthStr}`;
       } else if (aggregationType === 'monthly') {
-        const [year, monthStr] = periodKey.split('-');
+        const [year, monthStr] = key.split('-');
         displayPeriod = `${monthNames[monthStr] || monthStr} ${year}`;
       } else {
-        displayPeriod = periodKey;
+        displayPeriod = key;
       }
 
       salesExpensesData.push({
         period: displayPeriod,
         totalSales: values.totalSales,
-        totalExpenses: Math.abs(values.totalExpenses),
+        totalExpenses: values.totalExpenses
       });
 
-      currentCumulative += values.netCashFlow;
+      cumulative += values.netCashFlow;
       cumulativeCashFlowData.push({
         period: displayPeriod,
-        cumulativeCashFlow: currentCumulative,
-        netCashFlow: values.netCashFlow,
+        cumulativeCashFlow: cumulative,
+        netCashFlow: values.netCashFlow
       });
     });
 
     return { salesExpensesData, cumulativeCashFlowData };
   }, [filteredGastos, filteredVendas, initialInvestment, selectedYear, aggregationType, selectedMonth]);
-
-  return data;
 };

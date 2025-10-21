@@ -1,6 +1,5 @@
 // src/hooks/useFinancialMetrics.ts
-import { useMemo } from "react";
-import type { Gasto, Venda } from "../types";
+import { useEffect, useState } from "react";
 
 interface ChartDataItem {
   name: string;
@@ -12,57 +11,64 @@ interface FinancialMetrics {
   totalExpenses: number;
   netProfit: number;
   cumulativeCashFlow: number;
-  initialInvestmentCalculated: number;
+  initialInvestment: number;
   paybackPeriod: number;
   tir: number;
   chartData: ChartDataItem[];
+
+  // ✅ Novas propriedades
+  transactions: any[]; // ou tipo correto
+  salesExpensesData: ChartDataItem[];
+  cumulativeCashFlowData: ChartDataItem[];
 }
 
-export const useFinancialMetrics = (
-  allGastos: Gasto[],
-  allVendas: Venda[],
-  initialInvestment: number = 0
-): FinancialMetrics => {
-  const metrics = useMemo(() => {
-    // Total de receita (somatório das vendas)
-    const totalRevenue = allVendas.reduce((acc, venda) => acc + (venda.valor || 0), 0);
 
-    // Total de despesas (somatório dos gastos)
-    const totalExpenses = allGastos.reduce((acc, gasto) => acc + (gasto.valor || 0), 0);
+export const useFinancialMetrics = () => {
+  const [metrics, setMetrics] = useState<FinancialMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    // Lucro líquido
-    const netProfit = totalRevenue - totalExpenses;
+  useEffect(() => {
+    async function fetchMetrics() {
+      try {
+        setLoading(true);
+        setError(null);
 
-    // Fluxo de caixa acumulado
-    const cumulativeCashFlow = initialInvestment + netProfit;
+        const token = localStorage.getItem("token"); // 🔐 se usar autenticação
+        const res = await fetch("http://localhost:3001/api/metrics", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        });
 
-    // Investimento inicial calculado
-    const initialInvestmentCalculated = initialInvestment;
+        if (!res.ok) {
+          throw new Error("Falha ao buscar métricas");
+        }
 
-    // Payback: tempo aproximado para recuperar o investimento
-    const paybackPeriod = netProfit > 0 ? initialInvestment / netProfit : 0;
+        const data = await res.json();
 
-    // TIR (placeholder, futuramente com fluxo de caixa real)
-    const tir = 0;
+        const chartData: ChartDataItem[] = [
+          { name: "Receita", value: data.totalRevenue },
+          { name: "Despesas", value: data.totalExpenses },
+          { name: "Lucro Líquido", value: data.netProfit },
+          { name: "Investimento", value: data.initialInvestment },
+        ];
 
-    // Dados para gráficos
-    const chartData: ChartDataItem[] = [
-      { name: "Receita", value: totalRevenue },
-      { name: "Despesas", value: totalExpenses },
-      { name: "Lucro Líquido", value: netProfit },
-    ];
+        setMetrics({
+          ...data,
+          chartData,
+        });
+      } catch (err: any) {
+        console.error("Erro ao carregar métricas:", err);
+        setError(err.message || "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    return {
-      totalRevenue,
-      totalExpenses,
-      netProfit,
-      cumulativeCashFlow,
-      initialInvestmentCalculated,
-      paybackPeriod,
-      tir,
-      chartData,
-    };
-  }, [allGastos, allVendas, initialInvestment]);
+    fetchMetrics();
+  }, []);
 
-  return metrics;
+  return { metrics, loading, error };
 };

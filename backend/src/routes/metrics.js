@@ -8,33 +8,59 @@ export default function createMetricsRoutes(db) {
   router.get("/", authenticateToken, async (req, res) => {
     try {
       const userId = req.user.id;
+      const { year, month } = req.query; // ← filtros opcionais vindos da URL
+
+      // Construção dinâmica do filtro de data
+      let dateFilter = "";
+      const params = [userId];
+
+      if (year) {
+        dateFilter += " AND YEAR(data) = ?";
+        params.push(year);
+      }
+      if (month) {
+        dateFilter += " AND MONTH(data) = ?";
+        params.push(month);
+      }
 
       // Total de Vendas
       const [vendasRows] = await db.execute(
-        "SELECT SUM(valor) as totalRevenue FROM vendas WHERE user_id = ?",
-        [userId]
+        `SELECT COALESCE(SUM(valor), 0) AS totalRevenue 
+         FROM vendas 
+         WHERE user_id = ?${dateFilter}`,
+        params
       );
-      const totalRevenue = parseFloat(vendasRows[0].totalRevenue) || 0;
+      const totalRevenue = parseFloat(vendasRows[0].totalRevenue);
 
-      // Total de Despesas
+      // Total de Despesas (excluindo investimentos)
       const [gastosRows] = await db.execute(
-        "SELECT SUM(valor) as totalExpenses FROM gastos WHERE user_id = ? AND tipo_despesa != 'investimento'",
-        [userId]
+        `SELECT COALESCE(SUM(valor), 0) AS totalExpenses 
+         FROM gastos 
+         WHERE user_id = ? AND tipo_despesa != 'investimento'${dateFilter}`,
+        params
       );
-      const totalExpenses = parseFloat(gastosRows[0].totalExpenses) || 0;
+      const totalExpenses = parseFloat(gastosRows[0].totalExpenses);
 
       // Investimento Inicial
       const [investRows] = await db.execute(
-        "SELECT SUM(valor) as initialInvestment FROM gastos WHERE user_id = ? AND tipo_despesa = 'investimento'",
-        [userId]
+        `SELECT COALESCE(SUM(valor), 0) AS initialInvestment 
+         FROM gastos 
+         WHERE user_id = ? AND tipo_despesa = 'investimento'${dateFilter}`,
+        params
       );
-      const initialInvestment = parseFloat(investRows[0].initialInvestment) || 0;
+      const initialInvestment = parseFloat(investRows[0].initialInvestment);
 
+      // Lucro líquido
       const netProfit = totalRevenue - totalExpenses;
+
+      // Fluxo de caixa acumulado
       const cumulativeCashFlow = initialInvestment + netProfit;
 
-      // Payback
-      const paybackPeriod = netProfit > 0 ? initialInvestment / netProfit : 0;
+      // Payback (seguro contra divisão por zero)
+      const paybackPeriod =
+        netProfit > 0 && initialInvestment > 0
+          ? initialInvestment / netProfit
+          : 0;
 
       // TIR (placeholder)
       const tir = 0;
@@ -50,7 +76,10 @@ export default function createMetricsRoutes(db) {
       });
     } catch (err) {
       console.error("Erro ao calcular métricas:", err);
-      res.status(500).json({ error: "Erro ao calcular métricas", details: err.message });
+      res.status(500).json({
+        error: "Erro ao calcular métricas",
+        details: err.message,
+      });
     }
   });
 
