@@ -1,17 +1,19 @@
 // src/hooks/useFinancialMetrics.ts
 import { useEffect, useState } from "react";
-import {
-  aggregateByPeriod,
-  aggregateSalesByPeriod,
-  prepareChartData,
-  aggregateByCategory,
-  aggregateByTipoDespesa,
-} from "../services/agreggation";
 
 export interface ChartDataItem {
-  name: string;
+  name: string; // Ex: "Receita", "Despesas", "Lucro Líquido", "Investimento"
   value: number;
-  period?: string; // ✅ adicionado para permitir filtros por período
+  period?: string; // ⬅️ necessário para filtro por ano/mês
+}
+
+// Transaction compatível com DashboardTransactionsTable
+export interface Transaction {
+  id: string;
+  data: string;       // formato ISO "YYYY-MM-DD"
+  descricao: string;  // agora em português, para o Dashboard
+  amount: number;
+  type: "Venda" | "Gasto";
 }
 
 export interface FinancialMetrics {
@@ -24,8 +26,7 @@ export interface FinancialMetrics {
   tir: number;
   chartData: ChartDataItem[];
 
-  // Novas propriedades para compatibilidade com dashboard
-  transactions: any[];
+  transactions: Transaction[];
   salesExpensesData: ChartDataItem[];
   cumulativeCashFlowData: ChartDataItem[];
 }
@@ -41,7 +42,7 @@ export const useFinancialMetrics = () => {
         setLoading(true);
         setError(null);
 
-        const token = localStorage.getItem("token"); 
+        const token = localStorage.getItem("token");
         const res = await fetch("/api/metrics", {
           headers: {
             "Content-Type": "application/json",
@@ -49,32 +50,45 @@ export const useFinancialMetrics = () => {
           },
         });
 
-        if (!res.ok) {
-          throw new Error("Falha ao buscar métricas");
-        }
+        if (!res.ok) throw new Error("Falha ao buscar métricas");
 
         const data = await res.json();
 
-        // Monta chartData padrão do Dashboard
+        // KPIs básicos
         const chartData: ChartDataItem[] = [
-          { name: "Receita", value: data.totalRevenue, period: "" },
-          { name: "Despesas", value: data.totalExpenses, period: "" },
-          { name: "Lucro Líquido", value: data.netProfit, period: "" },
-          { name: "Investimento", value: data.initialInvestment, period: "" },
+          { name: "Receita", value: data.totalRevenue, period: "2025" },
+          { name: "Despesas", value: data.totalExpenses, period: "2025" },
+          { name: "Lucro Líquido", value: data.netProfit, period: "2025" },
+          { name: "Investimento", value: data.initialInvestment, period: "2025" },
         ];
 
-        // Prepara os dados de gráfico com períodos (ex: 2025-09)
-        const salesExpensesData: ChartDataItem[] = (data.salesExpensesData || []).map((item: any) => ({
-          ...item,
-          period: item.period || item.name || ""
+        // Transações
+        const transactions: Transaction[] = (data.transactions || []).map((tx: any, idx: number) => ({
+          id: tx.id || idx.toString(),
+          data: tx.date,                       // agora compatível com Dashboard
+          descricao: tx.description ?? "",      // mapeia para 'descricao'
+          amount: tx.amount ?? 0,
+          type: tx.type === "Venda" ? "Venda" : "Gasto",
         }));
 
-        const cumulativeCashFlowData: ChartDataItem[] = (data.cumulativeCashFlowData || []).map((item: any) => ({
-          ...item,
-          period: item.period || item.name || ""
-        }));
+        // Vendas x Despesas com período
+        const salesExpensesData: ChartDataItem[] = [
+          { name: "Receita", value: data.totalRevenue, period: "2025" },
+          { name: "Despesas", value: data.totalExpenses, period: "2025" },
+        ];
 
-        const transactions = data.transactions || [];
+        // Fluxo de caixa acumulado
+        let saldo = 0;
+        const cumulativeCashFlowData: ChartDataItem[] = transactions.length
+          ? transactions.map(tx => {
+              saldo += tx.type === "Venda" ? tx.amount : -tx.amount;
+              return {
+                name: tx.data,
+                value: saldo,
+                period: tx.data.slice(0, 7), // "YYYY-MM"
+              };
+            })
+          : [{ name: "Total", value: data.cumulativeCashFlow, period: "2025" }];
 
         setMetrics({
           ...data,

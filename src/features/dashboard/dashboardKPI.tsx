@@ -14,17 +14,18 @@ const DashboardKPI = ({
   period = "",
   valueColorClass,
 }: DashboardKPIProps) => {
-  // cor padrão baseada no título (tratando plurais/variações)
+  // Define cor padrão baseada no título
   const lower = title.toLowerCase();
-  const defaultColor = lower.includes("despesa") || lower.includes("despesas") || lower.includes("custo")
-    ? "text-red-600"
-    : lower.includes("invest")
-    ? "text-blue-600"
-    : "text-green-600";
+  const defaultColor =
+    lower.includes("despesa") || lower.includes("despesas") || lower.includes("custo")
+      ? "text-red-600"
+      : lower.includes("invest")
+      ? "text-blue-600"
+      : "text-green-600";
 
   const valueColor = valueColorClass || defaultColor;
 
-  // garante que números apareçam com duas casas (se forem number)
+  // Formata números com duas casas decimais
   const formattedValue =
     typeof value === "number" ? value.toFixed(2) : value ?? "—";
 

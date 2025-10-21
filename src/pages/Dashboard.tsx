@@ -1,19 +1,18 @@
 // src/pages/Dashboard.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import DashboardKPI from "../features/dashboard/dashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
 import { monthNames } from "../utils";
 import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
 import { usePageHeader } from "../contexts/HeaderContext";
-import { DashboardTransactionsTable } from "../components/DashHistory/DashBoardTransactionsTable";
-import { useFinancialMetrics, FinancialMetrics, ChartDataItem } from "../hooks/useFinancialMetrics";
+import { DashboardTransactionsTable, Transaction } from "../components/DashHistory/DashBoardTransactionsTable";
+import { useFinancialMetrics, ChartDataItem } from "../hooks/useFinancialMetrics";
 
 const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
   const { setPageHeader } = usePageHeader();
-
   const { metrics, loading, error } = useFinancialMetrics();
 
   useEffect(() => {
@@ -47,7 +46,7 @@ const Dashboard = () => {
     );
   }
 
-  // Monta KPIs incluindo TIR e Payback
+  // KPIs
   const kpis = [
     { name: "Receita Total", value: metrics.totalRevenue },
     { name: "Despesas Totais", value: metrics.totalExpenses },
@@ -57,20 +56,32 @@ const Dashboard = () => {
     { name: "TIR (%)", value: metrics.tir * 100 }
   ];
 
-  // Função para filtrar gráficos por período
+  // Filtro de gráficos por período
   const filterByPeriod = (data: ChartDataItem[]): ChartDataItem[] => {
     return data.filter(item => {
-      if (!item.period) return true; // sem period, mostra tudo
+      if (!item.period) return true;
       if (selectedYear && !selectedMonth) return item.period.startsWith(selectedYear);
       if (selectedYear && selectedMonth) return item.period.startsWith(`${selectedYear}-${selectedMonth}`);
       return true;
     });
   };
 
+  // Formata transações para o DashboardTransactionsTable
+  const formattedTransactions: Transaction[] = useMemo(() => {
+    return (metrics.transactions || []).map(tx => ({
+      id: tx.id,
+      data: tx.data,
+      // mapeia "Venda" -> "sale", "Gasto" -> "expense"
+      type: tx.type === "Venda" ? "sale" : "expense",
+      amount: tx.amount,
+      descricao: tx.descricao ?? "", // <-- usar 'descricao', não 'description'
+    }));
+  }, [metrics.transactions]);
+
   return (
     <PageContainer>
       <div className="flex flex-col gap-8 mb-8">
-        {/* 🔽 Filtros */}
+        {/* 🔽 Filtros de ano/mês */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-start w-full">
           <select
             value={selectedYear}
@@ -118,7 +129,7 @@ const Dashboard = () => {
         </div>
 
         {/* 💰 Tabela de Histórico */}
-        <DashboardTransactionsTable transactions={metrics.transactions || []} />
+        <DashboardTransactionsTable transactions={formattedTransactions} />
 
         {/* 📈 Gráficos */}
         <div className="flex flex-col gap-8 w-full mt-8 p-4 bg-blue-50 rounded-lg shadow">

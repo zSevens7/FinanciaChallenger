@@ -1,17 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { formatDate } from "../../utils";
-import type { Gasto, Venda } from "../../types";
 
-// União de tipos para transações do Dashboard
-type Transaction = {
+// Tipo de transação do Dashboard
+export type Transaction = {
   id: string | number;
   data: string;
-  type: "sale" | "expense";
+  type: "sale" | "expense"; // obrigatório: literal
   amount: number;
-  descricao?: string;
-  tipo?: string;
-  nomeCliente?: string; // para vendas
-  tipoCurso?: string;   // para vendas
+  descricao?: string; // opcional, usada na tabela
+  tipo?: string;      // opcional, aparece na tabela
 };
 
 interface DashboardTransactionsTableProps {
@@ -35,14 +32,12 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
     <div className="mt-6 font-inter w-full">
       <h2 className="text-2xl font-bold text-blue-800 mb-4 text-center">Transações Recentes</h2>
 
-      {/* Botões de Filtro */}
+      {/* Botões de filtro */}
       <div className="flex justify-center gap-4 mb-4">
         <button
           onClick={() => setFilterType("all")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out ${
-            filterType === "all"
-              ? "bg-blue-800 text-white shadow-md"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            filterType === "all" ? "bg-blue-800 text-white shadow-md" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Todos
@@ -50,9 +45,7 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
         <button
           onClick={() => setFilterType("sales")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out ${
-            filterType === "sales"
-              ? "bg-green-600 text-white shadow-md"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            filterType === "sales" ? "bg-green-600 text-white shadow-md" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Vendas
@@ -60,9 +53,7 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
         <button
           onClick={() => setFilterType("expenses")}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 ease-in-out ${
-            filterType === "expenses"
-              ? "bg-red-600 text-white shadow-md"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            filterType === "expenses" ? "bg-red-600 text-white shadow-md" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
           }`}
         >
           Gastos
@@ -74,29 +65,21 @@ export const DashboardTransactionsTable: React.FC<DashboardTransactionsTableProp
           <table className="min-w-full text-sm">
             <thead className="bg-blue-800 text-white">
               <tr>
-                <th scope="col" className="p-3 text-left font-semibold tracking-wider whitespace-nowrap">
-                  Data
-                </th>
-                <th scope="col" className="p-3 text-left font-semibold tracking-wider whitespace-nowrap">
-                  Descrição
-                </th>
-                <th scope="col" className="p-3 text-right font-semibold tracking-wider whitespace-nowrap">
-                  Valor (R$)
-                </th>
-                <th scope="col" className="p-3 text-center font-semibold tracking-wider whitespace-nowrap hidden sm:table-cell">
-                  Tipo
-                </th>
+                <th className="p-3 text-left font-semibold tracking-wider whitespace-nowrap">Data</th>
+                <th className="p-3 text-left font-semibold tracking-wider whitespace-nowrap">Descrição</th>
+                <th className="p-3 text-right font-semibold tracking-wider whitespace-nowrap">Valor (R$)</th>
+                <th className="p-3 text-center font-semibold tracking-wider whitespace-nowrap hidden sm:table-cell">Tipo</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-blue-100">
               {filteredAndLimitedTransactions.length > 0 ? (
                 filteredAndLimitedTransactions.map((t) => (
                   <tr key={t.id} className="hover:bg-blue-50 transition-colors duration-150 ease-in-out">
-                    <td className="p-3 whitespace-nowrap text-gray-700">{t.data ? formatDate(t.data) : "Data inválida"}</td>
+                    <td className="p-3 whitespace-nowrap text-gray-700">
+                      {t.data ? formatDate(t.data) : "Data inválida"}
+                    </td>
                     <td className="p-3 whitespace-nowrap text-gray-800 font-medium">
-                      {t.type === "expense"
-                        ? t.descricao ?? "Sem descrição"
-                        : `${t.tipoCurso ?? "Curso"} (${t.nomeCliente ?? "Cliente"})`}
+                      {t.descricao ?? "Sem descrição"}
                     </td>
                     <td
                       className={`p-3 text-right whitespace-nowrap font-bold ${
