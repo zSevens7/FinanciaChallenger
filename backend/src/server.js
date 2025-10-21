@@ -86,12 +86,22 @@ async function initializeServer() {
       try {
         const routeModule = await import(`./routes/${mod}.js`);
         const createRoute = routeModule.default;
-        app.use(`/${mod}`, createRoute(db));
-        console.log(`✅ Rota ${mod} importada com sucesso`);
+        // 🔥 Alterado para /api/${mod}
+        app.use(`/api/${mod}`, createRoute(db));
+        console.log(`✅ Rota /api/${mod} importada com sucesso`);
       } catch (err) {
-        console.error(`❌ Erro ao importar rota ${mod}:`, err.message);
+        console.error(`❌ Erro ao importar rota /api/${mod}:`, err.message);
       }
     }
+
+    // 🔥 Adicionar middleware para rotas não encontradas (APIs)
+    app.use('/api/*', (req, res) => {
+      res.status(404).json({ 
+        error: 'Rota da API não encontrada',
+        path: req.originalUrl,
+        method: req.method 
+      });
+    });
 
     // ==== INICIAR SERVIDOR ====
     const server = app.listen(PORT, '0.0.0.0', () => {
