@@ -67,20 +67,17 @@ const Dashboard = () => {
   };
 
   // Formata transações para o DashboardTransactionsTable
-    const formattedTransactions: Transaction[] = useMemo(() => {
-      if (!metrics?.transactions?.length) return [];
+  const formattedTransactions: Transaction[] = useMemo(() => {
+    if (!metrics?.transactions?.length) return [];
 
-      return metrics.transactions
-        .filter((tx): tx is typeof tx & { type: string } => !!tx && typeof tx.type === "string")
-        .map(tx => ({
-          id: tx.id ?? crypto.randomUUID(),
-          data: tx.data ?? "",
-          type: tx.type === "Venda" ? "sale" : "expense", // default: "expense"
-          amount: typeof tx.amount === "number" ? tx.amount : 0,
-          descricao: tx.descricao ?? "",
-        }));
-    }, [metrics?.transactions]);
-
+    return metrics.transactions.map(tx => ({
+      id: String(tx.id ?? crypto.randomUUID()),   // garante string
+      data: tx.data ?? "",
+      type: tx.type === "Venda" ? "sale" : "expense", // mapeia corretamente
+      amount: typeof tx.amount === "number" ? tx.amount : 0,
+      descricao: tx.descricao ?? "",
+    }));
+  }, [metrics?.transactions]);
 
   return (
     <PageContainer>
