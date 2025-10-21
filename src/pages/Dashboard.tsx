@@ -68,15 +68,16 @@ const Dashboard = () => {
 
   // Formata transações para o DashboardTransactionsTable
   const formattedTransactions: Transaction[] = useMemo(() => {
-    return (metrics.transactions || []).map(tx => ({
-      id: tx.id,
-      data: tx.data,
-      // mapeia "Venda" -> "sale", "Gasto" -> "expense"
-      type: tx.type === "Venda" ? "sale" : "expense",
-      amount: tx.amount,
-      descricao: tx.descricao ?? "", // <-- usar 'descricao', não 'description'
+    if (!metrics?.transactions) return [];
+
+    return metrics.transactions.map(tx => ({
+      id: tx.id ?? crypto.randomUUID(),   // garante id único
+      data: tx.data ?? "",                // evita undefined
+      type: tx.type === "Venda" ? "sale" : "expense", // se tx.type não existir, cai em "expense"
+      amount: tx.amount ?? 0,             // evita undefined
+      descricao: tx.descricao ?? "",      // evita undefined
     }));
-  }, [metrics.transactions]);
+  }, [metrics?.transactions]);
 
   return (
     <PageContainer>
