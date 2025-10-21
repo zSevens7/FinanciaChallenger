@@ -1,3 +1,4 @@
+// src/pages/Dashboard.tsx
 import { useState, useEffect } from "react";
 import DashboardKPI from "../features/dashboard/dashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
@@ -5,7 +6,7 @@ import { monthNames } from "../utils";
 import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
 import { usePageHeader } from "../contexts/HeaderContext";
 import { DashboardTransactionsTable } from "../components/DashHistory/DashBoardTransactionsTable";
-import { useFinancialMetrics } from "../hooks/useFinancialMetrics";
+import { useFinancialMetrics, FinancialMetrics, ChartDataItem } from "../hooks/useFinancialMetrics";
 
 const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
@@ -13,7 +14,6 @@ const Dashboard = () => {
 
   const { setPageHeader } = usePageHeader();
 
-  // ✅ Busca as métricas diretamente do backend
   const { metrics, loading, error } = useFinancialMetrics();
 
   useEffect(() => {
@@ -47,20 +47,30 @@ const Dashboard = () => {
     );
   }
 
-  // Monta os KPIs incluindo a TIR
+  // Monta KPIs incluindo TIR e Payback
   const kpis = [
     { name: "Receita Total", value: metrics.totalRevenue },
     { name: "Despesas Totais", value: metrics.totalExpenses },
     { name: "Lucro Líquido", value: metrics.netProfit },
     { name: "Investimento Inicial", value: metrics.initialInvestment },
     { name: "Payback (períodos)", value: metrics.paybackPeriod },
-    { name: "TIR (%)", value: metrics.tir * 100 } // converte para porcentagem
+    { name: "TIR (%)", value: metrics.tir * 100 }
   ];
+
+  // Função para filtrar gráficos por período
+  const filterByPeriod = (data: ChartDataItem[]): ChartDataItem[] => {
+    return data.filter(item => {
+      if (!item.period) return true; // sem period, mostra tudo
+      if (selectedYear && !selectedMonth) return item.period.startsWith(selectedYear);
+      if (selectedYear && selectedMonth) return item.period.startsWith(`${selectedYear}-${selectedMonth}`);
+      return true;
+    });
+  };
 
   return (
     <PageContainer>
       <div className="flex flex-col gap-8 mb-8">
-        {/* 🔽 Filtros (mantidos para estética futura) */}
+        {/* 🔽 Filtros */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-start w-full">
           <select
             value={selectedYear}
@@ -120,7 +130,7 @@ const Dashboard = () => {
             <h3 className="text-xl font-semibold text-blue-700 mb-3 text-center">
               Total de Vendas vs. Total de Despesas
             </h3>
-            <SalesExpensesChart data={metrics.salesExpensesData || []} />
+            <SalesExpensesChart data={filterByPeriod(metrics.salesExpensesData || [])} />
           </section>
 
           <section className="w-full">
@@ -128,7 +138,7 @@ const Dashboard = () => {
               Fluxo de Caixa Acumulado
             </h3>
             <CumulativeCashFlowChart
-              data={metrics.cumulativeCashFlowData || []}
+              data={filterByPeriod(metrics.cumulativeCashFlowData || [])}
             />
           </section>
         </div>

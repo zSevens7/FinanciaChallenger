@@ -6,11 +6,12 @@ import {
   prepareChartData,
   aggregateByCategory,
   aggregateByTipoDespesa,
-} from "../services/agreggation"; // ❌ sem ChartDataItem aqui
+} from "../services/agreggation";
 
 export interface ChartDataItem {
   name: string;
   value: number;
+  period?: string; // ✅ adicionado para permitir filtros por período
 }
 
 export interface FinancialMetrics {
@@ -40,8 +41,8 @@ export const useFinancialMetrics = () => {
         setLoading(true);
         setError(null);
 
-        const token = localStorage.getItem("token"); // 🔐 se usar autenticação
-        const res = await fetch("/api/metrics", { // ✅ URL relativa, usa proxy Nginx
+        const token = localStorage.getItem("token"); 
+        const res = await fetch("/api/metrics", {
           headers: {
             "Content-Type": "application/json",
             Authorization: token ? `Bearer ${token}` : "",
@@ -56,16 +57,24 @@ export const useFinancialMetrics = () => {
 
         // Monta chartData padrão do Dashboard
         const chartData: ChartDataItem[] = [
-          { name: "Receita", value: data.totalRevenue },
-          { name: "Despesas", value: data.totalExpenses },
-          { name: "Lucro Líquido", value: data.netProfit },
-          { name: "Investimento", value: data.initialInvestment },
+          { name: "Receita", value: data.totalRevenue, period: "" },
+          { name: "Despesas", value: data.totalExpenses, period: "" },
+          { name: "Lucro Líquido", value: data.netProfit, period: "" },
+          { name: "Investimento", value: data.initialInvestment, period: "" },
         ];
 
-        // Se não vierem arrays, inicializa vazio
+        // Prepara os dados de gráfico com períodos (ex: 2025-09)
+        const salesExpensesData: ChartDataItem[] = (data.salesExpensesData || []).map((item: any) => ({
+          ...item,
+          period: item.period || item.name || ""
+        }));
+
+        const cumulativeCashFlowData: ChartDataItem[] = (data.cumulativeCashFlowData || []).map((item: any) => ({
+          ...item,
+          period: item.period || item.name || ""
+        }));
+
         const transactions = data.transactions || [];
-        const salesExpensesData: ChartDataItem[] = data.salesExpensesData || [];
-        const cumulativeCashFlowData: ChartDataItem[] = data.cumulativeCashFlowData || [];
 
         setMetrics({
           ...data,
