@@ -112,7 +112,7 @@ export const useFinancialMetrics = () => {
       console.log("🔄 Buscando métricas...");
 
       // ✅ USA API AXIOS COM TIPO DEFINIDO
-      const response = await api.get<ApiMetricsResponse>("/metrics");
+      const response = await api.get<ApiMetricsResponse>("/api/metrics");
       const data = response.data;
 
       console.log("📊 Dados recebidos da API:", data);
