@@ -1,4 +1,4 @@
-// backend/src/server.js - VERSÃO CORRIGIDA
+// backend/src/server.js - REVERTER PARA VERSÃO ANTERIOR
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -62,24 +62,6 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
-// ==== ROTA SIMPLES PARA METRICS (TEMPORÁRIA) ====
-app.get("/api/metrics", (req, res) => {
-  console.log("📊 Rota /api/metrics acessada");
-  res.json({
-    totalRevenue: 50000,
-    totalExpenses: 30000,
-    netProfit: 20000,
-    cumulativeCashFlow: 20000,
-    initialInvestment: 100000,
-    paybackPeriod: 5,
-    tir: 0.15,
-    transactions: [],
-    salesExpensesData: [],
-    cumulativeCashFlowData: [],
-    chartData: []
-  });
-});
-
 // ==== INICIALIZAÇÃO DO SERVIDOR ====
 async function initializeServer() {
   try {
@@ -98,16 +80,16 @@ async function initializeServer() {
     });
     console.log('✅ Conectado ao banco de dados MySQL');
 
-    // ==== IMPORTAR ROTAS SEGURAS ====
-    const safeModules = ["auth", "vendas", "gastos"]; // ← metrics removida temporariamente
-    for (const mod of safeModules) {
+    // ==== IMPORTAR ROTAS (SEM /api/) ====
+    const modules = ["auth", "vendas", "gastos", "metrics"];
+    for (const mod of modules) {
       try {
         const routeModule = await import(`./routes/${mod}.js`);
         const createRoute = routeModule.default;
-        app.use(`/api/${mod}`, createRoute(db));
-        console.log(`✅ Rota /api/${mod} importada com sucesso`);
+        app.use(`/${mod}`, createRoute(db)); // ← SEM /api/
+        console.log(`✅ Rota ${mod} importada com sucesso`);
       } catch (err) {
-        console.error(`❌ Erro ao importar rota /api/${mod}:`, err.message);
+        console.error(`❌ Erro ao importar rota ${mod}:`, err.message);
       }
     }
 
