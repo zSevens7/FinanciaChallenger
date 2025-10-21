@@ -1,5 +1,12 @@
 // src/hooks/useFinancialMetrics.ts
 import { useEffect, useState } from "react";
+import {
+  aggregateByPeriod,
+  aggregateSalesByPeriod,
+  prepareChartData,
+  aggregateByCategory,
+  aggregateByTipoDespesa,
+} from "../services/agreggation"; // ❌ sem ChartDataItem aqui
 
 export interface ChartDataItem {
   name: string;
