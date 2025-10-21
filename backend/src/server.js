@@ -1,4 +1,4 @@
-// backend/src/server.js
+// backend/src/server.js - VERSÃO CORRIGIDA
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -62,6 +62,24 @@ app.get("/test-db", async (req, res) => {
   }
 });
 
+// ==== ROTA SIMPLES PARA METRICS (TEMPORÁRIA) ====
+app.get("/api/metrics", (req, res) => {
+  console.log("📊 Rota /api/metrics acessada");
+  res.json({
+    totalRevenue: 50000,
+    totalExpenses: 30000,
+    netProfit: 20000,
+    cumulativeCashFlow: 20000,
+    initialInvestment: 100000,
+    paybackPeriod: 5,
+    tir: 0.15,
+    transactions: [],
+    salesExpensesData: [],
+    cumulativeCashFlowData: [],
+    chartData: []
+  });
+});
+
 // ==== INICIALIZAÇÃO DO SERVIDOR ====
 async function initializeServer() {
   try {
@@ -80,28 +98,18 @@ async function initializeServer() {
     });
     console.log('✅ Conectado ao banco de dados MySQL');
 
-    // ==== IMPORTAR ROTAS ====
-    const modules = ["auth", "vendas", "gastos", "metrics"];
-    for (const mod of modules) {
+    // ==== IMPORTAR ROTAS SEGURAS ====
+    const safeModules = ["auth", "vendas", "gastos"]; // ← metrics removida temporariamente
+    for (const mod of safeModules) {
       try {
         const routeModule = await import(`./routes/${mod}.js`);
         const createRoute = routeModule.default;
-        // 🔥 Alterado para /api/${mod}
         app.use(`/api/${mod}`, createRoute(db));
         console.log(`✅ Rota /api/${mod} importada com sucesso`);
       } catch (err) {
         console.error(`❌ Erro ao importar rota /api/${mod}:`, err.message);
       }
     }
-
-    // 🔥 Adicionar middleware para rotas não encontradas (APIs)
-    app.use('/api/*', (req, res) => {
-      res.status(404).json({ 
-        error: 'Rota da API não encontrada',
-        path: req.originalUrl,
-        method: req.method 
-      });
-    });
 
     // ==== INICIAR SERVIDOR ====
     const server = app.listen(PORT, '0.0.0.0', () => {
