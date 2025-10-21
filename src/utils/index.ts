@@ -40,3 +40,23 @@ export function getUniqueMonthsForYear(items: { data: string }[], year: string) 
     .map(item => (new Date(item.data).getMonth() + 1).toString().padStart(2, '0'));
   return Array.from(new Set(months)).sort();
 }
+
+// utils/index.ts - ADICIONE ESTA FUNÇÃO
+export const safeFormatDate = (dateInput: string | Date | null): string => {
+  try {
+    if (!dateInput) return "Data inválida";
+    
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    
+    if (isNaN(date.getTime())) return "Data inválida";
+    
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    console.error('Erro ao formatar data:', error);
+    return "Data inválida";
+  }
+};

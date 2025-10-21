@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import DashboardKPI from "../features/dashboard/dashboardKPI";
 import PageContainer from "../features/gastos/components/PageContainer";
-import { monthNames, formatDate } from "../utils";
+import { monthNames, safeFormatDate } from "../utils"; // Use safeFormatDate
 import { SalesExpensesChart, CumulativeCashFlowChart } from "../features/dashboard/components";
 import { usePageHeader } from "../contexts/HeaderContext";
 import { DashboardTransactionsTable, Transaction } from "../components/DashHistory/DashBoardTransactionsTable";
@@ -46,15 +46,15 @@ const Dashboard = () => {
     );
   }
 
-  // KPIs
-  const kpis = [
+  // KPIs - useMemo para evitar recálculos desnecessários
+  const kpis = useMemo(() => [
     { name: "Receita Total", value: metrics.totalRevenue },
     { name: "Despesas Totais", value: metrics.totalExpenses },
     { name: "Lucro Líquido", value: metrics.netProfit },
     { name: "Investimento Inicial", value: metrics.initialInvestment },
     { name: "Payback (períodos)", value: metrics.paybackPeriod },
     { name: "TIR (%)", value: (metrics.tir ?? 0) * 100 }
-  ];
+  ], [metrics]);
 
   // Filtro de gráficos por período
   const filterByPeriod = (data: ChartDataItem[]): ChartDataItem[] => {
@@ -66,18 +66,18 @@ const Dashboard = () => {
     });
   };
 
-  // Formata transações para o DashboardTransactionsTable
+  // 🔴 CORREÇÃO CRÍTICA: Removido crypto.randomUUID() que causava o erro
   const formattedTransactions: Transaction[] = useMemo(() => {
     if (!metrics?.transactions?.length) return [];
 
-    return metrics.transactions.map(tx => ({
-      id: String(tx.id ?? crypto.randomUUID()),
+    return metrics.transactions.map((tx, index) => ({
+      id: tx.id || `temp-${index}-${tx.data || ''}`, // ID estável
       data: tx.data ?? "",
       type: tx.type === "Venda" ? "sale" : "expense",
       amount: typeof tx.amount === "number" ? tx.amount : 0,
       descricao: tx.descricao ?? "",
     }));
-  }, [metrics?.transactions]);
+  }, [metrics?.transactions?.length]); // Apenas length como dependência
 
   return (
     <PageContainer>
